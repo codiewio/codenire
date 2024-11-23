@@ -35,9 +35,11 @@ jobs:
       # Сборка Docker-образа
       - name: Build Docker image
         run: |
+          cd sandbox
           docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest .
 
       # Публикация Docker-образа
       - name: Push Docker image
         run: |
+          cd sandbox
           docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
