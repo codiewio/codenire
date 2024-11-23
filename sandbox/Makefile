@@ -19,10 +19,10 @@ docker:
 # runs in --mode=contained)
 dockergvisor:
 	docker build -f Dockerfile.gvisor --tag=codenire/codenire-sandbox-gvisor ..
-	docker tag codenire/codenire-sandbox-gvisor gcr.io/$(PROJ)/codenire-sandbox-gvisor:latest
+	docker tag codenire/codenire-sandbox-gvisor registry.digitalocean.com/codiew/codenire-sandbox-gvisor:latest
 
 push: docker dockergvisor
-	docker push gcr.io/$(PROJ)/codenire-sandbox:latest
+	docker push registry.digitalocean.com/codiew/codenire-sandbox:latest
 
 # runlocal runs the sandbox server locally, for use with the frontend
 # parent directory's "test_nacl" or "test_gvisor" test targets.

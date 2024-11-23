@@ -1,7 +1,7 @@
 spec:
   containers:
     - name: playground
-      image: 'ghcr.io/PROJECT_NAME/codenire-sandbox:latest'
+      image: 'registry.digitalocean.com/codiew/codenire-sandbox:latest'
       volumeMounts:
         - name: dockersock
           mountPath: /var/run/docker.sock
