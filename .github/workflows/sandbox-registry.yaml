@@ -1,0 +1,39 @@
+# Build frontend app in /frontend/public path and force push it
+# After force push run digital ocean rebuild static
+
+on:
+  push:
+    paths:
+      - 'sandbox/**'
+    branches:
+      - main
+  pull_request:
+    paths:
+      - 'sandbox/**'
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY_NAME: registry.digitalocean.com
+      IMAGE_NAME: codiew/codenire-sandbox
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Build container image
+        run: |
+          cd frontend
+          docker build -t ${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:latest .
+
+      - name: Log in to DigitalOcean Container Registry with short-lived credentials
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Push image to DigitalOcean Container Registry
+        run: docker push ${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:latest
