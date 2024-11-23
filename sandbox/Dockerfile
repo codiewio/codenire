@@ -27,8 +27,7 @@ RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
     go build -tags prod -o ./bin/sandbox
 
 
-
-FROM ubuntu:latest
+FROM debian:buster
 
 RUN apt-get update
 
@@ -42,10 +41,10 @@ RUN apt-get install --yes \
         curl \
         gnupg2 \
         software-properties-common
-
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
-    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-RUN apt-get update && apt-get install -y docker-ce-cli
+RUN bash -c "curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -"
+RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian buster stable"
+RUN apt-get update
+RUN apt-get install --yes docker-ce-cli
 
 COPY --from=builder /app/bin/sandbox /usr/local/bin/play-sandbox
 
