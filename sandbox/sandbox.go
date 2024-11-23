@@ -49,7 +49,7 @@ import (
 var (
 	listenAddr         = flag.String("listen", ":80", "HTTP server listen address. Only applicable when --mode=server")
 	mode               = flag.String("mode", "server", "Whether to run in \"server\" mode or \"contained\" mode. The contained mode is used internally by the server mode.")
-	dev                = flag.Bool("dev", true, "run in dev mode (show help messages)")
+	dev                = flag.Bool("dev", false, "run in dev mode")
 	numWorkers         = flag.Int("workers", runtime.NumCPU(), "number of parallel gvisor containers to pre-spin up & let run concurrently")
 	replicContainerCnt = flag.Int("replicContainerCnt", 1, "number of parallel containers")
 	runSem             chan struct{}
