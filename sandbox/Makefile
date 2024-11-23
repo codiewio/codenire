@@ -1,11 +1,11 @@
 ZONE := us-east1-b
 
 # заменить на нормальное понятное после тестов
-TEST_VM := codenire-test-vm
-PROJ := codenire
+VM_NAME := codenire-vm
+PROJ := codiewio
 NETWORK := default
 TAG_NAME := codenire
-RESERVED_IP := codenircom
+RESERVED_IP := codenireip
 
 
 # Docker environment for the sandbox server itself (containing docker CLI, etc), running
@@ -36,47 +36,33 @@ konlet.yaml.expanded: konlet.yaml
 
 # create_test_vm creates a test VM for interactive debugging.
 create_vm: konlet.yaml.expanded
-	gcloud --project=$(PROJ) compute instances create $(TEST_VM) \
+	gcloud --project=$(PROJ) compute instances create $(VM_NAME) \
 	--zone $(ZONE) \
 	--network $(NETWORK) \
-	--address=$(RESERVED_IP) \
+	--no-address \
 	--tags $(TAG_NAME) \
 	--image-project cos-cloud \
 	--image cos-stable-76-12239-60-0 \
 	--metadata-from-file gce-container-declaration=konlet.yaml.expanded,user-data=cloud-init.yaml
 
+
+#-address=$(RESERVED_IP) \
+
 # delete_test_vm deletes the test VM from create_vm.
 delete_test_vm:
-	gcloud --project=$(PROJ) compute instances delete $(TEST_VM) --quiet --zone $(ZONE)
+	gcloud --project=$(PROJ) compute instances delete $(VM_NAME) --quiet --zone $(ZONE)
 
-create-firewall:
-	gcloud compute firewall-rules create allow-$(TEST_VM) \
-      --allow tcp:80,tcp:443,tcp:22 \
+create_firewall:
+	gcloud compute firewall-rules create allow-$(VM_NAME) \
+      --allow tcp:80,tcp:22 \
       --network default \
       --source-ranges 0.0.0.0/0 \
       --target-tags $(TAG_NAME)
 
 delete-firewall:
-	gcloud compute firewall-rules delete allow-$(TEST_VM) --quiet
+	gcloud compute firewall-rules delete allow-$(VM_NAME) --quiet
 
 # ssh connects to the create_test_vm VM. It must be run from the same network.
 ssh:
-	gcloud --project=$(PROJ) compute ssh $(TEST_VM) --internal-ip --zone $(ZONE) --ssh-key-file=~/.ssh/id_ed25519
+	gcloud --project=$(PROJ) compute ssh $(VM_NAME) --internal-ip --zone $(ZONE) --ssh-key-file=~/.ssh/id_ed25519
 
-
-m:
-	gcloud auth configure-docker \
-		us-east1-docker.pkg.dev
-
-
-delete:
-	curl -X DELETE -H "Authorization: Bearer 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" \
-	  "https://ghcr.io/v2/codenire/codenire-sandbox/manifests/sha256:e8548e2b01cd0ab275b68f08f9d28203c56389769f7d9917214e31ac3d0006c6"
-
-images:
-	curl -H "Authorization: Bearer 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" \
-         -H "Accept: application/vnd.github.v3+json" \
-         "https://api.github.com/orgs/codenire/packages/container"
-	curl -H "Authorization: Bearer YOUR_PERSONAL_ACCESS_TOKEN" \
-         -H "Accept: application/vnd.github.v3+json" \
-         "https://api.github.com/users/YOUR_USERNAME/packages"

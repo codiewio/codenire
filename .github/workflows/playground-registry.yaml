@@ -3,13 +3,13 @@
 
 on:
   push:
-    paths:
+    paths-ignore:
       - 'sandbox/**'
       - '.github/workflows/sandbox-registry.yaml'
     branches:
       - main
   pull_request:
-    paths:
+    paths-ignore:
       - 'sandbox/**'
       - '.github/workflows/sandbox-registry.yaml'
     branches:
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE_USERNAME: codiew
-      IMAGE_NAME: codenire-sandbox
+      IMAGE_NAME: codenire-playground
     steps:
       # Проверка кода из репозитория
       - name: Checkout repository
@@ -36,11 +36,9 @@ jobs:
       # Сборка Docker-образа
       - name: Build Docker image
         run: |
-          cd sandbox
           docker build -t ${{ env.IMAGE_USERNAME }}/${{ env.IMAGE_NAME }}:latest .
 
       # Публикация Docker-образа
       - name: Push Docker image
         run: |
-          cd sandbox
           docker push ${{ env.IMAGE_USERNAME }}/${{ env.IMAGE_NAME }}:latest

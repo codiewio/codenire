@@ -49,9 +49,15 @@ import (
 var httpServer *http.Server
 var codenireManager manager.ContainerManager
 
+var dockerPath = "docker"
+
 const graceTimeout = 5 * time.Second
 
 func main() {
+	if *dev {
+		dockerPath = "/usr/local/bin/docker"
+	}
+
 	out, err := exec.Command(dockerPath, "version").CombinedOutput()
 	if err != nil {
 		log.Fatalf("failed to connect to docker: %v, %s", err, out)

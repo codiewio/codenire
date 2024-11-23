@@ -71,3 +71,9 @@ define fn_install_goutil
 		&& echo "$(3) installed!" \
 		&& echo "********************************"
 endef
+
+vpc-connector:
+	gcloud compute networks vpc-access connectors create vpccodenire \
+    	--region=us-east1 \
+    	--network=default \
+    	--range=10.8.0.0/28

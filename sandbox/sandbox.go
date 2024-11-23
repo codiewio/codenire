@@ -65,9 +65,6 @@ const (
 
 var (
 	errTooMuchOutput = errors.New("Output too large")
-
-	//dockerPath       = "docker"
-	dockerPath = "/usr/local/bin/docker"
 )
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
