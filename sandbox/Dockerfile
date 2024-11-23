@@ -14,9 +14,6 @@ RUN go mod download
 COPY . /go/src/playground
 WORKDIR /go/src/playground/sandbox
 
-RUN go install
-
-
 
 FROM ubuntu:latest
 
