@@ -13,7 +13,6 @@ RESERVED_IP := codenircom
 docker:
 	docker build -f Dockerfile --tag=codenire/codenire-sandbox ..
 
-
 # dockergvisor builds the golang/playground-sandbox-gvisor docker
 # image, which is the environment that the untrusted programs run in
 # (a busybox:glibc world with this directory's sandbox binary which
