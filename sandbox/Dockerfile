@@ -6,15 +6,25 @@
 
 FROM golang:1.23.3 AS build
 
-COPY go.mod /go/src/playground/go.mod
-COPY go.sum /go/src/playground/go.sum
-WORKDIR /go/src/playground
-RUN go mod download
+ADD go.mod go.sum /m/
+RUN cd /m && go mod download
 
-COPY . /go/src/playground
-WORKDIR /go/src/playground/sandbox
 
-RUN go install
+# Intermediate stage: Build the binary
+FROM golang:1.23.3 as builder
+
+COPY --from=modules /go/pkg /go/pkg
+
+# add a non-privileged user
+RUN useradd -u 10001 app-user
+
+RUN mkdir -p /app
+COPY . /app
+WORKDIR /app
+
+# Build the binary with go build
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
+    go build -tags prod -o ./bin/sandbox
 
 FROM ubuntu:latest
 
@@ -35,6 +45,6 @@ RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
     add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 RUN apt-get update && apt-get install -y docker-ce-cli
 
-COPY --from=build /go/bin/sandbox /usr/local/bin/play-sandbox
+COPY --from=build /bin/sandbox /usr/local/bin/play-sandbox
 
 ENTRYPOINT ["/usr/local/bin/play-sandbox"]
