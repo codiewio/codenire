@@ -1,0 +1,66 @@
+openapi: 3.0.0
+info:
+  title: Submission API
+  version: "1.0.0"
+  description: API for managing code submissions
+
+paths:
+  /run:
+    post:
+      summary: Run Sandbox
+      operationId: runSandbox
+      requestBody:
+        description: Run a sandbox
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SandboxRequest'
+      responses:
+        "200":
+          description: Submission ran successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SandboxResponse'
+
+
+components:
+  schemas:
+    SandboxResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        exitCode:
+          type: integer
+        stdout:
+          type: string
+          format: byte
+        stderr:
+          type: string
+          format: byte
+      required:
+        - exitCode
+        - stdout
+        - stderr
+
+
+
+    SandboxRequest:
+      type: object
+      properties:
+        sandId:
+          type: string
+        binary:
+          type: string
+          description: files in tar archive encoded with base64
+        args:
+          type: string
+        isExec:
+            type: boolean
+      required:
+        - sandId
+        - binary
+        - args
+        - isExec

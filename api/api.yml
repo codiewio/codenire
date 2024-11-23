@@ -1,0 +1,76 @@
+openapi: 3.0.0
+info:
+  title: Submission API
+  version: "1.0.0"
+  description: API for managing code submissions
+
+paths:
+  /run:
+    post:
+      summary: Run Submission
+      operationId: runSubmission
+      requestBody:
+        description: Run a submission
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionRequest'
+      responses:
+        "200":
+          description: Submission ran successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResponse'
+
+components:
+  schemas:
+    SubmissionRequest:
+      type: object
+      properties:
+        templateId:
+          type: string
+        args:
+          type: string
+        files:
+          type: object
+          description: Files
+          additionalProperties:
+            type: string
+      required:
+        - templateId
+        - args
+        - files
+    SubmissionResponse:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubmissionResponseEvents'
+        time:
+          type: string
+        errors:
+          type: array
+          items:
+            type: string
+        meta:
+          type: object
+          properties:
+            version:
+              type: string
+          additionalProperties: true
+      required:
+        - events
+
+    SubmissionResponseEvents:
+      type: object
+      properties:
+        message:
+          type: string
+        kind:
+          type: string
+      required:
+        - message
+        - kind
