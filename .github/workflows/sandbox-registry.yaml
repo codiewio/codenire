@@ -5,11 +5,13 @@ on:
   push:
     paths:
       - 'sandbox/**'
+      - '.github/workflows/sandbox-registry.yaml'
     branches:
       - main
   pull_request:
     paths:
       - 'sandbox/**'
+      - '.github/workflows/sandbox-registry.yaml'
     branches:
       - main
 
