@@ -62,13 +62,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect to docker: %v, %s", err, out)
 	}
+	log.Fatalf("failed to connect to docker: %v, %s, %s", err, out, dockerPath)
 
 	flag.Parse()
-
-	if *mode == "contained" {
-		runInGvisor()
-		panic("runInGvisor didn't exit")
-	}
 
 	if flag.NArg() != 0 {
 		flag.Usage()

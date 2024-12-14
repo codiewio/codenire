@@ -1,6 +1,6 @@
 module sandbox
 
-go 1.23.3
+go 1.22
 
 require (
 	github.com/alitto/pond/v2 v2.1.4

@@ -4,14 +4,14 @@
 # environment so the play-sandbox server can connect to the host's
 # docker daemon, which has the gvisor "runsc" runtime available.
 
-FROM golang:1.23.3 AS modules
+FROM golang:1.22 AS modules
 
 ADD go.mod go.sum /m/
 RUN cd /m && go mod download
 
 
 # Intermediate stage: Build the binary
-FROM golang:1.23.3 as builder
+FROM golang:1.22 as builder
 
 COPY --from=modules /go/pkg /go/pkg
 
@@ -24,7 +24,7 @@ WORKDIR /app
 
 # Build the binary with go build
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
-    go build -tags prod -o ./bin/sandbox
+    go build -tags prod -o ./bin/sandbox .
 
 
 
