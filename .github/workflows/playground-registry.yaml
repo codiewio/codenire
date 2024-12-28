@@ -16,7 +16,7 @@ on:
       - main
 
 jobs:
-  build-and-push:
+  playground-build-and-push:
     runs-on: ubuntu-latest
     env:
       IMAGE_USERNAME: codiew

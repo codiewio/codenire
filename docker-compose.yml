@@ -1,0 +1,40 @@
+version: "3.9"
+services:
+  playground:
+    container_name: play_dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        GO_VERSION: "go1.23.4"
+    environment:
+      BACKEND_URL: "http://codenire_sandbox/run"
+    ports:
+      - "8081:8081/tcp"
+    stdin_open: true
+    tty: true
+    restart: "no"
+    networks:
+      - sandnet
+    entrypoint: ["/app/playground", "--backend-url", "http://sandbox_dev/run"]
+
+  sandbox:
+    container_name: sandbox_dev
+    build:
+      context: ./sandbox
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80/tcp"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./sandbox/provision:/provision
+    networks:
+      - sandnet
+    stdin_open: true
+    tty: true
+    restart: "no"
+    entrypoint: ["/app/sandbox"]
+
+
+networks:
+  sandnet:

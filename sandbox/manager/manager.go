@@ -120,7 +120,7 @@ func (m *CodenireManager) Boot() (err error) {
 
 	// TODO:: чекнуть, что все image поднялись
 
-	m.createWorkers()
+	m.startWorkers()
 
 	return nil
 }
@@ -147,6 +147,8 @@ func (m *CodenireManager) ImageList(prefix string) []string {
 			}
 		}
 	}
+
+	ii = uniq(ii)
 
 	return ii
 }
@@ -341,30 +343,34 @@ func (m *CodenireManager) Register(i CodenireImage) error {
 	return nil
 }
 
-func (m *CodenireManager) createWorkers() {
+func (m *CodenireManager) startWorkers() {
 	for _, img := range m.imgs {
 		m.imageContainers[img.Name] = make(chan string, m.replicaCnt)
 
-		// TODO:: подумать наж тем, чтобы создавалось ровное число контейнеров, заданное в replicaCnt
-		i2 := 1
-		for i := 0; i < i2; i++ {
-			go func() {
-				for {
-					if m.killSignal {
-						continue
-					}
+		m.startImageWorkers(img)
+	}
+}
 
-					c, err := m.runSndContainer(img)
-					if err != nil {
-						log.Printf("error starting container: %v", err)
-						time.Sleep(5 * time.Second)
-						continue
-					}
+// TODO:: change workers num logic
+func (m *CodenireManager) startImageWorkers(img BuiltImage) {
 
-					m.imageContainers[img.Name] <- c
+	for i := 0; i < m.replicaCnt; i++ {
+		go func() {
+			for {
+				if m.killSignal {
+					continue
 				}
-			}()
-		}
+
+				c, err := m.runSndContainer(img)
+				if err != nil {
+					log.Printf("error starting container: %v", err)
+					time.Sleep(5 * time.Second)
+					continue
+				}
+
+				m.imageContainers[img.Name] <- c
+			}
+		}()
 	}
 }
 
@@ -425,4 +431,18 @@ func removeAfterColon(input string) string {
 		return input[:idx]
 	}
 	return input // Вернем оригинал, если ":" нет
+}
+
+func uniq(slice []string) []string {
+	seen := make(map[string]struct{})
+	var result []string
+
+	for _, value := range slice {
+		if _, exists := seen[value]; !exists {
+			seen[value] = struct{}{}
+			result = append(result, value)
+		}
+	}
+
+	return result
 }

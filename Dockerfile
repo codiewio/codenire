@@ -105,7 +105,7 @@ RUN GOCACHE=/gocache ./bin/go install --tags=faketime std
 RUN ./bin/go vet --tags=faketime std || true
 
 RUN mkdir /app
-COPY --from=build-playground /go/bin/playground /app
+COPY --from=build-playground /go/bin /app
 WORKDIR /app
 
 EXPOSE 8080

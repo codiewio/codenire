@@ -37,6 +37,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -49,20 +50,26 @@ import (
 var httpServer *http.Server
 var codenireManager manager.ContainerManager
 
-var dockerPath = "docker"
-
-const graceTimeout = 5 * time.Second
+var (
+	listenAddr          = flag.String("listen", ":80", "HTTP server listen address. Only applicable when --mode=server")
+	mode                = flag.String("mode", "server", "Whether to run in \"server\" mode or \"contained\" mode. The contained mode is used internally by the server mode.")
+	dev                 = flag.Bool("dev", false, "run in dev mode")
+	numWorkers          = flag.Int("workers", runtime.NumCPU(), "number of parallel gvisor containers to pre-spin up & let run concurrently")
+	replicaContainerCnt = flag.Int("replicaContainerCnt", 1, "number of parallel containers")
+	runSem              chan struct{}
+	dockerPath          = "docker"
+	graceTimeout        = 5 * time.Second
+)
 
 func main() {
-	if *dev {
-		dockerPath = "/usr/local/bin/docker"
-	}
+	//if *dev {
+	//	dockerPath = "/usr/local/bin/docker"
+	//}
 
 	out, err := exec.Command(dockerPath, "version").CombinedOutput()
 	if err != nil {
 		log.Fatalf("failed to connect to docker: %v, %s", err, out)
 	}
-	log.Fatalf("failed to connect to docker: %v, %s, %s", err, out, dockerPath)
 
 	flag.Parse()
 
@@ -72,7 +79,7 @@ func main() {
 	}
 	log.Printf("Go playground sandbox starting.")
 
-	codenireManager = manager.NewCodenireManager(*dev, *replicContainerCnt)
+	codenireManager = manager.NewCodenireManager(*dev, *replicaContainerCnt)
 	codenireManager.KillAll()
 
 	readyContainer = make(chan *Container)

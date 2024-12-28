@@ -1,0 +1,6 @@
+github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
+github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
+golang.org/x/build v0.0.0-20241220174713-4a87e0521def h1:L/X0q75R9YqUv5+1J0mpfGaRqqpyMLgbEbg6fZjqWWk=
+golang.org/x/build v0.0.0-20241220174713-4a87e0521def/go.mod h1:P4hWywT62QsT12GzIMMZZRqbpSqm4q5LVLRO8PkT0pI=
+golang.org/x/oauth2 v0.24.0 h1:KTBBxWqUa0ykRPLtV69rRto9TLXcqYkeswu48x/gvNE=
+golang.org/x/oauth2 v0.24.0/go.mod h1:XYTD2NtWslqkgxebSiOHnXEap4TF09sJSc7H1sXbhtI=

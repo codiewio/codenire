@@ -38,11 +38,16 @@ import (
 var log = newStdLogger()
 
 var (
-	BackendURL = flag.String("backend-url", "http://127.0.0.1:8080/run", "URL for sandbox backend that runs Go binaries.")
+	//BackendURL = flag.String("backend-url", "http://127.0.0.1:8080/run", "URL for sandbox backend that runs Go binaries.")
+	BackendURL = flag.String("backend-url", "http://sandbox_dev/run", "URL for sandbox backend that runs Go binaries.")
 )
 
 func main() {
+
 	flag.Parse()
+
+	log.Printf("Use backend URL on :%s ...", *BackendURL)
+
 	s, err := newServer(func(s *server) error {
 		pid := projectID()
 

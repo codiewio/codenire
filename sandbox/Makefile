@@ -26,10 +26,10 @@ push: docker dockergvisor
 
 # runlocal runs the sandbox server locally, for use with the frontend
 # parent directory's "test_nacl" or "test_gvisor" test targets.
-runlocal: docker dockergvisor
+runlocal: docker
 	docker network create sandnet || true
 	docker kill sandbox_dev || true
-	docker run --name=sandbox_dev --rm --network=sandnet -ti -p 127.0.0.1:8080:80/tcp -v /var/run/docker.sock:/var/run/docker.sock golang/playground-sandbox:latest --dev
+	docker run --name=sandbox_dev --rm --network=sandnet -ti -p 127.0.0.1:8080:80/tcp -v /var/run/docker.sock:/var/run/docker.sock codenire/codenire-sandbox:latest
 
 konlet.yaml.expanded: konlet.yaml
 	sed "s/PROJECT_NAME/$(PROJ)/" konlet.yaml > konlet.yaml.expanded

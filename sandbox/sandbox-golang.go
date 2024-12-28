@@ -189,7 +189,7 @@ func runOldHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	res.Stdout = c.stdout.dst.Bytes()
 	res.Stderr = cleanStderr(c.stderr.dst.Bytes())
-	sendResponse(w, res)
+	sendRunResponse(w, res)
 }
 
 // runInGvisor is run when we're now inside gvisor. We have no network

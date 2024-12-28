@@ -31,28 +31,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
-	"runtime"
 	"time"
 
 	api "sandbox/api/gen"
 	"sandbox/internal"
 	"sandbox/manager"
-)
-
-var (
-	listenAddr         = flag.String("listen", ":80", "HTTP server listen address. Only applicable when --mode=server")
-	mode               = flag.String("mode", "server", "Whether to run in \"server\" mode or \"contained\" mode. The contained mode is used internally by the server mode.")
-	dev                = flag.Bool("dev", false, "run in dev mode")
-	numWorkers         = flag.Int("workers", runtime.NumCPU(), "number of parallel gvisor containers to pre-spin up & let run concurrently")
-	replicContainerCnt = flag.Int("replicContainerCnt", 1, "number of parallel containers")
-	runSem             chan struct{}
 )
 
 const (
@@ -98,6 +87,8 @@ func listImageHandler(w http.ResponseWriter, r *http.Request) {
 	for _, row := range rows {
 		fmt.Println("[row]: ", row)
 	}
+
+	//sendRunResponse(w, res)
 }
 
 func runHandler(w http.ResponseWriter, r *http.Request) {
@@ -193,7 +184,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Res err: ", string(res.Stderr))
 	fmt.Println("=====================================")
 
-	sendResponse(w, res)
+	sendRunResponse(w, res)
 }
 
 func errExitCode(err error) int {
@@ -208,10 +199,10 @@ func errExitCode(err error) int {
 }
 
 func sendError(w http.ResponseWriter, errMsg string) {
-	sendResponse(w, &api.SandboxResponse{Error: &errMsg})
+	sendRunResponse(w, &api.SandboxResponse{Error: &errMsg})
 }
 
-func sendResponse(w http.ResponseWriter, r *api.SandboxResponse) {
+func sendRunResponse(w http.ResponseWriter, r *api.SandboxResponse) {
 	jres, err := json.MarshalIndent(r, "", "  ")
 	if err != nil {
 		http.Error(w, "error encoding JSON", http.StatusInternalServerError)

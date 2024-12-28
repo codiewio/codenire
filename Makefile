@@ -5,19 +5,24 @@ LOCAL_BIN := $(CURDIR)/.bin
 OAPI_CODEGEN_VERSION := v2.2.0
 OAPI_CODEGEN_BIN=$(LOCAL_BIN)/oapi-codegen
 
-LATEST_GO := $(shell go run ./cmd/latestgo)
-#BACKEND_URL := http://sandbox_dev.sandnet/run
-BACKEND_URL := http://host.docker.internal:8080/run
+LATEST_GO := $$(cd latestgo && go run main.go)
+
+BACKEND_URL := http://sandbox_dev/run
+#BACKEND_URL := http://host.docker.internal:8080/run
 
 .PHONY: docker test update-cloudbuild-trigger
 
+latest:
+	echo "The date is: $$TEMP_VAR";
+
+
 docker:
-	docker build --build-arg GO_VERSION=$(LATEST_GO) -t golang/playground .
+	docker build --build-arg GO_VERSION=$(LATEST_GO) -t codenire/playground .
 
 runlocal:
 	docker network create sandnet || true
 	docker kill play_dev || true
-	docker run --name=play_dev --rm --network=sandnet -ti -p 127.0.0.1:8081:8081/tcp golang/playground --backend-url="$(BACKEND_URL)"
+	docker run --name=play_dev --rm --network=sandnet -ti -p 127.0.0.1:8081:8081/tcp codenire/playground --backend-url="$(BACKEND_URL)"
 
 test_go:
 	# Run fast tests first: (and tests whether, say, things compile)
