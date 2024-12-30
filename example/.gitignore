@@ -5,4 +5,4 @@ node_modules/
 **/.ignore/
 .idea/
 
-/example/hooks/plugin/hook_handler
+/hooks/plugin/hook_handler

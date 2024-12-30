@@ -4,6 +4,7 @@
 # environment so the play-sandbox server can connect to the host's
 # docker daemon, which has the gvisor "runsc" runtime available.
 
+# 1
 FROM golang:1.22 AS modules
 
 ADD go.mod go.sum /m/
@@ -48,9 +49,6 @@ RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
 RUN apt-get update && apt-get install -y docker-ce-cli
 
 
+COPY --from=builder /app/bin/sandbox /usr/local/bin/play-sandbox
 
-RUN mkdir /app
-COPY --from=builder /app/bin/sandbox /app/sandbox
-WORKDIR /app
-
-ENTRYPOINT ["/app/sandbox"]
+ENTRYPOINT ["/usr/local/bin/play-sandbox"]

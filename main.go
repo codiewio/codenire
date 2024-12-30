@@ -29,74 +29,71 @@ package main
 
 import (
 	"flag"
+	"github.com/codenire/codenire/pkg/hooks/file"
+	"log"
 	"net/http"
-	"os"
 
-	"cloud.google.com/go/compute/metadata"
+	"github.com/codenire/codenire/pkg/handler"
+	"github.com/codenire/codenire/pkg/hooks"
+	"github.com/codenire/codenire/pkg/hooks/plugin"
 )
 
-var log = newStdLogger()
-
 var (
-	//BackendURL = flag.String("backend-url", "http://127.0.0.1:8080/run", "URL for sandbox backend that runs Go binaries.")
-	BackendURL = flag.String("backend-url", "http://sandbox_dev/run", "URL for sandbox backend that runs Go binaries.")
+	BackendURL     = flag.String("backend-url", "http://sandbox_dev/run", "URL for sandbox backend that runs Go binaries.")
+	Port           = flag.String("port", "8081", "URL for sandbox backend that runs Go binaries.")
+	PluginHookPath = flag.String("hooks-plugins", "", "URL for sandbox backend that runs Go binaries.")
+	FileHooksDir   = flag.String("hooks-dir", "", "Directory to search for available hooks scripts")
 )
 
 func main() {
-
 	flag.Parse()
-
 	log.Printf("Use backend URL on :%s ...", *BackendURL)
 
-	s, err := newServer(func(s *server) error {
-		pid := projectID()
+	cfg := handler.Config{
+		BackendURL:     *BackendURL,
+		Port:           *Port,
+		PluginHookPath: *PluginHookPath,
+		FileHooksDir:   *FileHooksDir,
+	}
 
-		if caddr := os.Getenv("MEMCACHED_ADDR"); caddr != "" {
-			s.cache = newGobCache(caddr)
-			log.Printf("App (project ID: %q) is caching results", pid)
-		} else {
-			s.cache = (*gobCache)(nil) // Use a no-op cache implementation.
-			log.Printf("App (project ID: %q) is NOT caching results", pid)
-		}
-		s.log = log
-		if gotip := os.Getenv("GOTIP"); gotip == "true" {
-			s.gotip = true
-		}
-		execpath, _ := os.Executable()
-		if execpath != "" {
-			if fi, _ := os.Stat(execpath); fi != nil {
-				s.modtime = fi.ModTime()
-			}
+	hookHandler := getHookHandler(&cfg)
+	if hookHandler != nil {
+		if err := hookHandler.Setup(); err != nil {
+			log.Fatalf("unable to setup hooks for handler: %s", err)
 		}
 
-		return nil
-	})
+		cfg.PreRequestCallback = func(ev handler.HookEvent) (handler.HTTPResponse, error) {
+			return hooks.PreSandboxRequestCallback(ev, hookHandler)
+		}
+	}
+
+	s, err := handler.NewServer(&cfg)
 	if err != nil {
 		log.Fatalf("Error creating server: %v", err)
 	}
 
-	//if *runtests {
-	//	s.test()
-	//	return
-	//}
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8081"
-	}
+	port := cfg.Port
 
 	// Get the backend dialer warmed up. This starts
 	// RegionInstanceGroupDialer queries and health checks.
-	go sandboxBackendClient()
+	go handler.SandboxBackendClient()
 
 	log.Printf("Listening on :%v ...", port)
 	log.Fatalf("Error listening on :%v: %v", port, http.ListenAndServe(":"+port, s))
 }
 
-func projectID() string {
-	id, err := metadata.ProjectID()
-	if err != nil && os.Getenv("GAE_INSTANCE") != "" {
-		log.Fatalf("Could not determine the project ID: %v", err)
+func getHookHandler(config *handler.Config) hooks.HookHandler {
+	if config.PluginHookPath != "" {
+		return &plugin.PluginHook{
+			Path: config.PluginHookPath,
+		}
 	}
-	return id
+
+	if config.FileHooksDir != "" {
+		return &file.FileHook{
+			Directory: config.FileHooksDir,
+		}
+	}
+
+	return nil
 }

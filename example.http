@@ -15,6 +15,28 @@ Content-Type: application/json
   }
 }
 
+###
+
+### Run example code
+POST http://127.0.0.1:8081/run
+Content-Type: application/json
+
+{
+  "templateId": "go",
+
+  "args": "--name \"Elon Mask\" -age=45",
+
+  "files": {
+    "index.php": "<?php\n// /index.php\n\n// Подключаем файлы с функциями\n require_once __DIR__ . '/src/foo.php';\nrequire_once __DIR__ . '/src/bar/bar.php';\n\n// Вызываем функции\n$resultFoo = foo();\n$resultBar = bar();\n\n// Вычисляем произведение\n$product = $resultFoo * $resultBar;\n\n// Выводим результат\nvar_dump($product);",
+    "src/foo.php": "<?php\n\nfunction foo() {\n    return 20;\n}",
+    "src/bar/bar.php": "<?php\n\nfunction bar() {\n    return 3;\n}"
+  }
+}
+
+
+
+
+### PRIVATE API (ONLY LOCAL)
 
 ### Runned Docker Images
 POST http://127.0.0.1:8080/images/list
@@ -37,5 +59,11 @@ Content-Type: application/json
 
 ###
 
+POST https://goplay.tools/api/v2/run?backend=
+Content-Type: application/json
 
-POST http://127.0.0.1:8080/images/list
+{
+  "files": {
+    "main.go": "package main\n\nimport (\n\t\"fmt\"\n)\n\nfunc main() {\n\tfmt.Println(\"Hello, World!\")\n}\n"
+  }
+}

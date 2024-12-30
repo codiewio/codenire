@@ -12,6 +12,7 @@
 # version of Go. See the configuration in the deploy directory.
 ARG GO_VERSION=go1.22.6
 
+# 1
 # GO_BOOTSTRAP_VERSION is downloaded below and used to bootstrap the build from
 # source. Therefore, this should be a version that is guaranteed to have
 # published artifacts, such as the latest minor of the previous major Go
@@ -81,7 +82,7 @@ RUN go install
 # Final stage.
 FROM debian:buster
 
-RUN apt-get update && apt-get install -y git ca-certificates --no-install-recommends
+RUN apt-get update && apt-get install -y git ca-certificates jq bash --no-install-recommends
 
 # Make a copy in /usr/local/go-faketime where the standard library
 # is installed with -tags=faketime.

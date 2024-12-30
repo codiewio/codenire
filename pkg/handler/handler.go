@@ -1,40 +1,10 @@
-// -----------------------------------------------------------
-// Copyright:
-//
-// 2024 The Codenire Authors. All rights reserved.
-// Authors:
-// 	- Maksim Fedorov mfedorov@codiew.io
-//
-// Licensed under the MIT License.
-//
-// This project based on Source of Original Copyright (below)
-
-// -----------------------------------------------------------
-// **** The Original Copyright:
-//
-// Copyright 2019 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// The sandbox program is an HTTP server that receives untrusted
-// linux/amd64 binaries in a POST request and then executes them in
-// a gvisor sandbox using Docker, returning the output as a response
-// to the POST.
-//
-// It's part of the Go playground (https://play.golang.org/).
-
-// **** End of the Original Copyright
-// -----------------------------------------------------------
-
-package main
+package handler
 
 import (
 	"bytes"
-	"cloud.google.com/go/compute/metadata"
 	"encoding/json"
 	"errors"
 	"fmt"
-	api "github.com/codenire/codenire/api/gen"
 	"go/parser"
 	"go/token"
 	"io"
@@ -43,32 +13,60 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"cloud.google.com/go/compute/metadata"
+	api "github.com/codenire/codenire/api/gen"
 )
 
-func runHandler(w http.ResponseWriter, r *http.Request) {
+type Handler struct {
+	Config *Config
+}
+
+func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var req api.SubmissionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+		fmt.Println("Playground: invalid request", err)
+		http.Error(w, "invalid request: "+err.Error(), http.StatusBadRequest)
 		return
+	}
+
+	if h.Config.PreRequestCallback != nil {
+		resp2, err := h.Config.PreRequestCallback(newHookEvent(r.Context(), req))
+		if err != nil {
+			fmt.Println("Playground: Pre-Request callback failed", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if resp2.Prevent {
+			resp2.WriteTo(w)
+			return
+		}
+
+		// TODO:: merge response
 	}
 
 	tmpDir, err := os.MkdirTemp("", "box")
 	if err != nil {
+		fmt.Println("Playground: create tmp dir error", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer os.RemoveAll(tmpDir)
 
 	err = copyFilesToTmpDir(tmpDir, req.Files)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		fmt.Println("Playground: copying files into tmp dir failed", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	b, err := tarToBase64(tmpDir)
 	if err != nil {
-		http.Error(w, "fail on create tar files: "+err.Error(), http.StatusBadRequest)
+		fmt.Println("Playground: zip tmp dit to base66 failed", err)
+		http.Error(w, "fail on create tar files: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -81,33 +79,34 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		},
 	)
 	if err != nil {
-		fmt.Println("Ошибка сериализации:", err)
+		fmt.Println("Playground: request marshal error", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	sreq, err := http.NewRequestWithContext(ctx, "POST", *BackendURL, bytes.NewBuffer(jsonData))
+	sreq, err := http.NewRequestWithContext(ctx, "POST", h.Config.BackendURL, bytes.NewBuffer(jsonData))
 	if err != nil {
+		log.Printf("Playground: Sandbox client request error: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	sreq.Header.Add("Idempotency-Key", "1")
 
 	sreq.GetBody = func() (io.ReadCloser, error) { return io.NopCloser(bytes.NewBuffer(jsonData)), nil }
-	resp, err := sandboxBackendClient().Do(sreq)
+	resp, err := SandboxBackendClient().Do(sreq)
 	if err != nil {
-		if err != nil {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Playground: Sandbox client request error: %v", err)
+		http.Error(w, err.Error(), http.StatusBadGateway)
 
 		return
 	}
 	defer resp.Body.Close()
 
+	// TODO:: [HOOK] post-response hook
+
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("unexpected response from backend: %v", resp.Status)
+		log.Printf("Playground: unexpected response from backend: %v", resp.Status)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 
 		return
@@ -116,21 +115,17 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	var execRes api.SandboxResponse
 
 	if err = json.NewDecoder(resp.Body).Decode(&execRes); err != nil {
-		log.Printf("JSON decode error from backend: %v", err)
-		http.Error(w, "error parsing JSON from backend", http.StatusInternalServerError)
+		log.Printf("Playground: JSON decode error from backend: %v", err)
+		http.Error(w, "error parsing JSON from backend", http.StatusBadGateway)
 		return
 	}
-
-	//if *execRes.Error != "" {
-	//	writeJSONResponse(w, &api.SubmissionResponse{Errors: execRes.Error}, http.StatusOK)
-	//}
 
 	rec := new(Recorder)
 	rec.Stdout().Write(execRes.Stdout)
 	rec.Stderr().Write(execRes.Stderr)
 	events, err := rec.Events()
 	if err != nil {
-		log.Printf("error decoding events: %v", err)
+		log.Printf("Playground: error decoding events: %v", err)
 		http.Error(w, "error parsing JSON from backend", http.StatusInternalServerError)
 		return
 	}
@@ -173,7 +168,7 @@ var sandboxBackendOnce struct {
 	c *http.Client
 }
 
-func sandboxBackendClient() *http.Client {
+func SandboxBackendClient() *http.Client {
 	sandboxBackendOnce.Do(initSandboxBackendClient)
 	return sandboxBackendOnce.c
 }
@@ -192,12 +187,15 @@ func initSandboxBackendClient() {
 func writeJSONResponse(w http.ResponseWriter, resp interface{}, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	var buf bytes.Buffer
+
 	if err := json.NewEncoder(&buf).Encode(resp); err != nil {
 		log.Errorf("error encoding response: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
+
 	w.WriteHeader(status)
+
 	if _, err := io.Copy(w, &buf); err != nil {
 		log.Errorf("io.Copy(w, &buf): %v", err)
 		return

@@ -317,7 +317,7 @@ func (m *CodenireManager) Register(i CodenireImage) error {
 	}
 	//------------------------------------------------------------------
 
-	sprintf := fmt.Sprintf("codenire/%s", i.Alias)
+	sprintf := fmt.Sprintf("%s/%s", imageTagPrefix, i.Alias)
 	buildOptions := types.ImageBuildOptions{
 		Dockerfile:     "Dockerfile",
 		Tags:           []string{sprintf},

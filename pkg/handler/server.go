@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package main
+package handler
 
 import (
 	"bytes"
@@ -13,36 +13,44 @@ import (
 	"time"
 )
 
-type server struct {
+var log = newStdLogger()
+
+type Server struct {
 	mux   *http.ServeMux
 	log   logger
-	cache responseCache
 	gotip bool // if set, server is using gotip
 
 	// When the executable was last modified. Used for caching headers of compiled assets.
 	modtime time.Time
+
+	handler Handler
 }
 
-func newServer(options ...func(s *server) error) (*server, error) {
-	s := &server{mux: http.NewServeMux()}
+func NewServer(config *Config, options ...func(s *Server) error) (*Server, error) {
+	s := &Server{
+		mux: http.NewServeMux(),
+		handler: Handler{
+			Config: config,
+		},
+		log: log,
+	}
+
 	for _, o := range options {
 		if err := o(s); err != nil {
 			return nil, err
 		}
 	}
+
 	if s.log == nil {
 		return nil, fmt.Errorf("must provide an option func that specifies a logger")
 	}
-	s.init()
+
+	s.mux.HandleFunc("/run", s.handler.RunHandler)
+
 	return s, nil
 }
 
-func (s *server) init() {
-
-	s.mux.HandleFunc("/run", runHandler)
-}
-
-func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("X-Forwarded-Proto") == "http" {
 		r.URL.Scheme = "https"
 		r.URL.Host = r.Host
@@ -55,7 +63,7 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mux.ServeHTTP(w, r)
 }
 
-func (s *server) writeJSONResponse(w http.ResponseWriter, resp interface{}, status int) {
+func (s *Server) writeJSONResponse(w http.ResponseWriter, resp interface{}, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(resp); err != nil {

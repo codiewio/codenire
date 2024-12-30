@@ -82,3 +82,7 @@ vpc-connector:
     	--region=us-east1 \
     	--network=default \
     	--range=10.8.0.0/28
+
+rebuild:
+	docker compose down --rmi local
+	docker compose up
