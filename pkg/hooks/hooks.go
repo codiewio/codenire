@@ -3,7 +3,7 @@ package hooks
 import (
 	"log/slog"
 
-	"github.com/codenire/codenire/pkg/handler"
+	"github.com/codiewio/codenire/pkg/handler"
 )
 
 type HookRequest struct {

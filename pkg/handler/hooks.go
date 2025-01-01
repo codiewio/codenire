@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 
-	api "github.com/codenire/codenire/api/gen"
+	api "github.com/codiewio/codenire/api/gen"
 )
 
 type HookEvent struct {

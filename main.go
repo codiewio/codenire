@@ -29,13 +29,13 @@ package main
 
 import (
 	"flag"
-	"github.com/codenire/codenire/pkg/hooks/file"
+	"github.com/codiewio/codenire/pkg/hooks/file"
 	"log"
 	"net/http"
 
-	"github.com/codenire/codenire/pkg/handler"
-	"github.com/codenire/codenire/pkg/hooks"
-	"github.com/codenire/codenire/pkg/hooks/plugin"
+	"github.com/codiewio/codenire/pkg/handler"
+	"github.com/codiewio/codenire/pkg/hooks"
+	"github.com/codiewio/codenire/pkg/hooks/plugin"
 )
 
 var (

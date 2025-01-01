@@ -10,7 +10,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/codenire/codenire/pkg/hooks"
+	"github.com/codiewio/codenire/pkg/hooks"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"

@@ -14,7 +14,7 @@ import (
 	"strings"
 	"sync"
 
-	api "github.com/codenire/codenire/api/gen"
+	api "github.com/codiewio/codenire/api/gen"
 )
 
 type Handler struct {

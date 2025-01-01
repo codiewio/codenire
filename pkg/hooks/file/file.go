@@ -13,7 +13,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/codenire/codenire/pkg/hooks"
+	"github.com/codiewio/codenire/pkg/hooks"
 )
 
 type FileHook struct {

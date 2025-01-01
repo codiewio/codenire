@@ -14,7 +14,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	api "github.com/codenire/codenire/api/gen"
+	api "github.com/codiewio/codenire/api/gen"
 )
 
 // When sandbox time begins.

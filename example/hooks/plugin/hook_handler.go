@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/codenire/codenire/pkg/hooks"
-	codeniredplugin "github.com/codenire/codenire/pkg/hooks/plugin"
+	"github.com/codiewio/codenire/pkg/hooks"
+	codeniredplugin "github.com/codiewio/codenire/pkg/hooks/plugin"
 	"github.com/hashicorp/go-plugin"
 )
 
