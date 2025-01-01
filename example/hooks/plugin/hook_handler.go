@@ -9,16 +9,16 @@ import (
 	"github.com/hashicorp/go-plugin"
 )
 
-type MyHookHandler struct {
+type CodenireHandler struct {
 }
 
-func (g *MyHookHandler) Setup() error {
-	log.Println("MyHookHandler.Setup is invoked")
+func (g *CodenireHandler) Setup() error {
+	log.Println("CodenireHandler.Setup is invoked")
 	return nil
 }
 
-func (g *MyHookHandler) InvokeHook(req hooks.HookRequest) (res hooks.HookResponse, err error) {
-	log.Println("MyHookHandler.InvokeHook is invoked")
+func (g *CodenireHandler) InvokeHook(req hooks.HookRequest) (res hooks.HookResponse, err error) {
+	log.Println("CodenireHandler.InvokeHook is invoked")
 
 	res.HTTPResponse.Header = make(map[string]string)
 
@@ -36,7 +36,7 @@ var handshakeConfig = plugin.HandshakeConfig{
 }
 
 func main() {
-	myHandler := &MyHookHandler{}
+	myHandler := &CodenireHandler{}
 
 	var pluginMap = map[string]plugin.Plugin{
 		"hookHandler": &codeniredplugin.HookHandlerPlugin{Impl: myHandler},
