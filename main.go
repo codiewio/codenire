@@ -74,10 +74,6 @@ func main() {
 
 	port := cfg.Port
 
-	// Get the backend dialer warmed up. This starts
-	// RegionInstanceGroupDialer queries and health checks.
-	go handler.SandboxBackendClient()
-
 	log.Printf("Listening on :%v ...", port)
 	log.Fatalf("Error listening on :%v: %v", port, http.ListenAndServe(":"+port, s))
 }

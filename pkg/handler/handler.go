@@ -14,7 +14,6 @@ import (
 	"strings"
 	"sync"
 
-	"cloud.google.com/go/compute/metadata"
 	api "github.com/codenire/codenire/api/gen"
 )
 
@@ -40,12 +39,10 @@ func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if resp2.Prevent {
+		if resp2.IsTerminated {
 			resp2.WriteTo(w)
 			return
 		}
-
-		// TODO:: merge response
 	}
 
 	tmpDir, err := os.MkdirTemp("", "box")
@@ -169,19 +166,11 @@ var sandboxBackendOnce struct {
 }
 
 func SandboxBackendClient() *http.Client {
-	sandboxBackendOnce.Do(initSandboxBackendClient)
-	return sandboxBackendOnce.c
-}
-
-// initSandboxBackendClient runs from a sync.Once and initializes
-// sandboxBackendOnce.c with the *http.Client we'll use to contact the
-// sandbox execution backend.
-func initSandboxBackendClient() {
-	id, _ := metadata.ProjectID()
-	switch id {
-	default:
+	sandboxBackendOnce.Do(func() {
 		sandboxBackendOnce.c = http.DefaultClient
-	}
+	})
+
+	return sandboxBackendOnce.c
 }
 
 func writeJSONResponse(w http.ResponseWriter, resp interface{}, status int) {

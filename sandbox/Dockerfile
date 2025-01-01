@@ -1,7 +1,7 @@
 # This is the sandbox backend server.
 #
 # When it's run, the host maps in /var/run/docker.sock to this
-# environment so the play-sandbox server can connect to the host's
+# environment so the sandbox server can connect to the host's
 # docker daemon, which has the gvisor "runsc" runtime available.
 
 # 1
@@ -49,6 +49,6 @@ RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
 RUN apt-get update && apt-get install -y docker-ce-cli
 
 
-COPY --from=builder /app/bin/sandbox /usr/local/bin/play-sandbox
+COPY --from=builder /app/bin/sandbox /usr/local/bin/sandbox
 
-ENTRYPOINT ["/usr/local/bin/play-sandbox"]
+ENTRYPOINT ["/usr/local/bin/sandbox"]

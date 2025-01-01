@@ -30,7 +30,6 @@ import (
 	"github.com/docker/docker/client"
 )
 
-const imagesDir = "./provision/images"
 const imageTagPrefix = "codenire/"
 const codenireConfigName = "config.json"
 
@@ -76,9 +75,11 @@ type CodenireManager struct {
 	dockerClient *client.Client
 	killSignal   bool
 	devMode      bool
+
+	dockerFilesPath string
 }
 
-func NewCodenireManager(dev bool, replicCnt int) *CodenireManager {
+func NewCodenireManager(dev bool, replicCnt int, dockerFilesPath string) *CodenireManager {
 	c, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic("fail on create docker client")
@@ -90,6 +91,7 @@ func NewCodenireManager(dev bool, replicCnt int) *CodenireManager {
 		imageContainers: make(map[string]chan string),
 		numSysWorkers:   runtime.NumCPU(),
 		replicaCnt:      replicCnt,
+		dockerFilesPath: dockerFilesPath,
 	}
 }
 
@@ -99,19 +101,19 @@ func (m *CodenireManager) Run() error {
 
 func (m *CodenireManager) Boot() (err error) {
 	images := parseConfigFiles(
-		imagesDir,
-		internal.ListDirectories(imagesDir),
+		m.dockerFilesPath,
+		internal.ListDirectories(m.dockerFilesPath),
 	)
 
 	pool := pond.NewPool(m.numSysWorkers)
 	for i := 0; i < len(images); i++ {
 		i := i
 		pool.SubmitErr(func() error {
-			buildErr := m.buildImage(images[i], imagesDir)
+			buildErr := m.buildImage(images[i], m.dockerFilesPath)
 			if buildErr != nil {
-				fmt.Println("Build of image failed", "[image]", images[i], "[err]", buildErr)
+				log.Println("Build of image failed", "[image]", images[i], "[err]", buildErr)
 			}
-			fmt.Println("Build of image success", "[image]", images[i])
+			log.Println("Build of image success", "[image]", images[i])
 			return buildErr
 		})
 	}
@@ -128,14 +130,14 @@ func (m *CodenireManager) Boot() (err error) {
 func (m *CodenireManager) ImageList(prefix string) []string {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		log.Fatalf("Ошибка создания клиента Docker: %v", err)
+		log.Fatalf("Create Docker client failed: %v", err)
 	}
 
 	ctx := context.Background()
 
 	images, err := cli.ImageList(ctx, image.ListOptions{})
 	if err != nil {
-		log.Fatalf("Ошибка получения списка образов: %v", err)
+		log.Fatalf("Get image list failed: %v", err)
 	}
 
 	var ii []string
@@ -171,7 +173,7 @@ func (m *CodenireManager) KillAll() {
 	ctx := context.Background()
 	containers, err := m.dockerClient.ContainerList(ctx, dockercontainer.ListOptions{All: true})
 	if err != nil {
-		log.Fatalf("Ошибка получения списка контейнеров: %v", err)
+		log.Fatalf("Get Container List failed: %v", err)
 	}
 
 	pool := pond.NewPool(m.numSysWorkers)
@@ -181,23 +183,23 @@ func (m *CodenireManager) KillAll() {
 			ct := containers[i]
 
 			if strings.HasPrefix(ct.Image, imageTagPrefix) {
-				fmt.Printf("Останавливаем контейнер %s (ID: %s)...\n", ct.Names[0], ct.ID)
+				fmt.Printf("Stop container %s (ID: %s)...\n", ct.Names[0], ct.ID)
 
 				timeout := 0
 				err := m.dockerClient.ContainerStop(ctx, ct.ID, dockercontainer.StopOptions{
 					Timeout: &timeout,
 				})
 				if err != nil {
-					log.Printf("Ошибка остановки контейнера %s: %v\n", ct.ID, err)
+					log.Printf("Stop container failed %s: %v\n", ct.ID, err)
 					return
 				}
 
-				fmt.Printf("Контейнер %s успешно удалён.\n", ct.ID)
+				fmt.Printf("Container removed: %s\n", ct.ID)
 			}
 		})
 	}
 	pool.StopAndWait()
-	log.Println("Killed all")
+	log.Println("Killed all images")
 
 	m.killSignal = false
 }
@@ -235,13 +237,6 @@ func (m *CodenireManager) buildImage(cfg ImageSetupConfig, root string) error {
 		return fmt.Errorf("error building image: %v", err)
 	}
 	defer buildResponse.Body.Close()
-
-	if m.devMode {
-		_, err = io.Copy(os.Stdout, buildResponse.Body)
-		if err != nil {
-			log.Fatalf("Error reading build response: %v", err)
-		}
-	}
 
 	imageInfo, _, err := m.dockerClient.ImageInspectWithRaw(context.Background(), tag)
 	if err != nil {
@@ -287,12 +282,12 @@ func (m *CodenireManager) runSndContainer(img BuiltImage) (string, error) {
 		name,
 	)
 	if err != nil {
-		return "", fmt.Errorf("не удалось создать контейнер: %w", err)
+		return "", fmt.Errorf("create container failed: %w", err)
 	}
 
 	err = m.dockerClient.ContainerStart(ctx, containerResp.ID, dockercontainer.StartOptions{})
 	if err != nil {
-		return "", fmt.Errorf("не удалось запустить контейнер: %w", err)
+		return "", fmt.Errorf("create container failed: %w", err)
 	}
 
 	return containerResp.ID, nil

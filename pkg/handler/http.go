@@ -8,10 +8,10 @@ import (
 type HTTPHeader map[string]string
 
 type HTTPResponse struct {
-	StatusCode int
-	Body       string
-	Header     HTTPHeader
-	Prevent    bool
+	StatusCode   int
+	Body         string
+	Header       HTTPHeader
+	IsTerminated bool
 }
 
 func (resp HTTPResponse) WriteTo(w http.ResponseWriter) {

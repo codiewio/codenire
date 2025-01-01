@@ -1,10 +1,19 @@
 services:
-#  plugins:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.plugins
-#    volumes:
-#      - ./example/hooks/file:/plugins
+  go_plugin_builder:
+    profiles:
+      - prebuild
+    image: golang:1.22
+    container_name: go_plugin
+    working_dir: /app
+    volumes:
+      - .:/app
+      - ./var/artefacts/plugins:/artifacts
+    command: >
+      sh -c "
+      GOOS=linux GOARCH=amd64 CGO_ENABLED=0 
+      go build -o /artifacts/hook_handler ./example/hooks/plugin/hook_handler.go 
+      && sleep 10
+      "
 
   playground:
     container_name: play_dev
@@ -13,20 +22,24 @@ services:
       dockerfile: Dockerfile
       args:
         GO_VERSION: "go1.23.4"
+    profiles:
+      - build
     volumes:
-      - ./example/hooks/file:/hooks
+#      - ./example/hooks/file:/hooks
+      - ./var/artefacts/plugins/hook_handler:/hook_handler
     ports:
       - "8081:8081/tcp"
     stdin_open: true
     tty: true
-    restart: "no"
+    restart: on-failure
     networks:
-      - sandnet
+      - "sandnet"
     entrypoint: [
       "/app/codenire",
       "--backend-url", "http://sandbox_dev/run",
       "--port", "8081",
-      "--hooks-dir", "/hooks"
+      "--hooks-dir", "/hooks",
+      "--hooks-plugins", "/hook_handler"
     ]
 
   sandbox:
@@ -34,19 +47,24 @@ services:
     build:
       context: ./sandbox
       dockerfile: Dockerfile
+    profiles:
+      - build
     ports:
       - "8080:80/tcp"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./sandbox/provision:/provision
+      - ./example/dockerfiles:/dockerfiles
     networks:
       - sandnet
     stdin_open: true
     tty: true
     restart: "no"
 
-    entrypoint: ["/usr/local/bin/play-sandbox"]
-
+    entrypoint: [
+      "/usr/local/bin/sandbox",
+      "--dockerFilesPath", "/dockerfiles",
+      "--replicaContainerCnt", "1",
+    ]
 
 networks:
   sandnet:

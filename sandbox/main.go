@@ -31,7 +31,6 @@ import (
 	"context"
 	"errors"
 	"flag"
-	"github.com/go-chi/chi/v5/middleware"
 	"log"
 	"net/http"
 	"os"
@@ -44,6 +43,7 @@ import (
 	"sandbox/manager"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"go.opencensus.io/plugin/ochttp"
 )
 
@@ -51,53 +51,41 @@ var httpServer *http.Server
 var codenireManager manager.ContainerManager
 
 var (
-	listenAddr          = flag.String("listen", ":80", "HTTP server listen address. Only applicable when --mode=server")
-	mode                = flag.String("mode", "server", "Whether to run in \"server\" mode or \"contained\" mode. The contained mode is used internally by the server mode.")
+	listenAddr          = flag.String("listenAddr", ":80", "HTTP server listen address")
 	dev                 = flag.Bool("dev", false, "run in dev mode")
 	numWorkers          = flag.Int("workers", runtime.NumCPU(), "number of parallel gvisor containers to pre-spin up & let run concurrently")
 	replicaContainerCnt = flag.Int("replicaContainerCnt", 1, "number of parallel containers")
-	runSem              chan struct{}
-	dockerPath          = "docker"
-	graceTimeout        = 5 * time.Second
+	dockerFilesPath     = flag.String("dockerFilesPath", "", "configs paths")
+
+	runSem       chan struct{}
+	graceTimeout = 5 * time.Second
 )
 
 func main() {
-	//if *dev {
-	//	dockerPath = "/usr/local/bin/docker"
-	//}
+	flag.Parse()
 
-	out, err := exec.Command(dockerPath, "version").CombinedOutput()
+	out, err := exec.Command("docker", "version").CombinedOutput()
 	if err != nil {
 		log.Fatalf("failed to connect to docker: %v, %s", err, out)
 	}
 
-	flag.Parse()
-
-	if flag.NArg() != 0 {
-		flag.Usage()
-		os.Exit(1)
-	}
 	log.Printf("Go playground sandbox starting.")
 
-	codenireManager = manager.NewCodenireManager(*dev, *replicaContainerCnt)
+	codenireManager = manager.NewCodenireManager(*dev, *replicaContainerCnt, *dockerFilesPath)
 	codenireManager.KillAll()
 
 	readyContainer = make(chan *Container)
 	runSem = make(chan struct{}, *numWorkers)
+	log.Printf("Workers count: %d", *numWorkers)
 
 	done := make(chan struct{})
 	go handleSignals(done)
 
+	log.Printf("Started boot")
 	err = codenireManager.Boot()
 	if err != nil {
 		codenireManager.KillAll()
 		panic("Can't boot server")
-	}
-
-	if *dev {
-		log.Printf("Running in dev mode; container published to host at: http://localhost:8080/")
-	} else {
-		log.Printf("Listening on %s", *listenAddr)
 	}
 
 	h := chi.NewRouter()
@@ -121,7 +109,7 @@ func main() {
 		}
 	}()
 
-	log.Println("Application is running...")
+	log.Printf("Application is running, port %s", *listenAddr)
 	<-done
 	log.Println("Shutdown complete.")
 }
@@ -150,7 +138,7 @@ func gracefulShutdown(done chan struct{}) {
 
 	select {
 	case <-ctx.Done():
-		if ctx.Err() == context.DeadlineExceeded {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			log.Println("Shutdown timed out!")
 		}
 	}

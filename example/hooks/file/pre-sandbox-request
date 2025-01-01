@@ -14,7 +14,7 @@ if [ "$isGolang" = "true" ]; then
       "StatusCode": 400,
       "Body": "Golang not supported",
       "Headers": [],
-      "Prevent": true
+      "IsTerminated": true
     }
   }
 END

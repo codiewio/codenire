@@ -286,7 +286,7 @@ func startContainer(ctx context.Context, image, imageTag string) (c *Container, 
 		runtime = ""
 	}
 
-	cmd := exec.Command(dockerPath, "run",
+	cmd := exec.Command("docker", "run",
 		"-d",
 		"--Name="+name,
 		"--rm",

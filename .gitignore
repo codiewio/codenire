@@ -6,3 +6,4 @@ node_modules/
 .idea/
 
 /example/hooks/plugin/hook_handler
+/var/

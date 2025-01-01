@@ -130,7 +130,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		// TODO:: handle it
 	}()
 
-	out, err := exec.Command(dockerPath, "cp", tmpDir+"/.", *cId+":/tmp").CombinedOutput()
+	out, err := exec.Command("docker", "cp", tmpDir+"/.", *cId+":/tmp").CombinedOutput()
 	if err != nil {
 		log.Fatalf("failed to connect to docker: %v, %s", err, out)
 	}
@@ -139,7 +139,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	// skip, if compile is absent
 
 	// todo:: call runCmd with runTimeout
-	cmd := exec.Command(dockerPath, "exec", *cId, "php", "/tmp/index.php")
+	cmd := exec.Command("docker", "exec", *cId, "php", "/tmp/index.php")
 
 	// Буферы для stdout и stderr
 	var stdout, stderr bytes.Buffer
@@ -169,20 +169,6 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	res.ExitCode = exitCode
 	res.Stderr = stderr.Bytes()
 	res.Stdout = stdout.Bytes()
-
-	s := ""
-	res.Error = &s
-	// Выводим результаты
-	fmt.Println("=====================================")
-	fmt.Println("Req:", time.Now())
-	fmt.Println("=====================================")
-
-	fmt.Println("Req template: ", req.SandId)
-	fmt.Println("Req args: ", req.Args)
-	fmt.Println("Res code: ", res.ExitCode)
-	fmt.Println("Res output: \n", string(res.Stdout))
-	fmt.Println("Res err: ", string(res.Stderr))
-	fmt.Println("=====================================")
 
 	sendRunResponse(w, res)
 }
