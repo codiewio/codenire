@@ -11,7 +11,7 @@ services:
     command: >
       sh -c "
       GOOS=linux GOARCH=amd64 CGO_ENABLED=0 
-      go build -o /artifacts/hook_handler ./example/hooks/plugin/hook_handler.go 
+      go build -o /artifacts ./example/hooks/plugin/hook_handler.go
       && sleep 10
       "
 
