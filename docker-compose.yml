@@ -1,20 +1,4 @@
 services:
-  go_plugin_builder:
-    profiles:
-      - prebuild
-    image: golang:1.22
-    container_name: go_plugin
-    working_dir: /app
-    volumes:
-      - .:/app
-      - ./var/artefacts/plugins:/artifacts
-    command: >
-      sh -c "
-      GOOS=linux GOARCH=amd64 CGO_ENABLED=0 
-      go build -o /artifacts ./example/hooks/plugin/hook_handler.go
-      && sleep 10
-      "
-
   playground:
     container_name: play_dev
     build:
@@ -26,7 +10,7 @@ services:
       - build
     volumes:
 #      - ./example/hooks/file:/hooks
-      - ./var/artefacts/plugins/hook_handler:/hook_handler
+      - ./../codenireweb/var/artefacts/plugins/web:/hook_handler
     ports:
       - "8081:8081/tcp"
     stdin_open: true

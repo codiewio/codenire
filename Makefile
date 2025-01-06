@@ -53,6 +53,5 @@ endef
 
 rebuild:
 	COMPOSE_PROFILES=prebuild,build docker compose down --rmi local
-	rm -rf ./var
-	COMPOSE_PROFILES=prebuild docker compose up
+	cd ../codenireweb && COMPOSE_PROFILES=prebuild docker compose up
 	COMPOSE_PROFILES=build docker compose up

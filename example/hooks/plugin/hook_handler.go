@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/codiewio/codenire/pkg/hooks"
@@ -46,6 +45,4 @@ func main() {
 		HandshakeConfig: handshakeConfig,
 		Plugins:         pluginMap,
 	})
-
-	fmt.Println("DOONE")
 }

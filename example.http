@@ -3,11 +3,11 @@
 
 < {%
     request.variables.set("clients", [ // test data
-        {"firstName": "php83"}
+        {"templateId": "php83"}
         // ,
-        // {"firstName": "php83"},
-        // {"firstName": "php83"},
-        // {"firstName": "php83"}
+        // {"templateId": "php83"},
+        // {"templateId": "php83"},
+        // {"templateId": "php83"}
     ])
 %}
 
@@ -15,7 +15,7 @@ POST http://127.0.0.1:8081/run
 Content-Type: application/json
 
 {
-  "templateId": "{{$.clients..firstName}}",
+  "templateId": "{{$.clients..templateId}}",
 
   "args": "--name \"Elon Mask\" -age=45",
 
@@ -55,5 +55,26 @@ Content-Type: application/json
 {
   "files": {
     "main.go": "package main\n\nimport (\n\t\"fmt\"\n)\n\nfunc main() {\n\tfmt.Println(\"Hello, World!\")\n}\n"
+  }
+}
+
+
+
+### Run example go code
+
+< {%
+    request.variables.set("clients", [ // test data
+        {"templateId": "go"}
+    ])
+%}
+
+POST http://127.0.0.1:8081/run
+Content-Type: application/json
+
+{
+   "templateId": "{{$.clients..templateId}}",
+   "args": "--name \"Elon Mask\" -age=45",
+   "files": {
+    "main.go": "package main\n\nimport (\n\t\"fmt\"\n)\n\nfunc main() \n\tfmt.Println(\"Hello, World!\")\n}\n"
   }
 }
