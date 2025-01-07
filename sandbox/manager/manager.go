@@ -266,6 +266,7 @@ func (m *CodenireManager) runSndContainer(img BuiltImage) (string, error) {
 	}
 
 	hostConfig := &dockercontainer.HostConfig{
+		//Runtime:    "",
 		AutoRemove: true,
 		Tmpfs:      map[string]string{"/tmpfs": "exec"},
 	}
