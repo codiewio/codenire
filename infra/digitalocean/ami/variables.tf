@@ -2,9 +2,8 @@ variable "do_token" {
   type = string
 }
 
-variable "shared_path" {
-  default = " /codenire-web/infra/do/shared"
-}
+variable "do_ssh_key" {}
+variable "do_ssh_key_pub" {}
 
 variable "environment" {
   type    = string
@@ -22,7 +21,7 @@ variable "playground_servers_count" {
 }
 
 variable "sandbox_servers_count" {
-  default = 2
+  default = 1
 }
 
 variable "sandbox_droplet_size" {

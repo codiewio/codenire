@@ -21,16 +21,13 @@ source "digitalocean" "sandbox_droplet" {
 build {
   sources = [
     "source.digitalocean.playground_droplet",
-    # "source.digitalocean.sandbox_droplet"
+    "source.digitalocean.sandbox_droplet"
   ]
 
   provisioner "shell" {
     inline = [
       "sudo mkdir /ops",
       "sudo chmod 777 /ops",
-
-      # -- extended --
-      "sudo mkdir /.ssh",
     ]
   }
 
@@ -45,10 +42,6 @@ build {
 
   provisioner "shell" {
     script = "../shared/scripts/${source.name}.sh"
-  }
-
-  provisioner "shell" {
-    script = "../shared/scripts/plugin_builder.sh"
   }
 }
 

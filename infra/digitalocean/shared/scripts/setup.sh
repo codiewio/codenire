@@ -20,12 +20,6 @@ done
 
 cd /ops
 
-# SSH FOR GITHUB
-sudo cp /ops/config/id_rsa /root/.ssh/
-sudo cp /ops/config/id_rsa.pub /root/.ssh/
-ssh-keyscan github.com >> ~/.ssh/known_hosts
-cat ~/.ssh/known_hosts
-
 # Dependencies
 sudo apt-get update
 # https://superuser.com/questions/1412054/non-interactive-apt-upgrade

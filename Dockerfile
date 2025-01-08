@@ -84,26 +84,23 @@ FROM debian:buster
 
 RUN apt-get update && apt-get install -y git ca-certificates jq bash --no-install-recommends
 
-# Make a copy in /usr/local/go-faketime where the standard library
-# is installed with -tags=faketime.
-COPY --from=build-go /usr/local/go /usr/local/go-faketime
 
 ENV CGO_ENABLED 0
 ENV GOPATH /go
 ENV GOROOT /usr/local/go-faketime
 ARG GO_VERSION
 ENV GO_VERSION ${GO_VERSION}
-ENV PATH="/go/bin:/usr/local/go-faketime/bin:${PATH}"
+
 
 WORKDIR /usr/local/go-faketime
 # golang/go#57495: install std to warm the build cache. We only set
 # GOCACHE=/gocache here to keep it as small as possible, since it must be
 # copied on every build.
-RUN GOCACHE=/gocache ./bin/go install --tags=faketime std
+RUN GOCACHE=/gocache ./bin/go install std
 # Ignore the exit code. go vet std does not pass vet with the faketime
 # patches, but it successfully caches results for when we vet user
 # snippets.
-RUN ./bin/go vet --tags=faketime std || true
+RUN ./bin/go vet  std || true
 
 RUN mkdir /app
 COPY --from=build-playground /go/bin /app
