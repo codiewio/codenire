@@ -41,9 +41,30 @@ We will use terraform to deploy the droplets, configure the firewall and vpc of 
 ```bash
 cd ami
 
+ssh-keygen -q -t rsa -N '' -f ./id_rsa
+
 # Init terraform
 terraform init
 
 # Deploy droplets
 terraform apply
+
+cd ..
+```
+
+
+## Services Deployment
+
+```bash
+cd services
+
+cp ../ami/id_rsa* ./
+
+# Init terraform
+terraform init
+
+# Deploy droplets
+terraform apply
+
+cd ..
 ```

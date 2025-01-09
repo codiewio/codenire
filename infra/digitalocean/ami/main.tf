@@ -101,7 +101,6 @@ resource "digitalocean_droplet" "playground_server" {
     local.retry_join.tag_name,
     "${local.retry_join.tag_name}_${var.environment}",
     "${local.retry_join.tag_name}_playground"
-
   ]
 }
 
