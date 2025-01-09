@@ -9,9 +9,14 @@ data "digitalocean_droplets" "playground_droplets" {
   }
 }
 
+locals {
+  sandbox_ip = data.digitalocean_droplets.sandbox_droplets.droplets[0].ipv4_address_private
+}
+
 resource "null_resource" "run_playground" {
   # Trigger every terraform apply
   triggers = {
+    # TODO:: tags from Github
     always_run = timestamp()
   }
 
@@ -32,9 +37,7 @@ resource "null_resource" "run_playground" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/script.sh",
-      "/tmp/script.sh",
+      "/tmp/script.sh ${local.sandbox_ip}",
     ]
   }
 }
-
-
