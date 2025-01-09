@@ -58,6 +58,7 @@ We will use terraform to deploy the services and link playground with sandbox ba
 ```bash
 cd services
 
+# copy rsa key to access Digital Ocean via ssh
 cp ../ami/id_rsa* ./
 
 # Init terraform
@@ -68,3 +69,7 @@ terraform apply
 
 cd ..
 ```
+
+[!] Sandbox use https://github.com/codiewio/dockerfiles for default source of containers which stared in sandbox. 
+If you would like replace it with your source just call `terraform apply` command with you source. 
+Example: `terraform apply -var="dockerfiles_git_repo=https://github.com/USERNAME/REPONAME"` (repos should be public and use HTTPS strongly)
