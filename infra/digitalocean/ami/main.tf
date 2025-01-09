@@ -13,17 +13,16 @@ terraform {
 
   cloud {
     organization = "codenire"
+
     workspaces {
       name = "codenire-workspace"
     }
   }
 }
 
-# Configure the DigitalOcean Provider
 provider "digitalocean" {
   token = var.do_token
 }
-
 
 locals {
   input_environment_enums = {
@@ -82,8 +81,9 @@ resource "digitalocean_droplet" "sandbox_server" {
   # monitoring = true
 
   tags = [
-    "${local.retry_join.tag_name}_sandbox",
-    "${local.retry_join.tag_name}_${var.environment}"
+    local.retry_join.tag_name,
+    "${local.retry_join.tag_name}_${var.environment}",
+    "${local.retry_join.tag_name}_sandbox"
   ]
 }
 
@@ -98,8 +98,9 @@ resource "digitalocean_droplet" "playground_server" {
   # monitoring = true
 
   tags = [
-    "${local.retry_join.tag_name}_playground",
-    "${local.retry_join.tag_name}_${var.environment}"
+    local.retry_join.tag_name,
+    "${local.retry_join.tag_name}_${var.environment}",
+    "${local.retry_join.tag_name}_playground"
 
   ]
 }
@@ -206,6 +207,11 @@ resource "digitalocean_firewall" "codenire_intra_traffic" {
     port_range            = "1-65535"
     destination_addresses = ["0.0.0.0/0", "::/0"]
   }
+
+  tags = [
+    local.retry_join.tag_name,
+    "${local.retry_join.tag_name}_${var.environment}",
+  ]
 }
 
 # Firewall for public playground
@@ -264,4 +270,9 @@ resource "digitalocean_firewall" "codenire_play" {
     port_range            = "1-65535"
     destination_addresses = ["0.0.0.0/0", "::/0"]
   }
+
+  tags = [
+    local.retry_join.tag_name,
+    "${local.retry_join.tag_name}_${var.environment}",
+  ]
 }
