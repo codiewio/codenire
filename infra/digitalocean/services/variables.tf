@@ -5,6 +5,10 @@ variable "do_token" {
 variable "do_ssh_key" {}
 variable "do_ssh_key_pub" {}
 
+variable "dockerfiles_git_repo" {
+  default = "https://github.com/codiewio/dockerfiles.git"
+}
+
 variable "environment" {
   type    = string
   description = "input environment, allowed values are dev, stage or prod"

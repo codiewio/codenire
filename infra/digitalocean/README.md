@@ -53,6 +53,7 @@ cd ..
 
 
 ## Services Deployment
+We will use terraform to deploy the services and link playground with sandbox backend via private sandbox IP
 
 ```bash
 cd services

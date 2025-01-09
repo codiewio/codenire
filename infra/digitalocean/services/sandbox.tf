@@ -32,7 +32,7 @@ resource "null_resource" "run_sandbox" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/script.sh",
-      "/tmp/script.sh",
+      "/tmp/script.sh ${var.dockerfiles_git_repo}",
     ]
   }
 }

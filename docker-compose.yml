@@ -8,9 +8,6 @@ services:
         GO_VERSION: "go1.23.4"
     profiles:
       - build
-    volumes:
-#      - ./example/hooks/file:/hooks
-      - ./../codenireweb/var/artefacts/plugins/web:/hook_handler
     ports:
       - "8081:8081/tcp"
     stdin_open: true
@@ -22,8 +19,6 @@ services:
       "/app/codenire",
       "--backend-url", "http://sandbox_dev/run",
       "--port", "8081",
-      "--hooks-dir", "/hooks",
-      "--hooks-plugins", "/hook_handler"
     ]
 
   sandbox:
@@ -48,6 +43,7 @@ services:
       "/usr/local/bin/sandbox",
       "--dockerFilesPath", "/dockerfiles",
       "--replicaContainerCnt", "1",
+      "--port", "80",
     ]
 
 networks:

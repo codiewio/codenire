@@ -4,6 +4,9 @@ set -e
 
 cd /ops
 
+sudo mkdir /dockerfiles
+sudo chmod 777 /dockerfiles
+
 sudo chmod +r /ops/config/daemon.json
 sudo cp /ops/config/daemon.json /etc/docker/daemon.json
 sudo chmod 0644 /etc/docker/daemon.json
