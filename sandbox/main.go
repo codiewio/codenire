@@ -54,7 +54,7 @@ var (
 	listenAddr          = flag.String("port", ":80", "HTTP server listen address")
 	dev                 = flag.Bool("dev", false, "run in dev mode")
 	numWorkers          = flag.Int("workers", runtime.NumCPU(), "number of parallel gvisor containers to pre-spin up & let run concurrently")
-	replicaContainerCnt = flag.Int("replicaContainerCnt", 1, "number of parallel containers")
+	replicaContainerCnt = flag.Int("replicaContainerCnt", 1, "number of parallel containers for every uniq image")
 	dockerFilesPath     = flag.String("dockerFilesPath", "", "configs paths")
 
 	runSem       chan struct{}
@@ -93,10 +93,7 @@ func main() {
 
 	h.Get("/", rootHandler)
 	h.Post("/run", runHandler)
-
-	h.Post("/images/start", startImageHandler)
 	h.Post("/images/list", listImageHandler)
-	h.Post("/images/register", registerImageHandler)
 
 	httpServer = &http.Server{
 		Addr:    *listenAddr,

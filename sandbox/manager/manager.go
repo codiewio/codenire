@@ -1,3 +1,4 @@
+// Package manager
 // Copyright:
 //
 // 2024 The Codenire Authors. All rights reserved.
@@ -11,17 +12,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
+	"sandbox/internal"
 	"strings"
 	"sync"
 	"time"
-
-	"sandbox/internal"
 
 	"github.com/alitto/pond/v2"
 	"github.com/docker/docker/api/types"
@@ -33,21 +32,14 @@ import (
 const imageTagPrefix = "codenire/"
 const codenireConfigName = "config.json"
 
-type CodenireImage struct {
-	Name  string            `json:"name"`
-	Alias string            `json:"alias"`
-	Files map[string]string `json:"files"`
-	Tar   any               `json:"tar,omitempty"`
-
-	CompileCmd *string `json:"compileCmd,omitempty"`
-	RunCmd     string  `json:"runCmd"`
-}
-
 type ImageSetupConfig struct {
 	Name        string   `json:"name"`
 	Labels      []string `json:"labels"`
 	Description string   `json:"description"`
-	Tar         *string
+
+	CompileCmd *string `json:"compileCmd,omitempty"`
+	RunCmd     string  `json:"runCmd"`
+	Options    *any    `json:"options"`
 }
 
 type BuiltImage struct {
@@ -55,13 +47,17 @@ type BuiltImage struct {
 	Id string
 }
 
+type StartedContainer struct {
+	CId   string
+	Image *BuiltImage
+}
+
 type ContainerManager interface {
 	Boot() error
 	ImageList(prefix string) []string
-	GetContainer(ctx context.Context, id string) (*string, error)
+	GetContainer(ctx context.Context, id string) (*StartedContainer, error)
 	KillAll()
 	KillContainer(cId string) error
-	Register(i CodenireImage) error
 }
 
 type CodenireManager struct {
@@ -69,7 +65,7 @@ type CodenireManager struct {
 	numSysWorkers int
 
 	replicaCnt      int
-	imageContainers map[string]chan string
+	imageContainers map[string]chan StartedContainer
 	imgs            []BuiltImage
 
 	dockerClient *client.Client
@@ -88,7 +84,7 @@ func NewCodenireManager(dev bool, replicCnt int, dockerFilesPath string) *Codeni
 	return &CodenireManager{
 		devMode:         dev,
 		dockerClient:    c,
-		imageContainers: make(map[string]chan string),
+		imageContainers: make(map[string]chan StartedContainer),
 		numSysWorkers:   runtime.NumCPU(),
 		replicaCnt:      replicCnt,
 		dockerFilesPath: dockerFilesPath,
@@ -111,18 +107,18 @@ func (m *CodenireManager) Boot() (err error) {
 		pool.SubmitErr(func() error {
 			buildErr := m.buildImage(images[i], m.dockerFilesPath)
 			if buildErr != nil {
-				log.Println("Build of image failed", "[image]", images[i], "[err]", buildErr)
+				log.Println("Build of Image failed", "[Image]", images[i], "[err]", buildErr)
 			}
-			log.Println("Build of image success", "[image]", images[i])
+			log.Println("Build of Image success", "[Image]", images[i])
 			return buildErr
 		})
 	}
 
 	pool.StopAndWait()
 
-	// TODO:: чекнуть, что все image поднялись
+	// TODO:: чекнуть, что все Image поднялись
 
-	m.startWorkers()
+	m.startContainers()
 
 	return nil
 }
@@ -137,7 +133,7 @@ func (m *CodenireManager) ImageList(prefix string) []string {
 
 	images, err := cli.ImageList(ctx, image.ListOptions{})
 	if err != nil {
-		log.Fatalf("Get image list failed: %v", err)
+		log.Fatalf("Get Image list failed: %v", err)
 	}
 
 	var ii []string
@@ -155,7 +151,7 @@ func (m *CodenireManager) ImageList(prefix string) []string {
 	return ii
 }
 
-func (m *CodenireManager) GetContainer(ctx context.Context, id string) (*string, error) {
+func (m *CodenireManager) GetContainer(ctx context.Context, id string) (*StartedContainer, error) {
 	select {
 	case c := <-m.imageContainers[id]:
 		return &c, nil
@@ -169,6 +165,11 @@ func (m *CodenireManager) KillAll() {
 	defer m.Unlock()
 
 	m.killSignal = true
+
+	defer func() {
+		m.imageContainers = make(map[string]chan StartedContainer)
+		m.killSignal = false
+	}()
 
 	ctx := context.Background()
 	containers, err := m.dockerClient.ContainerList(ctx, dockercontainer.ListOptions{All: true})
@@ -200,8 +201,6 @@ func (m *CodenireManager) KillAll() {
 	}
 	pool.StopAndWait()
 	log.Println("Killed all images")
-
-	m.killSignal = false
 }
 
 func (m *CodenireManager) KillContainer(cId string) (err error) {
@@ -212,6 +211,8 @@ func (m *CodenireManager) KillContainer(cId string) (err error) {
 	if err != nil {
 		return err
 	}
+
+	//m.imageContainers[]
 
 	return nil
 }
@@ -234,7 +235,7 @@ func (m *CodenireManager) buildImage(cfg ImageSetupConfig, root string) error {
 
 	buildResponse, err := m.dockerClient.ImageBuild(context.Background(), &buf, buildOptions)
 	if err != nil {
-		return fmt.Errorf("error building image: %v", err)
+		return fmt.Errorf("error building Image: %v", err)
 	}
 	defer buildResponse.Body.Close()
 
@@ -294,79 +295,32 @@ func (m *CodenireManager) runSndContainer(img BuiltImage) (string, error) {
 	return containerResp.ID, nil
 }
 
-func (m *CodenireManager) Register(i CodenireImage) error {
-	//------------------------------------------------------------------
-	tmpDir, err := os.MkdirTemp("", "docker_image_"+i.Alias)
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(tmpDir)
-
-	err = internal.CopyFilesToTmpDir(tmpDir, i.Files)
-	if err != nil {
-		return err
-	}
-
-	buf, err := internal.DirToTar(tmpDir)
-	if err != nil {
-		return err
-	}
-	//------------------------------------------------------------------
-
-	sprintf := fmt.Sprintf("%s/%s", imageTagPrefix, i.Alias)
-	buildOptions := types.ImageBuildOptions{
-		Dockerfile:     "Dockerfile",
-		Tags:           []string{sprintf},
-		Labels:         map[string]string{},
-		SuppressOutput: !m.devMode,
-	}
-
-	buildResponse, err := m.dockerClient.ImageBuild(context.Background(), &buf, buildOptions)
-	if err != nil {
-		log.Fatalf("Error building image: %v", err)
-	}
-	defer buildResponse.Body.Close()
-
-	if m.devMode {
-		_, err = io.Copy(os.Stdout, buildResponse.Body)
-		if err != nil {
-			log.Fatalf("Error reading build response: %v", err)
-		}
-	}
-
-	fmt.Sprintf("Image %s built successfully!\n", i.Name)
-
-	return nil
-}
-
-func (m *CodenireManager) startWorkers() {
+func (m *CodenireManager) startContainers() {
 	for _, img := range m.imgs {
-		m.imageContainers[img.Name] = make(chan string, m.replicaCnt)
+		m.imageContainers[img.Name] = make(chan StartedContainer, m.replicaCnt)
 
-		m.startImageWorkers(img)
-	}
-}
+		// TODO:: change workers num logic
+		for i := 0; i < m.replicaCnt; i++ {
+			go func() {
+				for {
+					if m.killSignal {
+						continue
+					}
 
-// TODO:: change workers num logic
-func (m *CodenireManager) startImageWorkers(img BuiltImage) {
+					c, err := m.runSndContainer(img)
+					if err != nil {
+						log.Printf("error starting container: %v", err)
+						time.Sleep(5 * time.Second)
+						continue
+					}
 
-	for i := 0; i < m.replicaCnt; i++ {
-		go func() {
-			for {
-				if m.killSignal {
-					continue
+					m.imageContainers[img.Name] <- StartedContainer{
+						CId:   c,
+						Image: &img,
+					}
 				}
-
-				c, err := m.runSndContainer(img)
-				if err != nil {
-					log.Printf("error starting container: %v", err)
-					time.Sleep(5 * time.Second)
-					continue
-				}
-
-				m.imageContainers[img.Name] <- c
-			}
-		}()
+			}()
+		}
 	}
 }
 

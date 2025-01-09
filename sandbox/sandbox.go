@@ -41,7 +41,6 @@ import (
 
 	api "sandbox/api/gen"
 	"sandbox/internal"
-	"sandbox/manager"
 )
 
 const (
@@ -53,7 +52,7 @@ const (
 )
 
 var (
-	errTooMuchOutput = errors.New("Output too large")
+	errTooMuchOutput = errors.New("output too large")
 )
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
@@ -62,24 +61,6 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	io.WriteString(w, "Hi from sandbox\n")
-}
-
-func registerImageHandler(w http.ResponseWriter, r *http.Request) {
-	var req manager.CodenireImage
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
-	err := codenireManager.Register(req)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Fail on Register new image: %v", err), http.StatusBadRequest)
-		return
-	}
-}
-
-func startImageHandler(w http.ResponseWriter, r *http.Request) {
-
 }
 
 func listImageHandler(w http.ResponseWriter, r *http.Request) {
@@ -111,35 +92,51 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	tmpDir, err := os.MkdirTemp("", "tmp_sandbox")
 	if err != nil {
+		http.Error(w, "create tmp dir failed", http.StatusInternalServerError)
 		return
 	}
 	defer os.RemoveAll(tmpDir)
 
 	err = internal.Base64ToTar(req.Binary, tmpDir)
 	if err != nil {
+		http.Error(w, "encode  files failed", http.StatusInternalServerError)
 		return
 	}
 
-	cId, err := codenireManager.GetContainer(r.Context(), req.SandId)
+	cont, err := codenireManager.GetContainer(r.Context(), req.SandId)
 	if err != nil {
+		http.Error(w, fmt.Sprintf("get container %s failed", req.SandId), http.StatusInternalServerError)
 		return
+	}
+
+	if cont == nil {
+		http.Error(w, fmt.Sprintf("container %s not found", req.SandId), http.StatusInternalServerError)
+		return
+	}
+
+	if cont.Image == nil {
+		http.Error(w, fmt.Sprintf("image for %s not found", cont.CId), http.StatusInternalServerError)
 	}
 
 	defer func() {
-		err = codenireManager.KillContainer(*cId)
-		// TODO:: handle it
+		err = codenireManager.KillContainer(cont.CId)
+		if err != nil {
+			// TODO:: handle it and log
+		}
 	}()
 
-	out, err := exec.Command("docker", "cp", tmpDir+"/.", *cId+":/tmp").CombinedOutput()
+	out, err := exec.Command("docker", "cp", tmpDir+"/.", cont.CId+":/tmp").CombinedOutput()
 	if err != nil {
-		log.Fatalf("failed to connect to docker: %v, %s", err, out)
+		http.Error(w, fmt.Sprintf("failed to connect to docker: %v, %s", err, out), http.StatusInternalServerError)
+		return
 	}
 
 	// todo:: call compileCmd with compileTimeout
-	// skip, if compile is absent
+	if cont.Image.CompileCmd != nil {
 
-	// todo:: call runCmd with runTimeout
-	cmd := exec.Command("docker", "exec", *cId, "php", "/tmp/index.php")
+	}
+
+	cmd := exec.Command("docker", "exec", cont.CId, "php", "/tmp/"+cont.Image.RunCmd)
 
 	// Буферы для stdout и stderr
 	var stdout, stderr bytes.Buffer

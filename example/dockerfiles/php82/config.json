@@ -1,5 +1,11 @@
 {
   "name": "php82",
   "labels": [],
-  "description": "PHP 8.2"
+  "description": "PHP 8.2",
+  "compileCmd": "",
+  "runCmd": "index.php",
+  "options": {
+    "compileTTL": 30,
+    "runTTL": 5
+  }
 }
