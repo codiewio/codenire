@@ -16,7 +16,7 @@ docker build -t codenire-deploy .
 # we can access the UI for Nomad, Vault, Consul, Traefik etc
 docker run \
 	-e DO_TOKEN="REPLACE_ME_WITH_DIGITAL_OCEAN_TOKEN"  \
-	-e HCP_TOKEN="REPLACE_ME_WITH_TERRAFORM_TOKEN"  \
+	-e TF_TOKEN="REPLACE_ME_WITH_TERRAFORM_TOKEN"  \
 	-v $(pwd):/codenire-deploy  \
 	-it codenire-deploy
 	
@@ -33,7 +33,6 @@ cd image && \
     packer build . && \
     cd ..
 ```
-
 
 ## Cluster infrastructure
 We will use terraform to deploy the droplets, configure the firewall and vpc of the cluster.

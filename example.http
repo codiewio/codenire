@@ -11,7 +11,7 @@
     ])
 %}
 
-POST http://127.0.0.1:8081/run
+POST http://192.241.151.32/run
 Content-Type: application/json
 
 {
