@@ -3,7 +3,7 @@
 set -e
 
 # Main Sandbox
-docker pull codiew/codenire-sandbox-gvisor:latest
+docker pull codiew/codenire-sandbox:latest
 
 # copy dockerfiles for sandbox in tmp dir from var.dockerfiles_repository (terraform variable)
 tmp_dir=$(mktemp -d)
@@ -28,10 +28,11 @@ docker run -d --name sandbox_dev \
   -v /ops/dockerfiles:/dockerfiles \
   --restart=always \
   --entrypoint "/usr/local/bin/sandbox" \
-  codiew/codenire-sandbox-gvisor:latest \
+  codiew/codenire-sandbox:latest \
   --dockerFilesPath /dockerfiles \
   --replicaContainerCnt 1 \
   --port 8081
 
 # Show start logs
-docker ps -q --filter "name=sandbox_dev" | xargs -I {}  docker logs --since 10s {}
+sleep 10
+docker ps -q --filter "name=sandbox_dev" | xargs -I {}  docker logs --since 20s {}

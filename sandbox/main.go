@@ -74,7 +74,6 @@ func main() {
 	codenireManager = manager.NewCodenireManager(*dev, *replicaContainerCnt, *dockerFilesPath)
 	codenireManager.KillAll()
 
-	readyContainer = make(chan *Container)
 	runSem = make(chan struct{}, *numWorkers)
 	log.Printf("Workers count: %d", *numWorkers)
 

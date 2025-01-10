@@ -19,7 +19,8 @@ docker run -d --name play_dev \
   --port 8081
 
 # Show start logs
-docker ps -q --filter "name=play_dev" | xargs -I {}  docker logs --since 10s {}
+sleep 3
+docker ps -q --filter "name=play_dev" | xargs -I {}  docker logs --since 20s {}
 
 
 
