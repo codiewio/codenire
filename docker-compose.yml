@@ -1,11 +1,9 @@
 services:
   playground:
-    container_name: play_dev
+#    image: codiew/codenire-playground:latest
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        GO_VERSION: "go1.23.4"
     profiles:
       - build
     ports:
@@ -16,7 +14,7 @@ services:
     networks:
       - "sandnet"
     entrypoint: [
-      "/app/codenire",
+      "/playground",
       "--backend-url", "http://sandbox_dev/run",
       "--port", "8081",
     ]
@@ -29,7 +27,7 @@ services:
     profiles:
       - build
     ports:
-      - "8080:80/tcp"
+      - "80:80"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./example/dockerfiles:/dockerfiles
@@ -43,7 +41,7 @@ services:
       "/usr/local/bin/sandbox",
       "--dockerFilesPath", "/dockerfiles",
       "--replicaContainerCnt", "1",
-      "--port", "80",
+      "--port", ":80",
     ]
 
 networks:

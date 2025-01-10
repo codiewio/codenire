@@ -13,7 +13,7 @@ echo "Use $1 as sandbox backend"
 docker run -d --name play_dev \
   -p 80:80 \
   --network host \
-  --entrypoint "/app/codenire" \
+  --entrypoint "/playground" \
   --restart always \
   codiew/codenire-playground:latest \
   --backend-url "http://$1:80/run" \

@@ -82,6 +82,7 @@ func main() {
 	go handleSignals(done)
 
 	log.Printf("Started boot")
+
 	err = codenireManager.Boot()
 	if err != nil {
 		codenireManager.KillAll()

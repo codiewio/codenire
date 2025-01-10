@@ -86,12 +86,15 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	var req api.SandboxRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("Invalid request 1")
+
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
 	tmpDir, err := os.MkdirTemp("", "tmp_sandbox")
 	if err != nil {
+		log.Printf("Invalid request 2")
 		http.Error(w, "create tmp dir failed", http.StatusInternalServerError)
 		return
 	}
@@ -99,23 +102,28 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = internal.Base64ToTar(req.Binary, tmpDir)
 	if err != nil {
+		log.Printf("Invalid request 3")
 		http.Error(w, "encode  files failed", http.StatusInternalServerError)
 		return
 	}
 
 	cont, err := codenireManager.GetContainer(r.Context(), req.SandId)
 	if err != nil {
+		log.Printf("Invalid request 4")
 		http.Error(w, fmt.Sprintf("get container %s failed", req.SandId), http.StatusInternalServerError)
 		return
 	}
 
 	if cont == nil {
+		log.Printf("Invalid request 5")
 		http.Error(w, fmt.Sprintf("container %s not found", req.SandId), http.StatusInternalServerError)
 		return
 	}
 
 	if cont.Image == nil {
+		log.Printf("Invalid request 6")
 		http.Error(w, fmt.Sprintf("image for %s not found", cont.CId), http.StatusInternalServerError)
+		return
 	}
 
 	defer func() {
@@ -125,14 +133,27 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	out, err := exec.Command("docker", "cp", tmpDir+"/.", cont.CId+":/tmp").CombinedOutput()
+	out, err := exec.Command(
+		"docker",
+		"cp",
+		tmpDir+"/.",
+		cont.CId+":/tmp",
+	).CombinedOutput()
+
 	if err != nil {
+		log.Printf("Invalid request 7")
 		http.Error(w, fmt.Sprintf("failed to connect to docker: %v, %s", err, out), http.StatusInternalServerError)
 		return
 	}
 
-	// todo:: call compileCmd with compileTimeout
 	if cont.Image.CompileCmd != nil {
+		//compileCmd := exec.Command(
+		//	"docker",
+		//	"exec",
+		//	cont.CId,
+		//	"php",
+		//	"/tmp/"+*cont.Image.CompileCmd,
+		//)
 
 	}
 
@@ -143,24 +164,15 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	// Выполняем команду
-	err = cmd.Run()
-
-	// Получаем код выхода
 	var exitCode int
+
+	err = cmd.Run()
 	if err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
+		var exitError *exec.ExitError
+		if errors.As(err, &exitError) {
 			exitCode = exitError.ExitCode()
-		} else {
-			return
 		}
 	}
-
-	//// Получение вывода команды
-	//output, err := cmd.CombinedOutput()
-	//
-	//// Вывод результата команды
-	//fmt.Printf("Output from container: %s\n", output)
 
 	res := &api.SandboxResponse{}
 	res.ExitCode = exitCode

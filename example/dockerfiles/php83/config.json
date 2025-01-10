@@ -2,8 +2,8 @@
   "name": "php83",
   "labels": [],
   "description": "PHP 8.3",
-  "compileCmd": "",
-  "runCmd": "",
+  "compileCmd": "composer -v",
+  "runCmd": "index.php",
   "options": {
     "compileTTL": 30,
     "runTTL": 5
