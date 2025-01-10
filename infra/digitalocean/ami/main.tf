@@ -15,7 +15,7 @@ terraform {
     organization = "codenire"
 
     workspaces {
-      name = "codenire-workspace"
+      name = "droplets"
     }
   }
 }
@@ -156,7 +156,6 @@ resource "digitalocean_loadbalancer" "sandbox_internal_loadbalancer" {
     protocol = "tcp"
   }
 }
-
 
 
 # Firewall for private sandboxes

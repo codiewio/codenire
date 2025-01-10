@@ -2,9 +2,6 @@ variable "do_token" {
   type = string
 }
 
-variable "do_ssh_key" {}
-variable "do_ssh_key_pub" {}
-
 variable "environment" {
   type    = string
   description = "input environment, allowed values are dev, stage or prod"

@@ -10,7 +10,7 @@ terraform {
     organization = "codenire"
 
     workspaces {
-      name = "codenire-services"
+      name = "service"
     }
   }
 }
@@ -21,7 +21,7 @@ provider "digitalocean" {
 
 data "tfe_outputs" "codenire_workspace_data" {
   organization = "codenire"
-  workspace = "codenire-workspace"
+  workspace = "droplets"
 }
 
 locals {

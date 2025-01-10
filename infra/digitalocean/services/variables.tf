@@ -2,9 +2,6 @@ variable "do_token" {
   type = string
 }
 
-variable "do_ssh_key" {}
-variable "do_ssh_key_pub" {}
-
 variable "dockerfiles_git_repo" {
   default = "https://github.com/codiewio/dockerfiles.git"
 }

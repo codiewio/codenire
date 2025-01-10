@@ -1,9 +1,12 @@
 # Codenire Infra
 
 ## Deployment Prerequisites
+- 30 minutes
 - Docker
 - DigitalOcean token
-- 30 minutes
+- Terraform Profile (Free)
+  - Need create Organization and 2 workspaces — need for settings and control deploy
+  - Need generate User API token [link](https://app.terraform.io/app/settings/tokens) — need for manage infra/services state
 
 ## Setup environment
 There are quite a few tools used for deploying this architecture so it is therefore recommended to use docker for a consistent deployment environment.
@@ -12,13 +15,11 @@ There are quite a few tools used for deploying this architecture so it is theref
 # Build the docker image
 docker build -t codenire-deploy .
 
-# Run the docker image and mount this repo into it. The ports are so that
-# we can access the UI for Nomad, Vault, Consul, Traefik etc
-docker run \
-	-e DO_TOKEN="REPLACE_ME_WITH_DIGITAL_OCEAN_TOKEN"  \
-	-e TF_TOKEN="REPLACE_ME_WITH_TERRAFORM_TOKEN"  \
-	-v $(pwd):/codenire-deploy  \
-	-it codenire-deploy
+# Prepare you vars
+cp .env.example .env 
+
+# Run the docker image and inside you can manage of your infrastructure
+docker run --env-file .env -v $(pwd):/codenire-deploy -it codenire-deploy
 	
 # Move into deploy directory
 cd /codenire-deploy
@@ -40,8 +41,6 @@ We will use terraform to deploy the droplets, configure the firewall and vpc of 
 ```bash
 cd ami
 
-ssh-keygen -q -t rsa -N '' -f ./id_rsa
-
 # Init terraform
 terraform init
 
@@ -58,13 +57,10 @@ We will use terraform to deploy the services and link playground with sandbox ba
 ```bash
 cd services
 
-# copy rsa key to access Digital Ocean via ssh
-cp ../ami/id_rsa* ./
-
 # Init terraform
 terraform init
 
-# Deploy droplets
+# Deploy services
 terraform apply
 
 cd ..
