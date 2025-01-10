@@ -63,11 +63,11 @@ data "digitalocean_images" "sandbox_images" {
   }
 }
 
-resource "digitalocean_droplet" "sandbox_server" {
-  # count = var.sandbox_servers_count
+resource "digitalocean_droplet" "sandbox_servers" {
+  count = var.sandbox_servers_count
   image = data.digitalocean_images.sandbox_images.images[0].id
-  # name   = "sandbox-server-${var.environment}-${count.index}"
-  name   = "sandbox-server-${var.environment}"
+  name   = "sandbox-server-${var.environment}-${count.index}"
+  # name   = "sandbox-server-${var.environment}"
   region = var.do_region
   size   = var.sandbox_droplet_size
   ssh_keys  = [digitalocean_ssh_key.codenire_ssh.fingerprint]
@@ -107,17 +107,13 @@ resource "digitalocean_project" "codenire_project" {
   # TODO:: filter droplets by tag (environment)
   # https://chatgpt.com/share/677d64a4-68cc-800c-b321-540db0cefd28
   resources   = concat(
-    # digitalocean_droplet.sandbox_server.*.urn,
-    [digitalocean_droplet.sandbox_server.urn],
+    digitalocean_droplet.sandbox_servers.*.urn,
     [digitalocean_droplet.playground_server.urn],
   )
 }
 
 locals {
-  sandbox_droplet_ids = concat(
-    # digitalocean_droplet.sandbox_server.*.id
-    [digitalocean_droplet.sandbox_server.id]
-  )
+  sandbox_droplet_ids = digitalocean_droplet.sandbox_servers.*.id
 
   all_droplets = concat(
     local.sandbox_droplet_ids,
@@ -126,7 +122,7 @@ locals {
 
   all_ips = ["0.0.0.0/0", "::/0"]
 
-  dev_ssh_ops = var.environment == "dev" ? local.all_ips : local.all_droplets
+  ssh_addresses = var.environment == "dev" ? local.all_ips : local.all_droplets
 }
 
 resource "digitalocean_loadbalancer" "sandbox_internal_loadbalancer" {
@@ -134,11 +130,8 @@ resource "digitalocean_loadbalancer" "sandbox_internal_loadbalancer" {
   region = var.do_region
   project_id = digitalocean_project.codenire_project.id
   vpc_uuid = digitalocean_vpc.codenire_vpc.id
-
   disable_lets_encrypt_dns_records = true
-
   network = "INTERNAL"
-
   size_unit = 1
 
   droplet_ids = local.sandbox_droplet_ids
@@ -185,7 +178,7 @@ resource "digitalocean_firewall" "codenire_intra_traffic" {
   inbound_rule {
     protocol         = "tcp"
     port_range       = "22"
-    source_addresses = local.dev_ssh_ops
+    source_addresses = local.ssh_addresses
   }
   # ------------------------------------
 

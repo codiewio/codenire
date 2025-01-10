@@ -2,7 +2,7 @@ variable "do_token" {
   type = string
 }
 
-variable "dockerfiles_git_repo" {
+variable "dockerfiles_repository" {
   default = "https://github.com/codiewio/dockerfiles.git"
 }
 

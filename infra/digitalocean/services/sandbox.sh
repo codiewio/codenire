@@ -5,7 +5,7 @@ set -e
 # Main Sandbox
 docker pull codiew/codenire-sandbox:latest
 
-# copy dockerfiles for sandbox in tmp dir from var.dockerfiles_git_repo (terraform variable)
+# copy dockerfiles for sandbox in tmp dir from var.dockerfiles_repository (terraform variable)
 tmp_dir=$(mktemp -d)
 cd "$tmp_dir" && git clone "$1" .
 

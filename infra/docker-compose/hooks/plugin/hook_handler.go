@@ -22,7 +22,7 @@ func (g *CodenireHandler) InvokeHook(req hooks.HookRequest) (res hooks.HookRespo
 	res.HTTPResponse.Header = make(map[string]string)
 
 	if req.Type == hooks.HookPreSandboxRequest {
-
+		// Some handle logic
 	}
 
 	return res, nil

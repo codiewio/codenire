@@ -67,5 +67,9 @@ cd ..
 ```
 
 [!] Sandbox use https://github.com/codiewio/dockerfiles for default source of containers which stared in sandbox. 
-If you would like replace it with your source just call `terraform apply` command with you source. 
-Example: `terraform apply -var="dockerfiles_git_repo=https://github.com/USERNAME/REPONAME"` (repos should be public and use HTTPS strongly)
+If you would like replace it with your source you can:
+1. Call `terraform apply` command with you source. 
+  `terraform apply \
+   -var="dockerfiles_repository=https://github.com/USERNAME/REPONAME"`
+  (repos should be public and use HTTPS strongly)
+2. Set TF_VAR_dockerfiles_repository in .env file and re-run Docker service
