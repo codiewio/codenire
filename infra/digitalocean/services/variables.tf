@@ -2,9 +2,9 @@ variable "do_token" {
   type = string
 }
 
-variable do_ssh_private_key {
-  type = string
-}
+# variable do_ssh_private_key {
+#   type = string
+# }
 
 variable "environment" {
   type    = string

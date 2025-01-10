@@ -3,7 +3,7 @@
 set -e
 
 # Main Sandbox
-docker pull codiew/codenire-sandbox:latest
+docker pull codiew/codenire-sandbox-gvisor:latest
 
 # copy dockerfiles for sandbox in tmp dir from var.dockerfiles_repository (terraform variable)
 tmp_dir=$(mktemp -d)
@@ -28,7 +28,7 @@ docker run -d --name sandbox_dev \
   -v /ops/dockerfiles:/dockerfiles \
   --restart=always \
   --entrypoint "/usr/local/bin/sandbox" \
-  codiew/codenire-sandbox:latest \
+  codiew/codenire-sandbox-gvisor:latest \
   --dockerFilesPath /dockerfiles \
   --replicaContainerCnt 1 \
   --port 8081

@@ -36,8 +36,8 @@ jobs:
 
       # Сборка Docker-образа
       - name: Build Docker image
+        working-directory: sandbox
         run: |
-          cd sandbox
           docker build -f Dockerfile --tag=${{ env.IMAGE_NAME }} ..
           docker tag ${{ env.IMAGE_NAME }} ${{ env.IMAGE_NAME }}:latest
           docker build -f Dockerfile.gvisor --tag=${{ env.IMAGE_NAME_GVISOR }} ..
@@ -45,7 +45,7 @@ jobs:
 
       # Публикация Docker-образа
       - name: Push Docker image
+        working-directory: sandbox
         run: |
-          cd sandbox
           docker push ${{ env.IMAGE_NAME }}:latest
           docker push ${{ env.IMAGE_NAME_GVISOR }}:latest

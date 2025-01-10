@@ -1,13 +1,11 @@
 services:
   playground:
     image: codiew/codenire-playground:latest
-    profiles:
-      - build
     ports:
       - "8081:8081"
     stdin_open: true
     tty: true
-    restart: on-failure
+    restart: always
     networks:
       - "sandnet"
     entrypoint: [
@@ -19,8 +17,6 @@ services:
   sandbox:
     container_name: sandbox_dev
     image: codiew/codenire-sandbox:latest
-    profiles:
-      - build
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./dockerfiles:/dockerfiles
@@ -28,7 +24,7 @@ services:
       - sandnet
     stdin_open: true
     tty: true
-    restart: "no"
+    restart: always
 
     entrypoint: [
       "/usr/local/bin/sandbox",

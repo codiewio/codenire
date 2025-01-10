@@ -20,3 +20,7 @@ docker run -d --name play_dev \
 
 # Show start logs
 docker ps -q --filter "name=play_dev" | xargs -I {}  docker logs --since 10s {}
+
+
+
+#echo $DOCKER_REGISTRY_TOKEN | docker login --username foo --password-stdin

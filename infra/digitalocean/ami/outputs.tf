@@ -14,3 +14,12 @@ output "playground_droplet_ip" {
 output "sandbox_loadbalancer_ip" {
   value = digitalocean_loadbalancer.sandbox_internal_loadbalancer.ip
 }
+
+output "do_ssh_public" {
+  value = tls_private_key.rsa_key.public_key_openssh
+}
+
+output "do_ssh_private" {
+  value     = tls_private_key.rsa_key.private_key_pem
+  sensitive = true
+}

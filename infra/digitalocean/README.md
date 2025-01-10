@@ -38,7 +38,7 @@ We will use terraform to deploy the droplets, configure the firewall and vpc of 
 ```bash
 cd ami
 
-# Init terraform (flag -cloud=false is required, see. main.tf comment)
+# Init terraform (flag -cloud=false is required, see main.tf comment)
 terraform init -cloud=false
 
 # Deploy droplets

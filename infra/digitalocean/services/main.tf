@@ -6,7 +6,6 @@ terraform {
     }
   }
 
-  # Work only with organization "codenire" and worspaces: ["droplets", "services"]
   cloud {
     organization = "codenire"
 
@@ -18,4 +17,13 @@ terraform {
 
 provider "digitalocean" {
   token = var.do_token
+}
+
+data "tfe_outputs" "codenire_workspace_data" {
+  organization = "codenire"
+  workspace = "droplets"
+}
+
+locals {
+  do_ssh_private = data.tfe_outputs.codenire_workspace_data.values.do_ssh_private
 }

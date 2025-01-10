@@ -11,7 +11,6 @@ terraform {
     }
   }
 
-  # Work only with organization "codenire" and worspaces: ["droplets", "services"]
   cloud {
     organization = "codenire"
 
