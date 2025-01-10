@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE_USERNAME: codiew
-      IMAGE_NAME: codenire-playground
+      IMAGE_NAME: codiew/codenire-playground
     steps:
       # Проверка кода из репозитория
       - name: Checkout repository
@@ -36,9 +36,9 @@ jobs:
       # Сборка Docker-образа
       - name: Build Docker image
         run: |
-          docker build -t ${{ env.IMAGE_USERNAME }}/${{ env.IMAGE_NAME }}:latest .
+          docker build -t ${{ env.IMAGE_NAME }}:latest .
 
       # Публикация Docker-образа
       - name: Push Docker image
         run: |
-          docker push ${{ env.IMAGE_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.IMAGE_NAME }}:latest
