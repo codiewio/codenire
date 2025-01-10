@@ -38,9 +38,9 @@ jobs:
       - name: Build Docker image
         working-directory: sandbox
         run: |
-          docker build -f Dockerfile --tag=${{ env.IMAGE_NAME }} ..
+          docker build -f Dockerfile --tag=${{ env.IMAGE_NAME }} .
           docker tag ${{ env.IMAGE_NAME }} ${{ env.IMAGE_NAME }}:latest
-          docker build -f Dockerfile.gvisor --tag=${{ env.IMAGE_NAME_GVISOR }} ..
+          docker build -f Dockerfile.gvisor --tag=${{ env.IMAGE_NAME_GVISOR }} .
           docker tag ${{ env.IMAGE_NAME_GVISOR }} ${{ env.IMAGE_NAME_GVISOR }}:latest
 
       # Публикация Docker-образа
