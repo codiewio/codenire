@@ -31,7 +31,7 @@ resource "null_resource" "run_playground" {
   connection {
     type        = "ssh"
     user        = "root"
-    private_key = local.private_key_pem
+    private_key = local.do_ssh_private
     host        = data.digitalocean_droplets.playground_droplets.droplets[count.index].ipv4_address
   }
 

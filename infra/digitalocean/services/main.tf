@@ -25,5 +25,5 @@ data "tfe_outputs" "codenire_workspace_data" {
 }
 
 locals {
-  private_key_pem = data.tfe_outputs.codenire_workspace_data.values.private_key_pem
+  do_ssh_private = data.tfe_outputs.codenire_workspace_data.values.do_ssh_private
 }
