@@ -1,10 +1,10 @@
 package handler
 
 type Config struct {
-	BackendURL string
-	Port       string
+	BackendURL     string
+	Port           string
+	FileHooksDir   string
+	PluginHookPath string
 
-	FileHooksDir       string
-	PluginHookPath     string
-	PreRequestCallback func(hook HookEvent) (HTTPResponse, error)
+	PreRunSandboxCallback func(hook HookEvent) (HTTPResponse, error)
 }

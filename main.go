@@ -62,12 +62,13 @@ func main() {
 			log.Fatalf("unable to setup hooks for handler: %s", err)
 		}
 
-		cfg.PreRequestCallback = func(ev handler.HookEvent) (handler.HTTPResponse, error) {
-			return hooks.PreSandboxRequestCallback(ev, hookHandler)
+		cfg.PreRunSandboxCallback = func(ev handler.HookEvent) (handler.HTTPResponse, error) {
+			return hooks.PreRunSandboxCallback(ev, hookHandler)
 		}
 	}
 
 	s, err := handler.NewServer(&cfg)
+
 	if err != nil {
 		log.Fatalf("Error creating server: %v", err)
 	}

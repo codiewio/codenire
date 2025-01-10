@@ -28,7 +28,7 @@ const (
 
 var AvailableHooks []HookType = []HookType{HookPreSandboxRequest}
 
-func PreSandboxRequestCallback(event handler.HookEvent, hookHandler HookHandler) (handler.HTTPResponse, error) {
+func PreRunSandboxCallback(event handler.HookEvent, hookHandler HookHandler) (handler.HTTPResponse, error) {
 	ok, hookRes, err := invokeHookSync(HookPreSandboxRequest, event, hookHandler)
 	if !ok || err != nil {
 		return handler.HTTPResponse{}, err
