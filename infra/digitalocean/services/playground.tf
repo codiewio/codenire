@@ -9,14 +9,20 @@ data "digitalocean_droplets" "playground_droplets" {
   }
 }
 
+
+data "digitalocean_loadbalancer" "sandbox_loadbalancer" {
+  # name from /ami/main.tf -> digitalocean_loadbalancer.sandbox_internal_loadbalancer
+  name = "sandbox-loadbalancer-${var.environment}"
+}
+
 locals {
   sandbox_ip = data.digitalocean_droplets.sandbox_droplets.droplets[0].ipv4_address_private
+  sandbox_balancer_ip = data.digitalocean_loadbalancer.sandbox_loadbalancer.ip
 }
 
 resource "null_resource" "run_playground" {
   # Trigger every terraform apply
   triggers = {
-    # TODO:: tags from Github
     always_run = timestamp()
   }
 
@@ -25,7 +31,7 @@ resource "null_resource" "run_playground" {
   connection {
     type        = "ssh"
     user        = "root"
-    private_key = var.do_ssh_key
+    private_key = local.private_key_pem
     host        = data.digitalocean_droplets.playground_droplets.droplets[count.index].ipv4_address
   }
 
@@ -37,7 +43,7 @@ resource "null_resource" "run_playground" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/script.sh",
-      "/tmp/script.sh ${local.sandbox_ip}",
+      "/tmp/script.sh ${local.sandbox_balancer_ip}",
     ]
   }
 }

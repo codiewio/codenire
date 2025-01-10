@@ -2,7 +2,7 @@ terraform {
   required_providers {
     digitalocean = {
       source  = "digitalocean/digitalocean"
-      version = "~> 2.0"
+      version = "~> 2.47"
     }
 
     hcp = {
@@ -63,11 +63,6 @@ data "digitalocean_images" "sandbox_images" {
   }
 }
 
-resource "digitalocean_ssh_key" "codenire_ssh" {
-  name       = "Codenire SSH Key"
-  public_key = var.do_ssh_key_pub
-}
-
 resource "digitalocean_droplet" "sandbox_server" {
   # count = var.sandbox_servers_count
   image = data.digitalocean_images.sandbox_images.images[0].id
@@ -114,7 +109,7 @@ resource "digitalocean_project" "codenire_project" {
   resources   = concat(
     # digitalocean_droplet.sandbox_server.*.urn,
     [digitalocean_droplet.sandbox_server.urn],
-    [digitalocean_droplet.playground_server.urn]
+    [digitalocean_droplet.playground_server.urn],
   )
 }
 
@@ -134,31 +129,33 @@ locals {
   dev_ssh_ops = var.environment == "dev" ? local.all_ips : local.all_droplets
 }
 
-# resource "digitalocean_loadbalancer" "sandbox_internal" {
-#   name   = "sandbox-loadbalancer"
-#   region = var.do_region
-#   project_id = digitalocean_project.codenire_project.id
-#   vpc_uuid = digitalocean_vpc.codenire_vpc.id
-#
-#   disable_lets_encrypt_dns_records = true
-#
-#   # network = "INTERNAL"
-#
-#   droplet_ids = local.sandbox_droplet_ids
-#
-#   forwarding_rule {
-#     entry_port     = 80
-#     entry_protocol = "http"
-#
-#     target_port     = 80
-#     target_protocol = "http"
-#   }
-#
-#   healthcheck {
-#     port     = 22
-#     protocol = "tcp"
-#   }
-# }
+resource "digitalocean_loadbalancer" "sandbox_internal_loadbalancer" {
+  name   = "sandbox-loadbalancer-${var.environment}"
+  region = var.do_region
+  project_id = digitalocean_project.codenire_project.id
+  vpc_uuid = digitalocean_vpc.codenire_vpc.id
+
+  disable_lets_encrypt_dns_records = true
+
+  network = "INTERNAL"
+
+  size_unit = 1
+
+  droplet_ids = local.sandbox_droplet_ids
+
+  forwarding_rule {
+    entry_port     = 80
+    entry_protocol = "http"
+
+    target_port     = 80
+    target_protocol = "http"
+  }
+
+  healthcheck {
+    port     = 22
+    protocol = "tcp"
+  }
+}
 
 
 
@@ -184,12 +181,14 @@ resource "digitalocean_firewall" "codenire_intra_traffic" {
     source_droplet_ids = local.all_droplets
   }
 
-  # ssh access for dev env
+  # --- [!] IMPORTANT [!] --------------
+  # --- ssh access for dev env ---------
   inbound_rule {
     protocol         = "tcp"
     port_range       = "22"
     source_addresses = local.dev_ssh_ops
   }
+  # ------------------------------------
 
   inbound_rule {
     protocol         = "tcp"
@@ -217,11 +216,6 @@ resource "digitalocean_firewall" "codenire_intra_traffic" {
     port_range            = "1-65535"
     destination_addresses = ["0.0.0.0/0", "::/0"]
   }
-
-  tags = [
-    local.retry_join.tag_name,
-    "${local.retry_join.tag_name}_${var.environment}",
-  ]
 }
 
 # Firewall for public playground
@@ -234,6 +228,12 @@ resource "digitalocean_firewall" "codenire_play" {
   inbound_rule {
     protocol         = "tcp"
     port_range       = "22"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "8081"
     source_addresses = ["0.0.0.0/0", "::/0"]
   }
 

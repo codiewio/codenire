@@ -20,7 +20,7 @@ resource "null_resource" "run_sandbox" {
   connection {
     type        = "ssh"
     user        = "root"
-    private_key = var.do_ssh_key
+    private_key = local.private_key_pem
     host        = data.digitalocean_droplets.sandbox_droplets.droplets[count.index].ipv4_address
   }
 
