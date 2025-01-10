@@ -24,14 +24,15 @@ ls -la /ops/dockerfiles
 
 # Start app
 docker run -d --name sandbox_dev \
-  -p 80:80 \
+  -p 80:8081 \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /ops/dockerfiles:/dockerfiles \
   --restart=always \
   --entrypoint "/usr/local/bin/sandbox" \
   codiew/codenire-sandbox:latest \
   --dockerFilesPath /dockerfiles \
-  --replicaContainerCnt 1
+  --replicaContainerCnt 1 \
+  --port 8081
 
 # Show start logs
 docker ps -q --filter "name=sandbox_dev" | xargs -I {}  docker logs --since 10s {}

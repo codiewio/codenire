@@ -51,7 +51,7 @@ var httpServer *http.Server
 var codenireManager manager.ContainerManager
 
 var (
-	listenAddr          = flag.String("port", ":80", "HTTP server listen address")
+	listenAddr          = flag.String("port", "80", "HTTP server listen address")
 	dev                 = flag.Bool("dev", false, "run in dev mode")
 	numWorkers          = flag.Int("workers", runtime.NumCPU(), "number of parallel gvisor containers to pre-spin up & let run concurrently")
 	replicaContainerCnt = flag.Int("replicaContainerCnt", 1, "number of parallel containers for every uniq image")
@@ -97,7 +97,7 @@ func main() {
 	h.Post("/images/list", listImageHandler)
 
 	httpServer = &http.Server{
-		Addr:    *listenAddr,
+		Addr:    ":" + *listenAddr,
 		Handler: &ochttp.Handler{Handler: h},
 	}
 

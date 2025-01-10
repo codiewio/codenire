@@ -191,6 +191,17 @@ resource "digitalocean_firewall" "codenire_intra_traffic" {
     source_addresses = local.dev_ssh_ops
   }
 
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "80"
+    source_droplet_ids = local.all_droplets
+  }
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "443"
+    source_droplet_ids = local.all_droplets
+  }
+
   outbound_rule {
     protocol              = "tcp"
     port_range            = "1-65535"
@@ -269,9 +280,4 @@ resource "digitalocean_firewall" "codenire_play" {
     port_range            = "1-65535"
     destination_addresses = ["0.0.0.0/0", "::/0"]
   }
-
-  tags = [
-    local.retry_join.tag_name,
-    "${local.retry_join.tag_name}_${var.environment}",
-  ]
 }

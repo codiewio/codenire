@@ -7,7 +7,7 @@ services:
     profiles:
       - build
     ports:
-      - "8081:8081/tcp"
+      - "8081:8081"
     stdin_open: true
     tty: true
     restart: on-failure
@@ -41,7 +41,7 @@ services:
       "/usr/local/bin/sandbox",
       "--dockerFilesPath", "/dockerfiles",
       "--replicaContainerCnt", "1",
-      "--port", ":80",
+      "--port", "80",
     ]
 
 networks:
