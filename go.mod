@@ -3,8 +3,6 @@ module github.com/codiewio/codenire
 go 1.22.0
 
 require (
-	github.com/go-chi/chi v1.5.5
-	github.com/go-chi/chi/v5 v5.2.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.6.2
 )

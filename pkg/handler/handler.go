@@ -31,22 +31,18 @@ func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if h.Config.PreRunSandboxCallback != nil {
-		cbResp, err := h.Config.PreRunSandboxCallback(newHookEvent(r.Context(), req))
+	if h.Config.PreRequestCallback != nil {
+		resp2, err := h.Config.PreRequestCallback(newHookEvent(r.Context(), req))
 		if err != nil {
 			fmt.Println("Playground: Pre-Request callback failed", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		if cbResp.IsTerminated {
-
-			cbResp.WriteTo(w)
-
+		if resp2.IsTerminated {
+			resp2.WriteTo(w)
 			return
 		}
-
-		// TODO:: ignore or merge?
 	}
 
 	tmpDir, err := os.MkdirTemp("", "box")

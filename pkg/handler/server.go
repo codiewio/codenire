@@ -5,32 +5,34 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"time"
 )
 
 var log = newStdLogger()
 
 type Server struct {
-	Router  *chi.Mux
-	Handler Handler
-	log     logger
+	mux   *http.ServeMux
+	log   logger
+	gotip bool // if set, server is using gotip
+
+	// When the executable was last modified. Used for caching headers of compiled assets.
+	modtime time.Time
+
+	handler Handler
 }
 
 func NewServer(config *Config, options ...func(s *Server) error) (*Server, error) {
-	mux := chi.NewRouter()
-
-	h := Handler{
-		Config: config,
-	}
-
 	s := &Server{
-		Router:  mux,
-		Handler: h,
-		log:     log,
+		mux: http.NewServeMux(),
+		handler: Handler{
+			Config: config,
+		},
+		log: log,
 	}
 
 	for _, o := range options {
@@ -43,19 +45,7 @@ func NewServer(config *Config, options ...func(s *Server) error) (*Server, error
 		return nil, fmt.Errorf("must provide an option func that specifies a logger")
 	}
 
-	mux.Use(middleware.Recoverer)
-
-	mux.Group(func(r chi.Router) {
-		r.
-			With(func(handler http.Handler) http.Handler {
-				fn := func(w http.ResponseWriter, r *http.Request) {
-
-				}
-
-				return http.HandlerFunc(fn)
-			}).
-			Post("/run", h.RunHandler)
-	})
+	s.mux.HandleFunc("/run", s.handler.RunHandler)
 
 	return s, nil
 }
@@ -70,5 +60,20 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("X-Forwarded-Proto") == "https" {
 		w.Header().Set("Strict-Transport-Security", "max-age=31536000; preload")
 	}
-	s.Router.ServeHTTP(w, r)
+	s.mux.ServeHTTP(w, r)
+}
+
+func (s *Server) writeJSONResponse(w http.ResponseWriter, resp interface{}, status int) {
+	w.Header().Set("Content-Type", "application/json")
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(resp); err != nil {
+		s.log.Errorf("error encoding response: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(status)
+	if _, err := io.Copy(w, &buf); err != nil {
+		s.log.Errorf("io.Copy(w, &buf): %v", err)
+		return
+	}
 }
