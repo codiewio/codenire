@@ -2,6 +2,10 @@ variable "do_token" {
   type = string
 }
 
+variable do_ssh_public_key {
+  type = string
+}
+
 variable "environment" {
   type    = string
   description = "input environment, allowed values are dev, stage or prod"
@@ -11,10 +15,6 @@ variable "environment" {
 variable "do_region" {
   type    = string
   default = "nyc1"
-}
-
-variable "playground_servers_count" {
-  default = 1
 }
 
 variable "sandbox_servers_count" {

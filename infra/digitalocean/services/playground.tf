@@ -9,14 +9,12 @@ data "digitalocean_droplets" "playground_droplets" {
   }
 }
 
-
 data "digitalocean_loadbalancer" "sandbox_loadbalancer" {
   # name from /ami/main.tf -> digitalocean_loadbalancer.sandbox_internal_loadbalancer
   name = "sandbox-loadbalancer-${var.environment}"
 }
 
 locals {
-  sandbox_ip = data.digitalocean_droplets.sandbox_droplets.droplets[0].ipv4_address_private
   sandbox_balancer_ip = data.digitalocean_loadbalancer.sandbox_loadbalancer.ip
 }
 
@@ -31,7 +29,7 @@ resource "null_resource" "run_playground" {
   connection {
     type        = "ssh"
     user        = "root"
-    private_key = local.do_ssh_private
+    private_key = var.do_ssh_private_key
     host        = data.digitalocean_droplets.playground_droplets.droplets[count.index].ipv4_address
   }
 

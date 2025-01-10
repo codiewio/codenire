@@ -2,14 +2,18 @@ variable "do_token" {
   type = string
 }
 
-variable "dockerfiles_repository" {
-  default = "https://github.com/codiewio/dockerfiles.git"
+variable do_ssh_private_key {
+  type = string
 }
 
 variable "environment" {
   type    = string
   description = "input environment, allowed values are dev, stage or prod"
   default = "dev"
+}
+
+variable "dockerfiles_repository" {
+  default = "https://github.com/codiewio/dockerfiles.git"
 }
 
 variable "do_region" {

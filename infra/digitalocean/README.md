@@ -4,9 +4,6 @@
 - 30 minutes
 - Docker
 - DigitalOcean token
-- Terraform Profile (Free)
-  - Need create Organization and 2 workspaces — need for settings and control deploy
-  - Need generate User API token [link](https://app.terraform.io/app/settings/tokens) — need for manage infra/services state
 
 ## Setup environment
 There are quite a few tools used for deploying this architecture so it is therefore recommended to use docker for a consistent deployment environment.
@@ -41,8 +38,8 @@ We will use terraform to deploy the droplets, configure the firewall and vpc of 
 ```bash
 cd ami
 
-# Init terraform
-terraform init
+# Init terraform (flag -cloud=false is required, see. main.tf comment)
+terraform init -cloud=false
 
 # Deploy droplets
 terraform apply
@@ -57,8 +54,8 @@ We will use terraform to deploy the services and link playground with sandbox ba
 ```bash
 cd services
 
-# Init terraform
-terraform init
+# Init terraform (flag -cloud=false is required, see. main.tf comment)
+terraform init -cloud=false
 
 # Deploy services
 terraform apply

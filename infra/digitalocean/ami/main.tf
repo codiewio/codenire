@@ -11,6 +11,7 @@ terraform {
     }
   }
 
+  # Work only with organization "codenire" and worspaces: ["droplets", "services"]
   cloud {
     organization = "codenire"
 
@@ -67,7 +68,6 @@ resource "digitalocean_droplet" "sandbox_servers" {
   count = var.sandbox_servers_count
   image = data.digitalocean_images.sandbox_images.images[0].id
   name   = "sandbox-server-${var.environment}-${count.index}"
-  # name   = "sandbox-server-${var.environment}"
   region = var.do_region
   size   = var.sandbox_droplet_size
   ssh_keys  = [digitalocean_ssh_key.codenire_ssh.fingerprint]
@@ -83,7 +83,6 @@ resource "digitalocean_droplet" "sandbox_servers" {
 }
 
 resource "digitalocean_droplet" "playground_server" {
-  # count = var.playground_servers_count
   image = data.digitalocean_images.playground_images.images[0].id
   name     = "playground-server-${var.environment}"
   region   = var.do_region
@@ -104,8 +103,6 @@ resource "digitalocean_project" "codenire_project" {
   description = "This is Codenire Project"
   environment = local.project_env
 
-  # TODO:: filter droplets by tag (environment)
-  # https://chatgpt.com/share/677d64a4-68cc-800c-b321-540db0cefd28
   resources   = concat(
     digitalocean_droplet.sandbox_servers.*.urn,
     [digitalocean_droplet.playground_server.urn],
@@ -131,8 +128,9 @@ resource "digitalocean_loadbalancer" "sandbox_internal_loadbalancer" {
   project_id = digitalocean_project.codenire_project.id
   vpc_uuid = digitalocean_vpc.codenire_vpc.id
   disable_lets_encrypt_dns_records = true
-  network = "INTERNAL"
   size_unit = 1
+
+  network = "INTERNAL"
 
   droplet_ids = local.sandbox_droplet_ids
 
