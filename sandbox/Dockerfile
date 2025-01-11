@@ -28,7 +28,7 @@ ARG TARGETOS
 ARG TARGETARCH
 
 RUN set -xe \
-	&& GOOS=$TARGETOS GOARCH=$TARGETARCH \
+	&& GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 \
     go build \
     -tags prod \
     -o ./bin/sandbox .

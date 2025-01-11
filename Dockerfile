@@ -22,11 +22,14 @@ ARG TARGETOS
 ARG TARGETARCH
 
 RUN set -xe \
-	&& GOOS=$TARGETOS GOARCH=$TARGETARCH \
+	&& GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 \
     go build \
     -tags prod \
-    -o ./bin/playground .
+    -o ./bin/plugin . \
 
+# Build the binary with go build
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
+    go build -tags prod -o ./bin/playground .
 
 # Final stage: Run the binary
 FROM scratch
