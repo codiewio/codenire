@@ -3,12 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    profiles:
-      - build
     ports:
       - "8081:8081"
-    stdin_open: true
-    tty: true
     restart: on-failure
     networks:
       - "sandnet"
@@ -23,8 +19,6 @@ services:
     build:
       context: ./sandbox
       dockerfile: Dockerfile
-    profiles:
-      - build
     ports:
       - "80:80"
     volumes:
@@ -32,10 +26,7 @@ services:
       - ./infra/docker-compose/dockerfiles:/dockerfiles
     networks:
       - sandnet
-    stdin_open: true
-    tty: true
-    restart: "no"
-
+    restart: on-failure
     entrypoint: [
       "/usr/local/bin/sandbox",
       "--dockerFilesPath", "/dockerfiles",
