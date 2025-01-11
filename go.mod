@@ -1,6 +1,6 @@
 module github.com/codiewio/codenire
 
-go 1.22.0
+go 1.23.3
 
 require (
 	github.com/hashicorp/go-hclog v1.6.3

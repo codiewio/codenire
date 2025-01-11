@@ -1,11 +1,11 @@
 # Initial stage: download modules
-FROM golang:1.22 as modules
+FROM golang:1.23 as modules
 
 ADD go.mod go.sum /m/
 RUN cd /m && go mod download
 
 # Intermediate stage: Build the binary
-FROM golang:1.22 as builder
+FROM golang:1.23 as builder
 
 COPY --from=modules /go/pkg /go/pkg
 
@@ -25,14 +25,10 @@ RUN set -xe \
 	&& GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 \
     go build \
     -tags prod \
-    -o ./bin/plugin . \
-
-# Build the binary with go build
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
-    go build -tags prod -o ./bin/playground .
+    -o ./bin/playground .
 
 # Final stage: Run the binary
-FROM scratch
+FROM alpine:latest
 
 # and finally the binary
 COPY --from=builder /playground/bin/playground /playground
