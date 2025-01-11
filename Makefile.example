@@ -5,15 +5,6 @@ LOCAL_BIN := $(CURDIR)/.bin
 OAPI_CODEGEN_VERSION := v2.2.0
 OAPI_CODEGEN_BIN=$(LOCAL_BIN)/oapi-codegen
 
-LATEST_GO := $$(cd latestgo && go run main.go)
-
-BACKEND_URL := http://sandbox_dev/run
-#BACKEND_URL := http://host.docker.internal:8080/run
-
-
-#cd api && $(OAPI_CODEGEN_BIN) -package api -generate client api.yml > ./gen/client.gen.go
-#cd api && $(OAPI_CODEGEN_BIN) -package api -generate chi-server,spec api.yml > ./gen/server.gen.go
-
 contracts-generate:
 	#which $(OAPI_CODEGEN_BIN)
 	# go types
@@ -50,8 +41,3 @@ define fn_install_goutil
 		&& echo "$(3) installed!" \
 		&& echo "********************************"
 endef
-
-rebuild:
-	COMPOSE_PROFILES=prebuild,build docker compose down --rmi local
-	cd ../codenireweb && COMPOSE_PROFILES=prebuild docker compose up
-	COMPOSE_PROFILES=build docker compose up
