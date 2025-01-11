@@ -32,3 +32,5 @@ override.tf.json
 
 **/id_rsa
 **/id_rsa.pub
+
+**/.ssh

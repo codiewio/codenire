@@ -5,5 +5,4 @@ node_modules/
 **/.ignore/
 .idea/
 
-/infra/docker-compose/hooks/plugin/hook_handler
 /var/

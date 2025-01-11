@@ -23,5 +23,4 @@ sleep 3
 docker ps -q --filter "name=play_dev" | xargs -I {}  docker logs --since 20s {}
 
 
-
 #echo $DOCKER_REGISTRY_TOKEN | docker login --username foo --password-stdin

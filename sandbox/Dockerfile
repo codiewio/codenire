@@ -4,7 +4,6 @@
 # environment so the sandbox server can connect to the host's
 # docker daemon, which has the gvisor "runsc" runtime available.
 
-# 1
 FROM golang:1.22 AS modules
 
 ADD go.mod go.sum /m/
@@ -16,18 +15,23 @@ FROM golang:1.22 as builder
 
 COPY --from=modules /go/pkg /go/pkg
 
-# add a non-privileged user
-RUN useradd -u 10001 app-user
-
 RUN mkdir -p /app
 COPY . /app
 WORKDIR /app
 
-# Build the binary with go build
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
-    go build -tags prod -o ./bin/sandbox .
+# Get the version name and git commit as a build argument
+ARG GIT_VERSION
+ARG GIT_COMMIT
 
+# Get the operating system and architecture to build for
+ARG TARGETOS
+ARG TARGETARCH
 
+RUN set -xe \
+	&& GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build \
+    -tags prod \
+    -o ./bin/sandbox .
 
 FROM ubuntu:latest
 
@@ -47,7 +51,6 @@ RUN apt-get install --yes \
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
     add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 RUN apt-get update && apt-get install -y docker-ce-cli
-
 
 COPY --from=builder /app/bin/sandbox /usr/local/bin/sandbox
 
