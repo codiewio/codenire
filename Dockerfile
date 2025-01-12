@@ -34,3 +34,15 @@ FROM alpine:latest
 COPY --from=builder /playground/bin/playground /playground
 
 CMD ["/playground"]
+
+ARG LABEL_VERSION
+ARG LABEL_COMMIT
+
+LABEL org.opencontainers.image.description="The open-source sandbox based on Docker containers and Google gVisor."
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+LABEL org.opencontainers.image.revision="${LABEL_COMMIT}"
+LABEL org.opencontainers.image.source="https://github.com/codiewio/codenire"
+LABEL org.opencontainers.image.title="Codenire"
+LABEL org.opencontainers.image.url="https://codenire.com"
+#LABEL org.opencontainers.image.vendor="Codiew INC"
+LABEL org.opencontainers.image.version="${LABEL_VERSION}"

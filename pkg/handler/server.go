@@ -45,6 +45,15 @@ func NewServer(config *Config, options ...func(s *Server) error) (*Server, error
 		return nil, fmt.Errorf("must provide an option func that specifies a logger")
 	}
 
+	s.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+
+		io.WriteString(w, "Hi from playground\n")
+	})
+
 	s.mux.HandleFunc("/run", s.handler.RunHandler)
 
 	return s, nil

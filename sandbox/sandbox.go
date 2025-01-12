@@ -29,6 +29,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -41,18 +42,22 @@ import (
 
 	api "sandbox/api/gen"
 	"sandbox/internal"
+	"sandbox/manager"
 )
 
 const (
-	maxBinarySize    = 100 << 20
-	startTimeout     = 100 * time.Second
-	runTimeout       = 5 * time.Second
-	maxOutputSize    = 100 << 20
-	memoryLimitBytes = 100 << 20
+	maxBinarySize         = 100 << 20
+	startContainerTimeout = 100 * time.Second
+	runTimeout            = 5 * time.Second
+	compileTimeout        = 30 * time.Second
+	totalTimeout          = runTimeout + compileTimeout
+	maxOutputSize         = 100 << 20
+	memoryLimitBytes      = 100 << 20
 )
 
 var (
 	errTooMuchOutput = errors.New("output too large")
+	errRunTimeout    = errors.New("timeout running program")
 )
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
@@ -103,29 +108,16 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	err = internal.Base64ToTar(req.Binary, tmpDir)
 	if err != nil {
 		log.Printf("Invalid request 3")
-		http.Error(w, "encode  files failed", http.StatusInternalServerError)
+		sendRunError(w, "encode  files failed", http.StatusInternalServerError)
 		return
 	}
 
 	cont, err := codenireManager.GetContainer(r.Context(), req.SandId)
 	if err != nil {
-		log.Printf("Invalid request 4")
-		http.Error(w, fmt.Sprintf("get container %s failed", req.SandId), http.StatusInternalServerError)
+		log.Printf("Invalid request 4 %s", err.Error())
+		sendRunError(w, fmt.Sprintf("get container %s failed with %s", req.SandId, err.Error()), http.StatusInternalServerError)
 		return
 	}
-
-	if cont == nil {
-		log.Printf("Invalid request 5")
-		http.Error(w, fmt.Sprintf("container %s not found", req.SandId), http.StatusInternalServerError)
-		return
-	}
-
-	if cont.Image == nil {
-		log.Printf("Invalid request 6")
-		http.Error(w, fmt.Sprintf("image for %s not found", cont.CId), http.StatusInternalServerError)
-		return
-	}
-
 	defer func() {
 		err = codenireManager.KillContainer(cont.CId)
 		if err != nil {
@@ -133,6 +125,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
+	// TODO:: Make Timeout?
 	out, err := exec.Command(
 		"docker",
 		"cp",
@@ -142,39 +135,51 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("Invalid request 7")
-		http.Error(w, fmt.Sprintf("failed to connect to docker: %v, %s", err, out), http.StatusInternalServerError)
+		sendRunError(w, fmt.Sprintf("failed to connect to docker: %v, %s", err, out), http.StatusInternalServerError)
 		return
 	}
 
-	if cont.Image.CompileCmd != nil {
-		//compileCmd := exec.Command(
-		//	"docker",
-		//	"exec",
-		//	cont.CId,
-		//	"php",
-		//	"/tmp/"+*cont.Image.CompileCmd,
-		//)
+	timeoutCtx := registerTimeout(r.Context(), totalTimeout)
+	res := &api.SandboxResponse{}
 
-	}
-
-	cmd := exec.Command("docker", "exec", cont.CId, "php", "/tmp/"+cont.Image.RunCmd)
-
-	// Буферы для stdout и stderr
 	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
 	var exitCode int
 
-	err = cmd.Run()
-	if err != nil {
-		var exitError *exec.ExitError
-		if errors.As(err, &exitError) {
-			exitCode = exitError.ExitCode()
+	if cont.Image.CompileCmd != "" {
+		log.Printf("Composer!!!")
+
+		compileCtx := registerTimeout(r.Context(), totalTimeout)
+		{
+			callCmd := fmt.Sprintf("cd /tmp && %s", cont.Image.CompileCmd)
+
+			err := execCommandInsideContainer(compileCtx, &stderr, &stdout, *cont, callCmd)
+			if err != nil {
+				if errors.Is(compileCtx.Err(), context.DeadlineExceeded) {
+					sendRunError(w, "timeout on compilation", http.StatusInternalServerError)
+					return
+				}
+			}
 		}
 	}
 
-	res := &api.SandboxResponse{}
+	runTimeoutCtx := registerTimeout(timeoutCtx, runTimeout)
+	{
+		runCmd := fmt.Sprintf("cd /tmp && %s", cont.Image.RunCmd)
+
+		err := execCommandInsideContainer(runTimeoutCtx, &stderr, &stdout, *cont, runCmd)
+		if err != nil {
+			if errors.Is(runTimeoutCtx.Err(), context.DeadlineExceeded) {
+				sendRunError(w, "timeout on running", http.StatusInternalServerError)
+				return
+			}
+
+			var exitError *exec.ExitError
+			if errors.As(err, &exitError) {
+				exitCode = exitError.ExitCode()
+			}
+		}
+	}
+
 	res.ExitCode = exitCode
 	res.Stderr = stderr.Bytes()
 	res.Stdout = stdout.Bytes()
@@ -182,19 +187,37 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	sendRunResponse(w, res)
 }
 
-func errExitCode(err error) int {
-	if err == nil {
-		return 0
+func execCommandInsideContainer(ctx context.Context, stderr *bytes.Buffer, stdout *bytes.Buffer, container manager.StartedContainer, execCmd string) error {
+	cmd := exec.CommandContext(
+		ctx,
+		"docker",
+		"exec",
+		container.CId,
+		"sh", "-c",
+		execCmd,
+	)
+
+	cmd.Stderr = stderr
+	cmd.Stdout = stdout
+
+	err := cmd.Run()
+	if err != nil {
+		return err
 	}
-	var ee *exec.ExitError
-	if errors.As(err, &ee) {
-		return ee.ExitCode()
-	}
-	return 1
+
+	return nil
 }
 
-func sendError(w http.ResponseWriter, errMsg string) {
-	sendRunResponse(w, &api.SandboxResponse{Error: &errMsg})
+func registerTimeout(ctx context.Context, timeout time.Duration) context.Context {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+
+	go func() {
+		<-ctx.Done()
+		cancel()
+		return
+	}()
+
+	return ctx
 }
 
 func sendRunResponse(w http.ResponseWriter, r *api.SandboxResponse) {
@@ -207,4 +230,11 @@ func sendRunResponse(w http.ResponseWriter, r *api.SandboxResponse) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Length", fmt.Sprint(len(jres)))
 	w.Write(jres)
+}
+
+func sendRunError(w http.ResponseWriter, err string, code int) {
+	res := &api.SandboxResponse{}
+	res.Stderr = []byte(err)
+
+	sendRunResponse(w, res)
 }

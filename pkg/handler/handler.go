@@ -17,6 +17,11 @@ import (
 	api "github.com/codiewio/codenire/api/gen"
 )
 
+var (
+	// MaxSnippetSize TODO:: implement in goplay plugin 60 * 1024
+	MaxSnippetSize int64 = 1 * 1024 * 1024
+)
+
 type Handler struct {
 	Config *Config
 }
@@ -24,8 +29,17 @@ type Handler struct {
 func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	reader := http.MaxBytesReader(nil, r.Body, MaxSnippetSize)
+	defer reader.Close()
+
 	var req api.SubmissionRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := json.NewDecoder(reader).Decode(&req); err != nil {
+		maxBytesErr := new(http.MaxBytesError)
+		if errors.As(err, &maxBytesErr) {
+			http.Error(w, fmt.Sprintf("code snippet too large (max %d bytes): ", MaxSnippetSize)+err.Error(), http.StatusBadRequest)
+			return
+		}
+
 		fmt.Println("Playground: invalid request", err)
 		http.Error(w, "invalid request: "+err.Error(), http.StatusBadRequest)
 		return
@@ -142,7 +156,7 @@ func copyFilesToTmpDir(tmpDir string, files map[string]string) error {
 			fset := token.NewFileSet()
 			f, err := parser.ParseFile(fset, f, src, parser.PackageClauseOnly)
 			if err == nil && f.Name.Name != "main" {
-				return errors.New(fmt.Sprintf("package name must be main", err.Error()))
+				return errors.New(fmt.Sprint("package name must be main", err.Error()))
 			}
 		}
 

@@ -12,6 +12,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/alitto/pond/v2"
+	"github.com/docker/docker/api/types"
+	dockercontainer "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/client"
 	"io/ioutil"
 	"log"
 	"os"
@@ -20,13 +25,6 @@ import (
 	"sandbox/internal"
 	"strings"
 	"sync"
-	"time"
-
-	"github.com/alitto/pond/v2"
-	"github.com/docker/docker/api/types"
-	dockercontainer "github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/client"
 )
 
 const imageTagPrefix = "codenire/"
@@ -37,9 +35,9 @@ type ImageSetupConfig struct {
 	Labels      []string `json:"labels"`
 	Description string   `json:"description"`
 
-	CompileCmd *string `json:"compileCmd,omitempty"`
-	RunCmd     string  `json:"runCmd"`
-	Options    *any    `json:"options"`
+	CompileCmd string `json:"compileCmd"`
+	RunCmd     string `json:"runCmd"`
+	Options    *any   `json:"options"`
 }
 
 type BuiltImage struct {
@@ -49,7 +47,7 @@ type BuiltImage struct {
 
 type StartedContainer struct {
 	CId   string
-	Image *BuiltImage
+	Image BuiltImage
 }
 
 type ContainerManager interface {
@@ -64,9 +62,9 @@ type CodenireManager struct {
 	sync.Mutex
 	numSysWorkers int
 
-	replicaCnt      int
-	imageContainers map[string]chan StartedContainer
-	imgs            []BuiltImage
+	idleContainersCount int
+	imageContainers     map[string]chan StartedContainer
+	imgs                []BuiltImage
 
 	dockerClient *client.Client
 	killSignal   bool
@@ -82,12 +80,12 @@ func NewCodenireManager(dev bool, replicCnt int, dockerFilesPath string) *Codeni
 	}
 
 	return &CodenireManager{
-		devMode:         dev,
-		dockerClient:    c,
-		imageContainers: make(map[string]chan StartedContainer),
-		numSysWorkers:   runtime.NumCPU(),
-		replicaCnt:      replicCnt,
-		dockerFilesPath: dockerFilesPath,
+		devMode:             dev,
+		dockerClient:        c,
+		imageContainers:     make(map[string]chan StartedContainer),
+		numSysWorkers:       runtime.NumCPU(),
+		idleContainersCount: replicCnt,
+		dockerFilesPath:     dockerFilesPath,
 	}
 }
 
@@ -296,10 +294,10 @@ func (m *CodenireManager) runSndContainer(img BuiltImage) (string, error) {
 
 func (m *CodenireManager) startContainers() {
 	for _, img := range m.imgs {
-		m.imageContainers[img.Name] = make(chan StartedContainer, m.replicaCnt)
+		m.imageContainers[img.Name] = make(chan StartedContainer, m.idleContainersCount)
 
 		// TODO:: change workers num logic
-		for i := 0; i < m.replicaCnt; i++ {
+		for i := 0; i < m.idleContainersCount; i++ {
 			go func() {
 				for {
 					if m.killSignal {
@@ -309,13 +307,14 @@ func (m *CodenireManager) startContainers() {
 					c, err := m.runSndContainer(img)
 					if err != nil {
 						log.Printf("error starting container: %v", err)
-						time.Sleep(5 * time.Second)
+						// TODO::  why?!
+						//time.Sleep(5 * time.Second)
 						continue
 					}
 
 					m.imageContainers[img.Name] <- StartedContainer{
 						CId:   c,
-						Image: &img,
+						Image: img,
 					}
 				}
 			}()
