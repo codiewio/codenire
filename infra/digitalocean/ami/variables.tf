@@ -30,6 +30,11 @@ variable "playground_droplet_size" {
   default = "s-1vcpu-1gb"
 }
 
+variable "playground_domain" {
+  default = null
+  nullable = true
+}
+
 locals {
   retry_join = {
     provider  = "digitalocean"

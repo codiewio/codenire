@@ -19,7 +19,21 @@ export PKR_VAR_do_token=$DO_TOKEN
 if [[ -z "${TF_TOKEN}" ]]; then
 	echo "TF_TOKEN env var not set (if you use Terraform Cloud state — add it in .env)."
 fi
+
+echo "TF_TOKEN_app_terraform_io=$TF_TOKEN" >> /root/.bashrc
 export TF_TOKEN_app_terraform_io=$TF_TOKEN
+
+# Traefik
+if [[ -n "${LETSENCRYPT_EMAIL}" ]]; then
+  export TF_VAR_letsencrypt_email=$LETSENCRYPT_EMAIL
+  echo "TF_VAR_letsencrypt_email=$LETSENCRYPT_EMAIL" >> /root/.bashrc
+fi
+
+# domain
+if [[ -n "${PLAYGROUND_DOMAIN}" ]]; then
+  export TF_VAR_playground_domain=$PLAYGROUND_DOMAIN
+  echo "TF_VAR_playground_domain=$PLAYGROUND_DOMAIN" >> /root/.bashrc
+fi
 
 
 #ID_RSA="/codenire-deploy/shared/ssh/id_rsa"

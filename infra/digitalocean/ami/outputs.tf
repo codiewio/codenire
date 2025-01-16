@@ -23,3 +23,7 @@ output "do_ssh_private" {
   value     = tls_private_key.rsa_key.private_key_pem
   sensitive = true
 }
+
+output "playground_url" {
+  value = local.domain_exists ? var.playground_domain : digitalocean_loadbalancer.sandbox_internal_loadbalancer.ip
+}

@@ -97,16 +97,16 @@ resource "digitalocean_droplet" "playground_server" {
   ]
 }
 
-resource "digitalocean_project" "codenire_project" {
-  name        = "Codenire ${local.project_env}"
-  description = "This is Codenire Project"
-  environment = local.project_env
-
-  resources   = concat(
-    digitalocean_droplet.sandbox_servers.*.urn,
-    [digitalocean_droplet.playground_server.urn],
-  )
-}
+# resource "digitalocean_project" "codenire_project" {
+#   name        = "Codenire ${local.project_env}"
+#   description = "This is Codenire Project"
+#   environment = local.project_env
+#
+#   resources   = concat(
+#     digitalocean_droplet.sandbox_servers.*.urn,
+#     [digitalocean_droplet.playground_server.urn],
+#   )
+# }
 
 locals {
   sandbox_droplet_ids = digitalocean_droplet.sandbox_servers.*.id
@@ -124,7 +124,7 @@ locals {
 resource "digitalocean_loadbalancer" "sandbox_internal_loadbalancer" {
   name   = "sandbox-loadbalancer-${var.environment}"
   region = var.do_region
-  project_id = digitalocean_project.codenire_project.id
+  # project_id = digitalocean_project.codenire_project.id
   vpc_uuid = digitalocean_vpc.codenire_vpc.id
   disable_lets_encrypt_dns_records = true
   size_unit = 1
