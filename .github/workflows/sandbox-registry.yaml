@@ -1,5 +1,4 @@
-# Build frontend app in /frontend/public path and force push it
-# After force push run digital ocean rebuild static
+name: Build Playground Docker Image
 
 on:
   push:

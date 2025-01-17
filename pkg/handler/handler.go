@@ -29,6 +29,11 @@ type Handler struct {
 func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	reader := http.MaxBytesReader(nil, r.Body, MaxSnippetSize)
 	defer reader.Close()
 
@@ -111,8 +116,7 @@ func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO:: [HOOK] post-response hook
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("Playground: unexpected response from backend: %v", resp.Status)
-		http.Error(w, "Playground: unexpected response from backend", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Playground: unexpected http status from backend: %d", resp.StatusCode), http.StatusInternalServerError)
 
 		return
 	}

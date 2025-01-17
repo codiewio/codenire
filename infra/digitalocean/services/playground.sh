@@ -13,6 +13,7 @@ docker ps -a --filter "name=traefik" -q | xargs docker rm || true
 docker network create play-network || true
 
 # 80 should be open also (for letsencrypt challenge)
+# TODO:: сделать условие запуска траефика по условию домена
 docker run -d \
   --name traefik \
   --network play-network \

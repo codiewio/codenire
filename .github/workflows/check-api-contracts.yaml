@@ -1,3 +1,5 @@
+name: Check Open API Contracts
+
 on:
   push:
     paths-ignore:
