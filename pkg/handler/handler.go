@@ -40,16 +40,14 @@ func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Println("Playground: invalid request", err)
-		http.Error(w, "invalid request: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Playground: invalid request: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if h.Config.PreRequestCallback != nil {
 		resp2, err := h.Config.PreRequestCallback(newHookEvent(r.Context(), req))
 		if err != nil {
-			fmt.Println("Playground: Pre-Request callback failed", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Playground: Pre-Request callback failed: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -61,22 +59,19 @@ func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
 
 	tmpDir, err := os.MkdirTemp("", "box")
 	if err != nil {
-		fmt.Println("Playground: create tmp dir error", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Playground: create tmp dir error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer os.RemoveAll(tmpDir)
 
 	err = copyFilesToTmpDir(tmpDir, req.Files)
 	if err != nil {
-		fmt.Println("Playground: copying files into tmp dir failed", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Playground: copying files into tmp dir failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	b, err := tarToBase64(tmpDir)
 	if err != nil {
-		fmt.Println("Playground: zip tmp dit to base66 failed", err)
 		http.Error(w, "fail on create tar files: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -91,14 +86,13 @@ func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
 	)
 	if err != nil {
 		fmt.Println("Playground: request marshal error", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Playground: request marshal error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	sreq, err := http.NewRequestWithContext(ctx, "POST", h.Config.BackendURL, bytes.NewBuffer(jsonData))
 	if err != nil {
-		log.Printf("Playground: Sandbox client request error: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Playground: Sandbox client request error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -108,7 +102,7 @@ func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
 	resp, err := SandboxBackendClient().Do(sreq)
 	if err != nil {
 		log.Printf("Playground: Sandbox client request error: %v", err)
-		http.Error(w, err.Error(), http.StatusBadGateway)
+		http.Error(w, "Playground: Sandbox client request error: "+err.Error(), http.StatusBadGateway)
 
 		return
 	}
@@ -118,7 +112,7 @@ func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
 
 	if resp.StatusCode != http.StatusOK {
 		log.Printf("Playground: unexpected response from backend: %v", resp.Status)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		http.Error(w, "Playground: unexpected response from backend", http.StatusInternalServerError)
 
 		return
 	}

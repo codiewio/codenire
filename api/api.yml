@@ -29,48 +29,47 @@ components:
     SubmissionRequest:
       type: object
       properties:
-        templateId:
+        TemplateId:
           type: string
-        args:
+        Args:
           type: string
-        files:
+        Files:
           type: object
-          description: Files
           additionalProperties:
             type: string
       required:
-        - templateId
-        - args
-        - files
+        - TemplateId
+        - Args
+        - Files
     SubmissionResponse:
       type: object
       properties:
-        events:
+        Events:
           type: array
           items:
             $ref: '#/components/schemas/SubmissionResponseEvents'
-        time:
+        Time:
           type: string
-        errors:
+        Errors:
           type: array
           items:
             type: string
-        meta:
+        Meta:
           type: object
           properties:
-            version:
+            Version:
               type: string
           additionalProperties: true
       required:
-        - events
+        - Events
 
     SubmissionResponseEvents:
       type: object
       properties:
-        message:
+        Message:
           type: string
-        kind:
+        Kind:
           type: string
       required:
-        - message
-        - kind
+        - Message
+        - Kind

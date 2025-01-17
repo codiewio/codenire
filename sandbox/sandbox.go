@@ -146,8 +146,6 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	var exitCode int
 
 	if cont.Image.CompileCmd != "" {
-		log.Printf("Composer!!!")
-
 		compileCtx := registerTimeout(r.Context(), totalTimeout)
 		{
 			callCmd := fmt.Sprintf("cd /tmp && %s", cont.Image.CompileCmd)

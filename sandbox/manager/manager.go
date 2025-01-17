@@ -9,14 +9,10 @@
 package manager
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/alitto/pond/v2"
-	"github.com/docker/docker/api/types"
-	dockercontainer "github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/client"
 	"io/ioutil"
 	"log"
 	"os"
@@ -25,6 +21,13 @@ import (
 	"sandbox/internal"
 	"strings"
 	"sync"
+	"time"
+
+	"github.com/alitto/pond/v2"
+	"github.com/docker/docker/api/types"
+	dockercontainer "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/client"
 )
 
 const imageTagPrefix = "codenire/"
@@ -102,14 +105,19 @@ func (m *CodenireManager) Boot() (err error) {
 	pool := pond.NewPool(m.numSysWorkers)
 	for i := 0; i < len(images); i++ {
 		i := i
-		pool.SubmitErr(func() error {
+		pool.Submit(func() {
+			log.Println("Build of Image started", "[Image]", images[i].Name)
+
 			buildErr := m.buildImage(images[i], m.dockerFilesPath)
+
 			if buildErr != nil {
-				log.Println("Build of Image failed", "[Image]", images[i], "[err]", buildErr)
+				log.Println("Build of Image failed", "[Image]", images[i].Name, "[err]", buildErr)
+				return
 			}
-			log.Println("Build of Image success", "[Image]", images[i])
-			return buildErr
+
+			log.Println("Build of Image success", "[Image]", images[i].Name)
 		})
+
 	}
 
 	pool.StopAndWait()
@@ -228,7 +236,6 @@ func (m *CodenireManager) buildImage(cfg ImageSetupConfig, root string) error {
 		Tags:           []string{tag},
 		Labels:         map[string]string{},
 		SuppressOutput: !m.devMode,
-		Remove:         true,
 	}
 
 	buildResponse, err := m.dockerClient.ImageBuild(context.Background(), &buf, buildOptions)
@@ -237,9 +244,16 @@ func (m *CodenireManager) buildImage(cfg ImageSetupConfig, root string) error {
 	}
 	defer buildResponse.Body.Close()
 
+	scanner := bufio.NewScanner(buildResponse.Body)
+	for scanner.Scan() {
+		if m.devMode {
+			fmt.Println("[DEBUG BUILD]", scanner.Text())
+		}
+	}
+
 	imageInfo, _, err := m.dockerClient.ImageInspectWithRaw(context.Background(), tag)
 	if err != nil {
-		return nil
+		return fmt.Errorf("error on get image info: %v", err)
 	}
 
 	if len(imageInfo.RepoTags) < 1 {
@@ -293,6 +307,12 @@ func (m *CodenireManager) runSndContainer(img BuiltImage) (string, error) {
 }
 
 func (m *CodenireManager) startContainers() {
+	var ii []string
+	for _, img := range m.imgs {
+		ii = append(ii, img.Name)
+	}
+	log.Printf("To start: %s", strings.Join(ii, ","))
+
 	for _, img := range m.imgs {
 		m.imageContainers[img.Name] = make(chan StartedContainer, m.idleContainersCount)
 
@@ -308,7 +328,7 @@ func (m *CodenireManager) startContainers() {
 					if err != nil {
 						log.Printf("error starting container: %v", err)
 						// TODO::  why?!
-						//time.Sleep(5 * time.Second)
+						time.Sleep(5 * time.Second)
 						continue
 					}
 
@@ -320,6 +340,12 @@ func (m *CodenireManager) startContainers() {
 			}()
 		}
 	}
+
+	var cc []string
+	for c, _ := range m.imageContainers {
+		cc = append(cc, c)
+	}
+	log.Printf("Run images %s", strings.Join(cc, ","))
 }
 
 func stripImageName(imgName string) string {

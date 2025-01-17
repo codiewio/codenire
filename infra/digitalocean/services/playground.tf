@@ -41,7 +41,7 @@ resource "null_resource" "run_playground" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/script.sh",
-      "/tmp/script.sh ${local.sandbox_balancer_ip}",
+      "/tmp/script.sh ${local.sandbox_balancer_ip} ${var.letsencrypt_email} ${var.playground_domain}",
     ]
   }
 }

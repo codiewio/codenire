@@ -10,31 +10,29 @@ import (
 
 // SubmissionRequest defines model for SubmissionRequest.
 type SubmissionRequest struct {
-	Args string `json:"args"`
-
-	// Files Files
-	Files      map[string]string `json:"files"`
-	TemplateId string            `json:"templateId"`
+	Args       string            `json:"Args"`
+	Files      map[string]string `json:"Files"`
+	TemplateId string            `json:"TemplateId"`
 }
 
 // SubmissionResponse defines model for SubmissionResponse.
 type SubmissionResponse struct {
-	Errors *[]string                  `json:"errors,omitempty"`
-	Events []SubmissionResponseEvents `json:"events"`
-	Meta   *SubmissionResponse_Meta   `json:"meta,omitempty"`
-	Time   *string                    `json:"time,omitempty"`
+	Errors *[]string                  `json:"Errors,omitempty"`
+	Events []SubmissionResponseEvents `json:"Events"`
+	Meta   *SubmissionResponse_Meta   `json:"Meta,omitempty"`
+	Time   *string                    `json:"Time,omitempty"`
 }
 
 // SubmissionResponse_Meta defines model for SubmissionResponse.Meta.
 type SubmissionResponse_Meta struct {
-	Version              *string                `json:"version,omitempty"`
+	Version              *string                `json:"Version,omitempty"`
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
 // SubmissionResponseEvents defines model for SubmissionResponseEvents.
 type SubmissionResponseEvents struct {
-	Kind    string `json:"kind"`
-	Message string `json:"message"`
+	Kind    string `json:"Kind"`
+	Message string `json:"Message"`
 }
 
 // RunSubmissionJSONRequestBody defines body for RunSubmission for application/json ContentType.
@@ -65,12 +63,12 @@ func (a *SubmissionResponse_Meta) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	if raw, found := object["version"]; found {
+	if raw, found := object["Version"]; found {
 		err = json.Unmarshal(raw, &a.Version)
 		if err != nil {
-			return fmt.Errorf("error reading 'version': %w", err)
+			return fmt.Errorf("error reading 'Version': %w", err)
 		}
-		delete(object, "version")
+		delete(object, "Version")
 	}
 
 	if len(object) != 0 {
@@ -93,9 +91,9 @@ func (a SubmissionResponse_Meta) MarshalJSON() ([]byte, error) {
 	object := make(map[string]json.RawMessage)
 
 	if a.Version != nil {
-		object["version"], err = json.Marshal(a.Version)
+		object["Version"], err = json.Marshal(a.Version)
 		if err != nil {
-			return nil, fmt.Errorf("error marshaling 'version': %w", err)
+			return nil, fmt.Errorf("error marshaling 'Version': %w", err)
 		}
 	}
 
