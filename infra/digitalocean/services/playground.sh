@@ -42,7 +42,7 @@ docker run -d --name play_dev \
   --restart always \
   --label "traefik.enable=true" \
   --label "traefik.http.routers.play_dev.tls.certresolver=myresolver" \
-  --label "traefik.http.routers.play_dev.rule=Host(\`codenire.com\`)" \
+  --label "traefik.http.routers.play_dev.rule=Host(\`$3\`)" \
   --label "traefik.http.routers.play_dev.entrypoints=websecure" \
   --label "traefik.http.services.play_dev.loadbalancer.server.port=80" \
   \

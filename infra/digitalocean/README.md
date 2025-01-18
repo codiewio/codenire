@@ -32,7 +32,9 @@ cd image && \
     cd ..
 ```
 
-## Cluster infrastructure
+
+
+## Set Up Infrastructure
 We will use terraform to deploy the droplets, configure the firewall and vpc of the cluster.
 
 ```bash
@@ -46,6 +48,9 @@ terraform apply
 
 cd ..
 ```
+
+**Awesome!** Your infra ready to install services, you can see infra details about your VM, private networking and load_balancers in terminal output.
+
 
 
 ## Services Deployment
@@ -63,10 +68,32 @@ terraform apply
 cd ..
 ```
 
-[!] Sandbox use https://github.com/codiewio/dockerfiles for default source of containers which stared in sandbox. 
-If you would like replace it with your source you can:
+**Awesome!** Your project is ready, you can see available IP address in terminal output.
+
+
+
+## Custom Playgrounds Images
+
+Sandbox Service use https://github.com/codiewio/dockerfiles for default source of containers which stared in sandbox. 
+
+If you would like replace it with your source repository you can:
 1. Call `terraform apply` command with you source. 
   `terraform apply \
    -var="dockerfiles_repository=https://github.com/USERNAME/REPONAME"`
   (repos should be public and use HTTPS strongly)
 2. Set TF_VAR_dockerfiles_repository in .env file and re-run Docker service
+
+
+
+
+## Adding HTTPS
+
+If you registered domain and linked it to your DO account (added in DO panel and configured NS records) you can link it in deploy.
+
+- Set in your .env file:
+  - `PLAYGROUND_DOMAIN=your_domain.com` 
+  - `LETSENCRYPT_EMAIL=your_email@gmail.com`
+- Then rebuild docker (see "Setup environment")
+- Restart deploy (see "Set Up Infrastructure" and Services Deployment")
+
+**Awesome!** You have ready for production web app with Codenire Playground.

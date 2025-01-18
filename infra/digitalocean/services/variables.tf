@@ -9,7 +9,8 @@ variable "letsencrypt_email" {
 
 variable "playground_domain" {
   type = string
-  default = ""
+  default = null
+  nullable = true
 }
 
 # variable do_ssh_private_key {
@@ -23,6 +24,7 @@ variable "environment" {
 }
 
 variable "dockerfiles_repository" {
+  type = string
   default = "https://github.com/codiewio/dockerfiles.git"
 }
 
