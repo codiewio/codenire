@@ -1,17 +1,12 @@
-
 ### Run example code
 
 < {%
-    request.variables.set("clients", [ // test data
+    request.variables.set("clients", [
         {"templateId": "php83"}
-        // ,
-        // {"templateId": "php83"},
-        // {"templateId": "php83"},
-        // {"templateId": "php83"}
     ])
 %}
 
-POST http://192.241.151.32/run
+POST https://codenire.com/run
 Content-Type: application/json
 
 {
@@ -29,12 +24,13 @@ Content-Type: application/json
 ### PRIVATE API (ONLY LOCAL)
 
 ### Runned Docker Images
-POST http://127.0.0.1:8080/images/list
+POST https://codenire.com/images/list
 Content-Type: application/json
 
 
+
 ### Register new Docker Image
-POST http://127.0.0.1:8080/images/register
+POST https://codenire.com/images/register
 Content-Type: application/json
 
 {
@@ -47,18 +43,6 @@ Content-Type: application/json
 }
 
 
-###
-
-POST https://goplay.tools/api/v2/run?backend=
-Content-Type: application/json
-
-{
-  "files": {
-    "main.go": "package main\n\nimport (\n\t\"fmt\"\n)\n\nfunc main() {\n\tfmt.Println(\"Hello, World!\")\n}\n"
-  }
-}
-
-
 
 ### Run example go code
 
@@ -68,7 +52,7 @@ Content-Type: application/json
     ])
 %}
 
-POST http://127.0.0.1:8081/run
+POST https://codenire.com/run
 Content-Type: application/json
 
 {
