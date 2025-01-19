@@ -9,7 +9,7 @@ The system is easily extensible with additional technologies and languages.
 
 # Schema
 
-![Image alt](docs/docs/general_schema.png)
+![Image alt](docs/docs/general_infra_schema.png)
 
 # Example for use
 
