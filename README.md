@@ -47,7 +47,7 @@ Content-Type: application/json
 # Deploy
 
 - Docker compose (see [/docs/docker-compose](https://github.com/codiewio/codenire/tree/main/docs/docker-compose) dir — without external gVisor Runtime)
-- [Digital Ocean Terraform](docs/digitalocean/README.md)
+- [Digital Ocean Terraform](docs/digitalocean/README.md) with load balancing and multi-sandbox cluster
 
 
 # Lifecycle Request Hooks
