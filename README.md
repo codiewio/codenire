@@ -6,7 +6,9 @@ Built on Docker images with robust isolation provided by Google gVisor.
 
 The system is easily extensible with additional technologies and languages.
 
-TODO:: add promo about support of codiew.io
+Inspired by:
+- Judje0 Playground: https://github.com/judge0/judge0
+- Google Playground: https://github.com/golang/playground
 
 
 # Infrastructure Schema
