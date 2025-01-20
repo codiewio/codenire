@@ -16,6 +16,9 @@ The system is easily extensible with additional technologies and languages.
 
 ![Image alt](docs/docs/add_containers_schema.png)
 
+[*] The ability to run Docker images via API is not yet implemented and will be available in the near future!
+
+
 # Deploy
 
 - Docker compose (see /docs/docker-compose dir)
