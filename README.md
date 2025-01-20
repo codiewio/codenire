@@ -6,6 +6,8 @@ Built on Docker images with robust isolation provided by Google gVisor.
 
 The system is easily extensible with additional technologies and languages.
 
+TODO:: add promo about support of codiew.io
+
 
 # Infrastructure Schema
 
@@ -46,3 +48,7 @@ Content-Type: application/json
   }
 }
 ```
+
+# Hooks
+
+TODO:: add description
