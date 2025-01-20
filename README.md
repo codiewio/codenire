@@ -7,7 +7,7 @@ Built on Docker images with robust isolation provided by Google gVisor.
 The system is easily extensible with additional technologies and languages.
 
 
-# Schema
+# Infrastructure Schema
 
 ![Image alt](docs/docs/general_infra_schema.png)
 
