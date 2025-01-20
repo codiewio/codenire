@@ -20,7 +20,7 @@ Inspired by:
 
 ![Image alt](docs/docs/sandbox_schema.png)
 
-**[!] The ability to run Docker images via API is not yet implemented and will be available in the near future!**
+**[!] The ability to register Docker images via API is not yet implemented and will be available in the near future!**
 
 Out of the box (in development), 
 Dockerfiles and configurations for various languages can be found in the repository: https://github.com/codiewio/dockerfiles
@@ -46,7 +46,7 @@ Content-Type: application/json
 
 # Deploy
 
-- Docker compose (see /docs/docker-compose dir)
+- Docker compose (see [/docs/docker-compose](https://github.com/codiewio/codenire/tree/main/docs/docker-compose) dir — without external gVisor Runtime)
 - [Digital Ocean Terraform](docs/digitalocean/README.md)
 
 
