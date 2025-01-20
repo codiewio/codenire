@@ -18,6 +18,10 @@ The system is easily extensible with additional technologies and languages.
 
 [*] The ability to run Docker images via API is not yet implemented and will be available in the near future!
 
+Out of the box (in development), 
+Dockerfiles and configurations for various languages can be found in the repository: 
+
+https://github.com/codiewio/dockerfiles
 
 # Deploy
 
