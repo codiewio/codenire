@@ -11,8 +11,17 @@ The system is easily extensible with additional technologies and languages.
 
 ![Image alt](docs/docs/general_infra_schema.png)
 
+
+# Sandbox Work Schema
+
+![Image alt](docs/docs/add_containers_schema.png)
+
+# Deploy
+
+- Docker compose (see /docs/docker-compose dir)
+- [Digital Ocean Terraform](docs/digitalocean/README.md)
+
 # Example for use
 
 - TODO:: add example to register docker image
 - TODO:: add requests example 
-- TODO:: add infra/deploy instructions
