@@ -25,11 +25,6 @@ Inspired by:
 Out of the box (in development), 
 Dockerfiles and configurations for various languages can be found in the repository: https://github.com/codiewio/dockerfiles
 
-# Deploy
-
-- Docker compose (see /docs/docker-compose dir)
-- [Digital Ocean Terraform](docs/digitalocean/README.md)
-
 # Usage Playground
 
 ```
@@ -49,6 +44,12 @@ Content-Type: application/json
 }
 ```
 
-# Hooks
+# Deploy
+
+- Docker compose (see /docs/docker-compose dir)
+- [Digital Ocean Terraform](docs/digitalocean/README.md)
+
+
+# Lifecycle Request Hooks
 
 TODO:: add description
