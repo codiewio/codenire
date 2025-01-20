@@ -13,12 +13,12 @@ Inspired by:
 
 # Infrastructure Schema
 
-![Image alt](docs/docs/general_infra_schema.png)
+![Image alt](docs/docs/general_schema.png)
 
 
 # Sandbox Provision Containers Schema
 
-![Image alt](docs/docs/add_containers_schema.png)
+![Image alt](docs/docs/sandbox_schema.png)
 
 **[!] The ability to run Docker images via API is not yet implemented and will be available in the near future!**
 

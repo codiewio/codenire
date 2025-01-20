@@ -376,21 +376,25 @@ func parseConfigFiles(root string, directories []string) []ImageSetupConfig {
 		configPath := filepath.Join(dir, codenireConfigName)
 
 		if _, err := os.Stat(configPath); os.IsNotExist(err) {
+			log.Printf("Parse config err 1: %s", err.Error())
 			continue
 		}
 
 		content, err := ioutil.ReadFile(configPath)
 		if err != nil {
+			log.Printf("Parse config err 2: %s", err.Error())
 			continue
 		}
 
 		var config ImageSetupConfig
 		if err := json.Unmarshal(content, &config); err != nil {
+			log.Printf("Parse config err 3: %s", err.Error())
 			continue
 		}
 
 		base := filepath.Base(dir)
 		if config.Name != base {
+			log.Printf("Config Name not equals dir name")
 			continue
 		}
 
