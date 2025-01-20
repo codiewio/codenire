@@ -23,9 +23,7 @@ Inspired by:
 **[!] The ability to run Docker images via API is not yet implemented and will be available in the near future!**
 
 Out of the box (in development), 
-Dockerfiles and configurations for various languages can be found in the repository: 
-
-https://github.com/codiewio/dockerfiles
+Dockerfiles and configurations for various languages can be found in the repository: https://github.com/codiewio/dockerfiles
 
 # Deploy
 
