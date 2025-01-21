@@ -44,6 +44,62 @@ Content-Type: application/json
 }
 ```
 
+# Run/Set Up
+You can Run Playground local (or on MacOS/Ubuntu) via Docker Compose
+
+```yaml
+services:
+  playground:
+    container_name: play_dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    volumes:
+      # You can set up your path with go-plugin 
+      - ./var/plugin/plugin:/plugin
+      # You can set up your path with plugin scripts (see docs/docker-compose dir with examples)
+      - ./var/plugin/hooks-dir:hooks-dir
+    restart: always
+    networks:
+      - "sandnet"
+    entrypoint: [
+      "/playground",
+      "--backend-url", "http://sandbox_dev/run",
+      "--port", "8081",
+      "--hooks-plugins", "/plugin",
+#      "--hooks-dir", "/hooks-dir",
+    ]
+
+  sandbox:
+    container_name: sandbox_dev
+    build:
+      context: ./sandbox
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # You can set up your path with configs 
+      - ./var/dockerfiles:/dockerfiles
+    networks:
+      - sandnet
+    restart: always
+    entrypoint: [
+      "/usr/local/bin/sandbox",
+      "--dockerFilesPath", "/dockerfiles",
+      "--replicaContainerCnt", "1",
+      "--port", "80",
+    ]
+
+networks:
+  sandnet:
+    name: codenire
+
+
+```
+
 # Deploy
 
 - Docker compose (see [/docs/docker-compose](https://github.com/codiewio/codenire/tree/main/docs/docker-compose) dir — without external gVisor Runtime)
