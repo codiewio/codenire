@@ -45,7 +45,9 @@ Content-Type: application/json
 ```
 
 # Run/Set Up
-You can Run Playground local (or on MacOS/Ubuntu) via Docker Compose
+You can Run Playground local (or on MacOS/Ubuntu) via Docker Compose. 
+
+**[!] If you start on MacOS you can't start with gVisor Environment**
 
 ```yaml
 services:
