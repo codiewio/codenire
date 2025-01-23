@@ -54,11 +54,6 @@ const (
 	memoryLimitBytes      = 100 << 20
 )
 
-const (
-	IsolatedRun     = "run"
-	IsolatedCompile = "compile"
-)
-
 var (
 	errTooMuchOutput = errors.New("output too large")
 	errRunTimeout    = errors.New("timeout running program")
