@@ -42,7 +42,6 @@ import (
 
 	api "sandbox/api/gen"
 	"sandbox/internal"
-	"sandbox/manager"
 )
 
 const (
@@ -53,6 +52,11 @@ const (
 	totalTimeout          = runTimeout + compileTimeout
 	maxOutputSize         = 100 << 20
 	memoryLimitBytes      = 100 << 20
+)
+
+const (
+	IsolatedRun     = "run"
+	IsolatedCompile = "compile"
 )
 
 var (
@@ -78,6 +82,7 @@ func listImageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func runHandler(w http.ResponseWriter, r *http.Request) {
+
 	var err error
 
 	// Bound the number of requests being processed at once.
@@ -185,12 +190,15 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	sendRunResponse(w, res)
 }
 
-func execCommandInsideContainer(ctx context.Context, stderr *bytes.Buffer, stdout *bytes.Buffer, container manager.StartedContainer, execCmd string) error {
+func execCommandInsideContainer(ctx context.Context, stderr *bytes.Buffer, stdout *bytes.Buffer, container StartedContainer, execCmd string) error {
 	cmd := exec.CommandContext(
 		ctx,
 		"docker",
 		"exec",
 		container.CId,
+		"--network=none",
+		"--memory="+fmt.Sprint(memoryLimitBytes),
+
 		"sh", "-c",
 		execCmd,
 	)
@@ -205,7 +213,6 @@ func execCommandInsideContainer(ctx context.Context, stderr *bytes.Buffer, stdou
 
 	return nil
 }
-
 func registerTimeout(ctx context.Context, timeout time.Duration) context.Context {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 

@@ -37,10 +37,9 @@ import (
 	"os/exec"
 	"os/signal"
 	"runtime"
+	"strings"
 	"syscall"
 	"time"
-
-	"sandbox/manager"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -48,7 +47,7 @@ import (
 )
 
 var httpServer *http.Server
-var codenireManager manager.ContainerManager
+var codenireManager ContainerManager
 
 var (
 	listenAddr          = flag.String("port", "80", "HTTP server listen address")
@@ -56,13 +55,18 @@ var (
 	numWorkers          = flag.Int("workers", runtime.NumCPU(), "number of parallel gvisor containers to pre-spin up & let run concurrently")
 	replicaContainerCnt = flag.Int("replicaContainerCnt", 1, "number of parallel containers for every uniq image")
 	dockerFilesPath     = flag.String("dockerFilesPath", "", "configs paths")
+	isolated            = flag.Bool("isolated", false, "use gVisor Isolation for compile code")
 
 	runSem       chan struct{}
 	graceTimeout = 5 * time.Second
+
+	gvisorRuntime = "runsc"
 )
 
 func main() {
 	flag.Parse()
+
+	checkGVisorIsolation()
 
 	out, err := exec.Command("docker", "version").CombinedOutput()
 	if err != nil {
@@ -71,7 +75,7 @@ func main() {
 
 	log.Printf("Go playground sandbox starting.")
 
-	codenireManager = manager.NewCodenireManager(*dev, *replicaContainerCnt, *dockerFilesPath)
+	codenireManager = NewCodenireManager(*dev, *replicaContainerCnt, *dockerFilesPath, *isolated)
 	codenireManager.KillAll()
 
 	runSem = make(chan struct{}, *numWorkers)
@@ -109,6 +113,37 @@ func main() {
 	log.Printf("Application is running, port %s", *listenAddr)
 	<-done
 	log.Println("Shutdown complete.")
+}
+
+func checkGVisorIsolation() {
+	if !*isolated {
+		return
+	}
+
+	out, err := exec.
+		Command(
+			"docker",
+			"info",
+			"--format",
+			"{{range $key, $value := .Runtimes}}{{$key}}{{end}}",
+		).
+		CombinedOutput()
+
+	if err != nil {
+		log.Println(err.Error())
+		os.Exit(1)
+	}
+
+	runtimes := strings.Split(string(out), "\n")
+
+	for _, rt := range runtimes {
+		if rt == gvisorRuntime {
+			return
+		}
+	}
+
+	log.Println("runsc runtime not available in the system.")
+	os.Exit(1)
 }
 
 func handleSignals(done chan struct{}) {

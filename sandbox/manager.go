@@ -6,13 +6,14 @@
 //   - Maksim Fedorov mfedorov@codiew.io
 //
 // Licensed under the MIT License.
-package manager
+package main
 
 import (
 	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/docker/docker/api/types/network"
 	"io/ioutil"
 	"log"
 	"os"
@@ -72,11 +73,12 @@ type CodenireManager struct {
 	dockerClient *client.Client
 	killSignal   bool
 	devMode      bool
+	isolated     bool
 
 	dockerFilesPath string
 }
 
-func NewCodenireManager(dev bool, replicCnt int, dockerFilesPath string) *CodenireManager {
+func NewCodenireManager(dev bool, replicCnt int, dockerFilesPath string, isolated bool) *CodenireManager {
 	c, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic("fail on create docker client")
@@ -89,6 +91,7 @@ func NewCodenireManager(dev bool, replicCnt int, dockerFilesPath string) *Codeni
 		numSysWorkers:       runtime.NumCPU(),
 		idleContainersCount: replicCnt,
 		dockerFilesPath:     dockerFilesPath,
+		isolated:            isolated,
 	}
 }
 
@@ -279,9 +282,12 @@ func (m *CodenireManager) runSndContainer(img BuiltImage) (string, error) {
 	}
 
 	hostConfig := &dockercontainer.HostConfig{
-		//Runtime:    "",
-		AutoRemove: true,
+		Runtime:     m.getRuntime(),
+		AutoRemove:  true,
+		NetworkMode: network.NetworkNone,
 	}
+	hostConfig.Memory = 100 << 20
+	hostConfig.MemorySwap = 0
 
 	name := stripImageName(img.Id)
 	name = fmt.Sprintf("play_run_%s_%s", name, internal.RandHex(8))
@@ -346,6 +352,14 @@ func (m *CodenireManager) startContainers() {
 		cc = append(cc, c)
 	}
 	log.Printf("Run images %s", strings.Join(cc, ","))
+}
+
+func (m *CodenireManager) getRuntime() string {
+	if m.isolated {
+		return "runsc"
+	}
+
+	return ""
 }
 
 func stripImageName(imgName string) string {
