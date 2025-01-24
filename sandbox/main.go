@@ -136,8 +136,7 @@ func checkGVisorIsolation() {
 
 	runtimes := strings.Split(string(out), "\n")
 
-	log.Println("runtimes::")
-	log.Println(runtimes)
+	log.Println("Available Runtimes:", runtimes)
 
 	for _, rt := range runtimes {
 		if rt == gvisorRuntime {
