@@ -125,7 +125,7 @@ func checkGVisorIsolation() {
 			"docker",
 			"info",
 			"--format",
-			"{{range $key, $value := .Runtimes}}{{$key}}{{end}}",
+			"{{range $key, $value := .Runtimes}}{{$key}} {{end}}",
 		).
 		CombinedOutput()
 
@@ -134,16 +134,20 @@ func checkGVisorIsolation() {
 		os.Exit(1)
 	}
 
-	runtimes := strings.Split(string(out), "\n")
+	runtimes := strings.Split(string(out), " ")
 
 	log.Println("Available Runtimes:")
-	for _, r := range runtimes {
-		log.Println(r)
+	{
+		for _, rt := range runtimes {
+			log.Println(rt)
+		}
 	}
 
-	for _, rt := range runtimes {
-		if rt == gvisorRuntime {
-			return
+	{
+		for _, rt := range runtimes {
+			if rt == gvisorRuntime {
+				return
+			}
 		}
 	}
 
