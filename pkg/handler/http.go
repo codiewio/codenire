@@ -5,6 +5,13 @@ import (
 	"strconv"
 )
 
+type HTTPRequest struct {
+	Method     string
+	URI        string
+	RemoteAddr string
+	Header     http.Header
+}
+
 type HTTPHeader map[string]string
 
 type HTTPResponse struct {

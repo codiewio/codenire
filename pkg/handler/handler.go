@@ -27,7 +27,7 @@ type Handler struct {
 }
 
 func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	c := h.getContext(w, r)
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -50,9 +50,9 @@ func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.Config.PreRequestCallback != nil {
-		resp2, err := h.Config.PreRequestCallback(newHookEvent(r.Context(), req))
+		resp2, err := h.Config.PreRequestCallback(newHookEvent(c, req))
 		if err != nil {
-			http.Error(w, "Playground: Pre-Request callback failed: "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Playground: Pre-SubmissionRequest callback failed: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -95,7 +95,7 @@ func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sreq, err := http.NewRequestWithContext(ctx, "POST", h.Config.BackendURL, bytes.NewBuffer(jsonData))
+	sreq, err := http.NewRequestWithContext(r.Context(), "POST", h.Config.BackendURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		http.Error(w, "Playground: Sandbox client request error: "+err.Error(), http.StatusInternalServerError)
 		return

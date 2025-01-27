@@ -7,13 +7,20 @@ import (
 )
 
 type HookEvent struct {
-	Context context.Context
-	Request api.SubmissionRequest
+	Context           context.Context
+	SubmissionRequest api.SubmissionRequest
+	HTTPRequest       HTTPRequest
 }
 
-func newHookEvent(ctx context.Context, req api.SubmissionRequest) HookEvent {
+func newHookEvent(c *httpContext, sr api.SubmissionRequest) HookEvent {
 	return HookEvent{
-		Context: ctx,
-		Request: req,
+		Context:           c,
+		SubmissionRequest: sr,
+		HTTPRequest: HTTPRequest{
+			Method:     c.req.Method,
+			URI:        c.req.RequestURI,
+			RemoteAddr: c.req.RemoteAddr,
+			Header:     c.req.Header,
+		},
 	}
 }

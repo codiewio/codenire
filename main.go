@@ -32,6 +32,7 @@ import (
 	"github.com/codiewio/codenire/pkg/hooks/file"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/codiewio/codenire/pkg/handler"
 	"github.com/codiewio/codenire/pkg/hooks"
@@ -50,10 +51,11 @@ func main() {
 	log.Printf("Use backend URL on :%s ...", *BackendURL)
 
 	cfg := handler.Config{
-		BackendURL:     *BackendURL,
-		Port:           *Port,
-		PluginHookPath: *PluginHookPath,
-		FileHooksDir:   *FileHooksDir,
+		BackendURL:                       *BackendURL,
+		Port:                             *Port,
+		PluginHookPath:                   *PluginHookPath,
+		FileHooksDir:                     *FileHooksDir,
+		GracefulRequestCompletionTimeout: 10 * time.Second,
 	}
 
 	hookHandler := getHookHandler(&cfg)
