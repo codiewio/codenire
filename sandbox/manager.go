@@ -38,14 +38,20 @@ type ImageExtraOptions struct {
 	CompileTTL *int `json:"compileTTL,omitempty"`
 	RunTTL     *int `json:"runTTL,omitempty"`
 }
+
+type ScriptOptions struct {
+	SourceFile string `json:"sourceFile"`
+}
+
 type ImageSetupConfig struct {
 	Name        string   `json:"name"`
 	Labels      []string `json:"labels"`
 	Description string   `json:"description"`
 
-	CompileCmd string            `json:"compileCmd"`
-	RunCmd     string            `json:"runCmd"`
-	Options    ImageExtraOptions `json:"options"`
+	CompileCmd    string            `json:"compileCmd"`
+	RunCmd        string            `json:"runCmd"`
+	Options       ImageExtraOptions `json:"options"`
+	ScriptOptions ScriptOptions     `json:"scriptOptions"`
 }
 
 type BuiltImage struct {

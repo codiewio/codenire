@@ -77,7 +77,9 @@ func main() {
 	}
 	port := cfg.Port
 
-	shutdownComplete := s.SetupSignalHandler()
+	shutdownComplete := s.SetupSignalHandler(func() {
+		plugin.CleanupPlugins()
+	})
 
 	log.Printf("Listening on :%v ...", port)
 	err = http.ListenAndServe(":"+port, s)

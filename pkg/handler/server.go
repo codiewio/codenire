@@ -15,8 +15,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
-	"github.com/codiewio/codenire/pkg/hooks/plugin"
 )
 
 var log = newStdLogger()
@@ -93,7 +91,7 @@ func (s *Server) writeJSONResponse(w http.ResponseWriter, resp interface{}, stat
 	}
 }
 
-func (s *Server) SetupSignalHandler() <-chan struct{} {
+func (s *Server) SetupSignalHandler(options ...func()) <-chan struct{} {
 	shutdownComplete := make(chan struct{})
 
 	// We read up to two signals, so use a capacity of 2 here to not miss any signal
@@ -118,7 +116,9 @@ func (s *Server) SetupSignalHandler() <-chan struct{} {
 		_, cancel := context.WithTimeout(context.Background(), s.handler.Config.ShutdownTimeout)
 		defer cancel()
 
-		plugin.CleanupPlugins()
+		for _, o := range options {
+			o()
+		}
 
 		close(shutdownComplete)
 	}()
