@@ -77,7 +77,6 @@ func listImageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func runHandler(w http.ResponseWriter, r *http.Request) {
-
 	var err error
 
 	// Bound the number of requests being processed at once.
@@ -191,9 +190,6 @@ func execCommandInsideContainer(ctx context.Context, stderr *bytes.Buffer, stdou
 		"docker",
 		"exec",
 		container.CId,
-		"--network=none",
-		"--memory="+fmt.Sprint(memoryLimitBytes),
-
 		"sh", "-c",
 		execCmd,
 	)

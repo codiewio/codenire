@@ -45,8 +45,6 @@ components:
         - stdout
         - stderr
 
-
-
     SandboxRequest:
       type: object
       properties:

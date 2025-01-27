@@ -7,5 +7,5 @@ node_modules/
 
 /var/
 Makefile
-/local.http
+/example.local.http
 .env

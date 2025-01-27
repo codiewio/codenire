@@ -1,0 +1,58 @@
+### Run example code
+< {%
+    request.variables.set("input", [
+        {
+            "templateId": "php83",
+            "args": "--name \"Elon Mask\" -age=45",
+            "files": {
+                "index.php": "<?php\n// /index.php\n\n// Some comment\n require_once __DIR__ . '/src/foo.php';\nrequire_once __DIR__ . '/src/bar/bar.php';\n\n// Call functions\n$resultFoo = foo();\nsleep(0);\n$resultBar = bar();\n\n// Calculate\n$product = $resultFoo * $resultBar;\n\n// Result\nvar_dump($product);\nvar_dump('Second output');",
+                "src/foo.php": "<?php\n\nfunction foo() {\n    return 20;\n}",
+                "src/bar/bar.php": "<?php\n\nfunction bar() {\n    return 3;\n}"
+            }
+        },
+        {
+            "templateId": "golang_1_23",
+            "args": "--name \"Elon Mask\" -age=45",
+            "files": {
+                "main.go": "// You can edit this code!\n// Click here and start typing.\npackage main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"Hello, 世界\")\n}",
+                "go.mod": "module play\n"
+            }
+        },
+        {
+            "templateId": "python_3",
+            "args": "--name \"Elon Mask\" -age=45",
+            "files": {
+                "main.py": "import requests\n\ndef fetch_example():\n    response = requests.get(\"https://jsonplaceholder.typicode.com/todos/1\")\n    if response.status_code == 200:\n        print(\"Данные:\", response.json())\n    else:\n        print(\"Ошибка:\", response.status_code)\n\nif __name__ == \"__main__\":\n    fetch_example()\n",
+                "requirements.txt": "requests==2.31.0\n"
+            }
+        }
+    ])
+%}
+
+POST https://codenire.com/run
+Content-Type: application/json
+
+{
+  "templateId": "{{$.input..templateId}}",
+  "args": "{{$.input..args}}",
+  "files": {{$.input..files}}
+}
+
+
+###
+
+POST https://codenire.com/run
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsImtpZCI6IjZhalREa3NuWmRXU01RT24iLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3JtamhldHZhZWh4eWFsaHZ2Zmt3LnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiIxZDQ3ZTkyOS02N2MzLTQxYmUtYTQyNS02MGFjOTMxYmQ0YmUiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzM3OTc5NDQ3LCJpYXQiOjE3Mzc5NzU4NDcsImVtYWlsIjoiaGVsbG9AbWFrc2ZlZG9yb3YucnUiLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImdpdGh1YiIsInByb3ZpZGVycyI6WyJnaXRodWIiXX0sInVzZXJfbWV0YWRhdGEiOnsiYXZhdGFyX3VybCI6Imh0dHBzOi8vYXZhdGFycy5naXRodWJ1c2VyY29udGVudC5jb20vdS8xMTIyMzk4Nz92PTQiLCJlbWFpbCI6Im1ha3NmZWRvcm92cnVAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZ1bGxfbmFtZSI6Ik1ha3NpbSIsImlzcyI6Imh0dHBzOi8vYXBpLmdpdGh1Yi5jb20iLCJuYW1lIjoiTWFrc2ltIiwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJNYWtzY2x1YiIsInByb3ZpZGVyX2lkIjoiMTEyMjM5ODciLCJzdWIiOiIxMTIyMzk4NyIsInVzZXJfbmFtZSI6Ik1ha3NjbHViIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoib2F1dGgiLCJ0aW1lc3RhbXAiOjE3MzUwNjEwNzF9XSwic2Vzc2lvbl9pZCI6IjQ3NDUxMDgyLWFkNjUtNGY2OS05NWJiLTM3NTgzNTg5ZDI2YiIsImlzX2Fub255bW91cyI6ZmFsc2V9.6Cf-btP6xFwQAg3VnVHrouYWYp2J0hz1puOz-RwThVc
+
+{
+  "templateId": "typescript_5_7",
+
+  "args": "--name \"Elon Mask\" -age=45",
+
+  "files": {
+    "main.ts": "import {hello} from \"./hello\"\n\ntype TextNode = {\n  name: string;\n  body: string;\n};\n\ntype FileNode = {\n  id: number;\n  name: string;\n  children?: FileNode[];\n};\n\nlet idCounter = 0; // Переменная для инкрементации id\n\n// Функция для преобразования массива TextNode в дерево FileNode[]\nfunction buildFileTree(textNodes: TextNode[]): FileNode[] {\n  const root: FileNode[] = []; // Корневой уровень дерева\n\n  textNodes.forEach((textNode) => {\n    const pathParts = textNode.name.split('/'); // Разбиваем путь на части\n    insertNode(root, pathParts);\n  });\n\n  return root;\n}\n\n// Рекурсивная функция для добавления узлов в дерево\nfunction insertNode(nodes: FileNode[], pathParts: string[]) {\n  if (pathParts.length === 0) return; // Если больше нет частей пути, выходим\n\n  const name = pathParts[0]; // Берём первую часть пути\n  let node = nodes.find((n) => n.name === name); // Ищем узел с таким же именем\n\n  if (!node) {\n    // Если узел не найден, создаём новый\n    node = { id: idCounter++, name: hello(name) };\n    nodes.push(node); // Добавляем его в текущий уровень дерева\n  }\n\n  // Если есть ещё части пути, обрабатываем их как дочерние узлы\n  if (pathParts.length > 1) {\n    if (!node.children) {\n      node.children = [];\n    }\n    insertNode(node.children, pathParts.slice(1)); // Рекурсивно добавляем оставшиеся части пути\n  }\n}\n\n// Пример использования:\nconst textNodes: TextNode[] = [\n  { name: \"/dir1/dir2/file1.txt\", body: \"Content of file1\" },\n  { name: \"/dir1/dir2/file2.txt\", body: \"Content of file2\" },\n  { name: \"/dir1/file3.txt\", body: \"Content of file3\" },\n  { name: \"file4.txt\", body: \"Content of file4\" },\n];\n\nconst fileTree = buildFileTree(textNodes);\nconsole.log(JSON.stringify(fileTree, null, 2));",
+    "hello.ts": "export const hello = (val: string): string => {\n    return \"Bla bla\" + val\n}",
+    "tsconfig.json": "{\n    \"compilerOptions\": {\n      \"outDir\": \"./dist/\",\n      \"lib\": [\n        \"es6\",\n        \"dom\"\n      ],\n      \"experimentalDecorators\": true,\n      \"emitDecoratorMetadata\": true,\n      \"moduleResolution\": \"node\",\n      \"noImplicitAny\": true,\n      \"skipLibCheck\": true\n    }\n  }"
+  }
+}
