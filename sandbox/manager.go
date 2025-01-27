@@ -34,14 +34,18 @@ import (
 const imageTagPrefix = "codenire/"
 const codenireConfigName = "config.json"
 
+type ImageExtraOptions struct {
+	CompileTTL *int `json:"compileTTL,omitempty"`
+	RunTTL     *int `json:"runTTL,omitempty"`
+}
 type ImageSetupConfig struct {
 	Name        string   `json:"name"`
 	Labels      []string `json:"labels"`
 	Description string   `json:"description"`
 
-	CompileCmd string `json:"compileCmd"`
-	RunCmd     string `json:"runCmd"`
-	Options    *any   `json:"options"`
+	CompileCmd string            `json:"compileCmd"`
+	RunCmd     string            `json:"runCmd"`
+	Options    ImageExtraOptions `json:"options"`
 }
 
 type BuiltImage struct {

@@ -47,9 +47,9 @@ import (
 const (
 	maxBinarySize         = 100 << 20
 	startContainerTimeout = 100 * time.Second
-	runTimeout            = 5 * time.Second
-	compileTimeout        = 30 * time.Second
-	totalTimeout          = runTimeout + compileTimeout
+	defaultRunTimeout     = 5 * time.Second
+	defaultCompileTimeout = 30 * time.Second
+	totalTimeout          = defaultRunTimeout + defaultCompileTimeout
 	maxOutputSize         = 100 << 20
 	memoryLimitBytes      = 100 << 20
 )
@@ -159,7 +159,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	runTimeoutCtx := registerTimeout(timeoutCtx, runTimeout)
+	runTimeoutCtx := registerTimeout(timeoutCtx, defaultRunTimeout)
 	{
 		runCmd := fmt.Sprintf("cd /tmp && %s", cont.Image.RunCmd)
 

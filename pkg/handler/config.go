@@ -10,4 +10,5 @@ type Config struct {
 	PluginHookPath                   string
 	PreRequestCallback               func(hook HookEvent) (HTTPResponse, error)
 	GracefulRequestCompletionTimeout time.Duration
+	ShutdownTimeout                  time.Duration
 }

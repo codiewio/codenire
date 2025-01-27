@@ -28,6 +28,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"github.com/codiewio/codenire/pkg/hooks/file"
 	"log"
@@ -56,6 +57,7 @@ func main() {
 		PluginHookPath:                   *PluginHookPath,
 		FileHooksDir:                     *FileHooksDir,
 		GracefulRequestCompletionTimeout: 10 * time.Second,
+		ShutdownTimeout:                  10 * time.Second,
 	}
 
 	hookHandler := getHookHandler(&cfg)
@@ -73,11 +75,21 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error creating server: %v", err)
 	}
-
 	port := cfg.Port
 
+	shutdownComplete := s.SetupSignalHandler()
+
 	log.Printf("Listening on :%v ...", port)
-	log.Fatalf("Error listening on :%v: %v", port, http.ListenAndServe(":"+port, s))
+	err = http.ListenAndServe(":"+port, s)
+
+	if errors.Is(err, http.ErrServerClosed) {
+		// ErrServerClosed means that http.Server.Shutdown was called due to an interruption signal.
+		// We wait until the interruption procedure is complete or times out and then exit main.
+		<-shutdownComplete
+	} else {
+		// Any other error is relayed to the user.
+		log.Fatalf("Unable to serve: %s", err)
+	}
 }
 
 func getHookHandler(config *handler.Config) hooks.HookHandler {

@@ -6,11 +6,17 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
+
+	"github.com/codiewio/codenire/pkg/hooks/plugin"
 )
 
 var log = newStdLogger()
@@ -85,4 +91,37 @@ func (s *Server) writeJSONResponse(w http.ResponseWriter, resp interface{}, stat
 		s.log.Errorf("io.Copy(w, &buf): %v", err)
 		return
 	}
+}
+
+func (s *Server) SetupSignalHandler() <-chan struct{} {
+	shutdownComplete := make(chan struct{})
+
+	// We read up to two signals, so use a capacity of 2 here to not miss any signal
+	c := make(chan os.Signal, 2)
+
+	// os.Interrupt is mapped to SIGINT on Unix and to the termination instructions on Windows.
+	// On Unix we also listen to SIGTERM.
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		// First interrupt signal
+		<-c
+		log.Printf("Received interrupt signal. Shutting down codenire...")
+
+		// Wait for second interrupt signal, while also shutting down the existing server
+		go func() {
+			<-c
+			log.Printf("Received second interrupt signal. Exiting immediately!")
+			os.Exit(1)
+		}()
+
+		_, cancel := context.WithTimeout(context.Background(), s.handler.Config.ShutdownTimeout)
+		defer cancel()
+
+		plugin.CleanupPlugins()
+
+		close(shutdownComplete)
+	}()
+
+	return shutdownComplete
 }
