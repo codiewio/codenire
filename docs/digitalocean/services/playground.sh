@@ -48,7 +48,7 @@ docker run -d --name play_dev \
   \
   codiew/codenire-playground:latest \
   \
-  --backend-url "http://sandbox-host:80/run" \
+  --backend-url "http://sandbox-host:80" \
   --port 80
 
 # Show start logs

@@ -35,26 +35,4 @@ if [[ -n "${PLAYGROUND_DOMAIN}" ]]; then
   echo "TF_VAR_playground_domain=$PLAYGROUND_DOMAIN" >> /root/.bashrc
 fi
 
-
-#ID_RSA="/codenire-deploy/shared/ssh/id_rsa"
-#ID_RSA_PUB="/codenire-deploy/shared/ssh/id_rsa.pub"
-#
-#if [ ! -f "$ID_RSA" ] && [ ! -f "$ID_RSA_PUB" ]; then
-#    echo "SSH keys will be generated"
-#    ssh-keygen -t ed25519 -q -N '' -f "$ID_RSA" -m PEM
-#  else
-#    echo "SSH keys already exists"
-#fi
-#
-#
-##PRIVATE_KEY=$(base64 -w 0 ./codenire-deploy/shared/ssh/id_rsa)
-#PRIVATE_KEY=$(awk 'BEGIN {ORS="\\n"} {print}' /codenire-deploy/shared/ssh/id_rsa)
-#PUBLIC_KEY=$(cat /codenire-deploy/shared/ssh/id_rsa.pub)
-#
-#echo "export TF_VAR_do_ssh_private_key='$PRIVATE_KEY'" >> /root/.bashrc
-#export TF_VAR_do_ssh_private_key="$PRIVATE_KEY"
-#
-#echo "export TF_VAR_do_ssh_public_key='$PUBLIC_KEY'" >> /root/.bashrc
-#export TF_VAR_do_ssh_public_key="$PUBLIC_KEY"
-
 /bin/bash

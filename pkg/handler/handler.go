@@ -55,7 +55,6 @@ func (h *Handler) ImagesListHandler(w http.ResponseWriter, r *http.Request) {
 	for key, values := range resp.Header {
 		for _, value := range values {
 			w.Header().Set(key, value)
-			log.Printf("MMMMM", key, value)
 		}
 	}
 

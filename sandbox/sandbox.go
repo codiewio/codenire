@@ -140,10 +140,14 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		sendRunError(w, fmt.Sprintf("get container %s failed with %s", req.SandId, err.Error()), http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("Got cId %s", cont.CId)
+
 	defer func() {
 		err = codenireManager.KillContainer(cont.CId)
 		if err != nil {
-			// TODO:: handle it and log
+			sendRunError(w, fmt.Sprintf("kill contaier err: %s", err.Error()), http.StatusInternalServerError)
+			return
 		}
 	}()
 
@@ -175,9 +179,12 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 			err := execCommandInsideContainer(compileCtx, &stderr, &stdout, *cont, callCmd)
 			if err != nil {
 				if errors.Is(compileCtx.Err(), context.DeadlineExceeded) {
-					sendRunError(w, "timeout on compilation", http.StatusInternalServerError)
+					sendRunError(w, "timeout on compilation", http.StatusRequestTimeout)
 					return
 				}
+
+				sendRunError(w, fmt.Sprintf("some compilation error: %v", err), http.StatusInternalServerError)
+				return
 			}
 		}
 	}
@@ -189,13 +196,16 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		err := execCommandInsideContainer(runTimeoutCtx, &stderr, &stdout, *cont, runCmd)
 		if err != nil {
 			if errors.Is(runTimeoutCtx.Err(), context.DeadlineExceeded) {
-				sendRunError(w, "timeout on running", http.StatusInternalServerError)
+				sendRunError(w, "timeout on running", http.StatusRequestTimeout)
 				return
 			}
 
 			var exitError *exec.ExitError
 			if errors.As(err, &exitError) {
 				exitCode = exitError.ExitCode()
+			} else {
+				sendRunError(w, fmt.Sprintf("some compilation error: %v", err), http.StatusInternalServerError)
+				return
 			}
 		}
 	}

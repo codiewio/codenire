@@ -208,6 +208,8 @@ func (m *CodenireManager) KillContainer(cId string) (err error) {
 		return err
 	}
 
+	log.Printf("Killed cId %s", cId)
+
 	//m.imageContainers[]
 
 	return nil
@@ -397,6 +399,8 @@ func parseConfigFiles(root string, directories []string) []ImageConfig {
 			log.Printf("Parse config err 3: %s", err.Error())
 			continue
 		}
+
+		log.Println("MAKSKSKSKSKS", config.Name, config.RunCmd, config.CompileCmd)
 
 		res = append(res, config)
 	}
