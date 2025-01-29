@@ -26,6 +26,48 @@ type Handler struct {
 	Config *Config
 }
 
+func (h *Handler) ImagesListHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	sreq, err := http.NewRequestWithContext(
+		r.Context(),
+		"GET",
+		h.Config.BackendURL+"/images/list",
+		nil,
+	)
+	if err != nil {
+		http.Error(w, "Playground: Sandbox client request error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resp, err := SandboxBackendClient().Do(sreq)
+	if err != nil {
+		log.Printf("Playground: Sandbox client request error: %v", err)
+		http.Error(w, "Playground: Sandbox client request error: "+err.Error(), http.StatusBadGateway)
+
+		return
+	}
+	defer resp.Body.Close()
+
+	for key, values := range resp.Header {
+		for _, value := range values {
+			w.Header().Set(key, value)
+			log.Printf("MMMMM", key, value)
+		}
+	}
+
+	w.WriteHeader(resp.StatusCode)
+
+	_, err = io.Copy(w, resp.Body)
+
+	if err != nil {
+		http.Error(w, "Playground: Failed to copy response body", http.StatusInternalServerError)
+	}
+}
+
 func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
 	c := h.getContext(w, r)
 
@@ -86,7 +128,6 @@ func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
 			Args:   req.Args,
 			SandId: req.TemplateId,
 			Binary: b,
-			IsExec: false,
 		},
 	)
 	if err != nil {
@@ -95,7 +136,12 @@ func (h *Handler) RunHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sreq, err := http.NewRequestWithContext(r.Context(), "POST", h.Config.BackendURL, bytes.NewBuffer(jsonData))
+	sreq, err := http.NewRequestWithContext(
+		r.Context(),
+		"POST",
+		h.Config.BackendURL+"/run",
+		bytes.NewBuffer(jsonData),
+	)
 	if err != nil {
 		http.Error(w, "Playground: Sandbox client request error: "+err.Error(), http.StatusInternalServerError)
 		return

@@ -23,7 +23,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SandboxResponse'
-
+  /images/list:
+    get:
+      summary: Get image config list
+      operationId: getImageConfigList
+      responses:
+        "200":
+          description: Get list templates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageConfigList'
 
 components:
   schemas:
@@ -55,10 +65,54 @@ components:
           description: files in tar archive encoded with base64
         args:
           type: string
-        isExec:
-            type: boolean
       required:
         - sandId
         - binary
         - args
-        - isExec
+
+    ImageConfigOption:
+      type: object
+      properties:
+        CompileTTL:
+          type: integer
+        RunTTL:
+          type: integer
+      required:
+        - SourceFile
+
+    ImageConfigScriptOptions:
+      type: object
+      properties:
+        SourceFile:
+          type: string
+      required:
+        - SourceFile
+
+    ImageConfig:
+      type: object
+      properties:
+        Name:
+          type: string
+        Description:
+          type: string
+        CompileCmd:
+          type: string
+        RunCmd:
+          type: string
+        Options:
+          $ref: '#/components/schemas/ImageConfigOption'
+        ScriptOptions:
+          $ref: '#/components/schemas/ImageConfigScriptOptions'
+      required:
+        - Name
+        - Id
+        - Description
+        - CompileCmd
+        - RunCmd
+        - Options
+        - ScriptOptions
+
+    ImageConfigList:
+      type: array
+      items:
+        $ref: '#/components/schemas/ImageConfig'

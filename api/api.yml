@@ -24,6 +24,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/SubmissionResponse'
 
+
+#  /script:
+#    post:
+#      summary: Run Script
+#      operationId: runScript
+#      requestBody:
+#        description: Run a script
+#        required: true
+#        content:
+#          application/json:
+#            schema:
+#              $ref: '#/components/schemas/ScriptRequest'
+#      responses:
+#        "200":
+#          description: Submission ran successfully
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/ScriptResponse'
+
 components:
   schemas:
     SubmissionRequest:

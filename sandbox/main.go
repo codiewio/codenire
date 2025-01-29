@@ -96,8 +96,8 @@ func main() {
 	h.Use(middleware.Recoverer)
 
 	h.Get("/", rootHandler)
+	h.Get("/images/list", listImageHandler)
 	h.Post("/run", runHandler)
-	h.Post("/images/list", listImageHandler)
 
 	httpServer = &http.Server{
 		Addr:    ":" + *listenAddr,

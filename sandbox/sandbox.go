@@ -67,13 +67,36 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "Hi from sandbox\n")
 }
 
-func listImageHandler(w http.ResponseWriter, r *http.Request) {
-	rows := codenireManager.ImageList("codenire/")
+func listImageHandler(w http.ResponseWriter, _ *http.Request) {
+	res := api.ImageConfigList{}
+
+	rows := codenireManager.ImageList()
 	for _, row := range rows {
-		fmt.Println("[row]: ", row)
+		res = append(res, api.ImageConfig{
+			Name:        row.ImageConfig.Name,
+			Description: row.Description,
+
+			RunCmd:     row.RunCmd,
+			CompileCmd: row.CompileCmd,
+
+			Options: api.ImageConfigOption{
+				CompileTTL: row.Options.CompileTTL,
+				RunTTL:     row.Options.RunTTL,
+			},
+			ScriptOptions: api.ImageConfigScriptOptions{
+				SourceFile: row.ScriptOptions.SourceFile,
+			},
+		})
 	}
 
-	//sendRunResponse(w, res)
+	body, err := json.MarshalIndent(res, "", "  ")
+	if err != nil {
+		http.Error(w, "error encoding JSON", http.StatusInternalServerError)
+		log.Printf("json marshal: %v", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(body)
 }
 
 func runHandler(w http.ResponseWriter, r *http.Request) {
@@ -129,7 +152,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		"docker",
 		"cp",
 		tmpDir+"/.",
-		cont.CId+":/tmp",
+		cont.CId+":"+cont.Image.Workdir,
 	).CombinedOutput()
 
 	if err != nil {
@@ -147,7 +170,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	if cont.Image.CompileCmd != "" {
 		compileCtx := registerTimeout(r.Context(), totalTimeout)
 		{
-			callCmd := fmt.Sprintf("cd /tmp && %s", cont.Image.CompileCmd)
+			callCmd := fmt.Sprintf("cd %s && %s", cont.Image.Workdir, cont.Image.CompileCmd)
 
 			err := execCommandInsideContainer(compileCtx, &stderr, &stdout, *cont, callCmd)
 			if err != nil {
@@ -161,7 +184,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	runTimeoutCtx := registerTimeout(timeoutCtx, defaultRunTimeout)
 	{
-		runCmd := fmt.Sprintf("cd /tmp && %s", cont.Image.RunCmd)
+		runCmd := fmt.Sprintf("cd %s && %s", cont.Image.Workdir, cont.Image.RunCmd)
 
 		err := execCommandInsideContainer(runTimeoutCtx, &stderr, &stdout, *cont, runCmd)
 		if err != nil {

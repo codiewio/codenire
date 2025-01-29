@@ -13,13 +13,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/docker/docker/api/types/network"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
-	"sandbox/internal"
 	"strings"
 	"sync"
 	"time"
@@ -27,36 +25,39 @@ import (
 	"github.com/alitto/pond/v2"
 	"github.com/docker/docker/api/types"
 	dockercontainer "github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
+
+	"sandbox/internal"
 )
 
-const imageTagPrefix = "codenire/"
+const imageTagPrefix = "codenire_play/"
 const codenireConfigName = "config.json"
 
-type ImageExtraOptions struct {
+type ImageConfigOptions struct {
 	CompileTTL *int `json:"compileTTL,omitempty"`
 	RunTTL     *int `json:"runTTL,omitempty"`
 }
 
-type ScriptOptions struct {
+type ImageConfigScriptOptions struct {
 	SourceFile string `json:"sourceFile"`
 }
 
-type ImageSetupConfig struct {
-	Name        string   `json:"name"`
-	Labels      []string `json:"labels"`
-	Description string   `json:"description"`
+type ImageConfig struct {
+	Name        string   `json:"Name"`
+	Labels      []string `json:"Labels"`
+	Description string   `json:"Description"`
 
-	CompileCmd    string            `json:"compileCmd"`
-	RunCmd        string            `json:"runCmd"`
-	Options       ImageExtraOptions `json:"options"`
-	ScriptOptions ScriptOptions     `json:"scriptOptions"`
+	CompileCmd    string                   `json:"CompileCmd"`
+	RunCmd        string                   `json:"RunCmd"`
+	Options       ImageConfigOptions       `json:"Options"`
+	ScriptOptions ImageConfigScriptOptions `json:"ScriptOptions"`
 }
 
 type BuiltImage struct {
-	ImageSetupConfig
-	Id string
+	ImageConfig
+	Id      string
+	Workdir string
 }
 
 type StartedContainer struct {
@@ -66,7 +67,7 @@ type StartedContainer struct {
 
 type ContainerManager interface {
 	Boot() error
-	ImageList(prefix string) []string
+	ImageList() []BuiltImage
 	GetContainer(ctx context.Context, id string) (*StartedContainer, error)
 	KillAll()
 	KillContainer(cId string) error
@@ -142,32 +143,8 @@ func (m *CodenireManager) Boot() (err error) {
 	return nil
 }
 
-func (m *CodenireManager) ImageList(prefix string) []string {
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		log.Fatalf("Create Docker client failed: %v", err)
-	}
-
-	ctx := context.Background()
-
-	images, err := cli.ImageList(ctx, image.ListOptions{})
-	if err != nil {
-		log.Fatalf("Get Image list failed: %v", err)
-	}
-
-	var ii []string
-
-	for _, i := range images {
-		for _, t := range i.RepoTags {
-			if strings.Contains(t, prefix) {
-				ii = append(ii, t)
-			}
-		}
-	}
-
-	ii = uniq(ii)
-
-	return ii
+func (m *CodenireManager) ImageList() []BuiltImage {
+	return m.imgs
 }
 
 func (m *CodenireManager) GetContainer(ctx context.Context, id string) (*StartedContainer, error) {
@@ -236,7 +213,7 @@ func (m *CodenireManager) KillContainer(cId string) (err error) {
 	return nil
 }
 
-func (m *CodenireManager) buildImage(cfg ImageSetupConfig, root string) error {
+func (m *CodenireManager) buildImage(cfg ImageConfig, root string) error {
 	tag := fmt.Sprintf("%s%s", imageTagPrefix, cfg.Name)
 
 	buf, err := internal.DirToTar(filepath.Join(root, cfg.Name))
@@ -273,10 +250,15 @@ func (m *CodenireManager) buildImage(cfg ImageSetupConfig, root string) error {
 		return fmt.Errorf("tags not found for %s", cfg.Name)
 	}
 
-	t := imageInfo.RepoTags[0]
+	wd := imageInfo.Config.WorkingDir
+	if wd == "/" {
+		wd = "/tmp"
+	}
+
 	builtImage := BuiltImage{
-		ImageSetupConfig: cfg,
-		Id:               t,
+		ImageConfig: cfg,
+		Id:          imageInfo.RepoTags[0],
+		Workdir:     wd,
 	}
 	m.imgs = append(m.imgs, builtImage)
 
@@ -382,8 +364,8 @@ func stripImageName(imgName string) string {
 	return parts[1]
 }
 
-func parseConfigFiles(root string, directories []string) []ImageSetupConfig {
-	var res []ImageSetupConfig
+func parseConfigFiles(root string, directories []string) []ImageConfig {
+	var res []ImageConfig
 
 	for _, d := range directories {
 		dir := filepath.Join(root, d)
@@ -410,19 +392,18 @@ func parseConfigFiles(root string, directories []string) []ImageSetupConfig {
 			continue
 		}
 
-		var config ImageSetupConfig
+		var config ImageConfig
 		if err := json.Unmarshal(content, &config); err != nil {
 			log.Printf("Parse config err 3: %s", err.Error())
 			continue
 		}
 
-		base := filepath.Base(dir)
-		if config.Name != base {
-			log.Printf("Config Name not equals dir name")
-			continue
-		}
-
 		res = append(res, config)
+	}
+
+	dd := duplicates(res)
+	if len(dd) > 0 {
+		log.Fatalf("Found duplicates of config names: %s.", strings.Join(dd, ", "))
 	}
 
 	return res
@@ -447,4 +428,21 @@ func uniq(slice []string) []string {
 	}
 
 	return result
+}
+
+func duplicates(items []ImageConfig) []string {
+	nameCount := make(map[string]int)
+	var duplicates []string
+
+	for _, item := range items {
+		nameCount[item.Name]++
+	}
+
+	for name, count := range nameCount {
+		if count > 1 {
+			duplicates = append(duplicates, name)
+		}
+	}
+
+	return duplicates
 }

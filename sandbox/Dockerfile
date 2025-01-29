@@ -55,3 +55,5 @@ RUN apt-get update && apt-get install -y docker-ce-cli
 COPY --from=builder /app/bin/sandbox /usr/local/bin/sandbox
 
 ENTRYPOINT ["/usr/local/bin/sandbox"]
+
+EXPOSE 6060
