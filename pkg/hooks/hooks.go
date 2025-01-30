@@ -7,11 +7,7 @@ import (
 
 type HookRequest struct {
 	Type  HookType
-	Event handler.HookEvent
-}
-
-type HookResponse struct {
-	HTTPResponse handler.HTTPResponse
+	Event handler.CodeHookEvent
 }
 
 type HookHandler interface {
@@ -27,30 +23,28 @@ const (
 
 var AvailableHooks []HookType = []HookType{HookPreSandboxRequest}
 
-func PreSandboxRequestCallback(event handler.HookEvent, hookHandler HookHandler) (handler.HTTPResponse, error) {
+func PreSandboxRequestCallback(event handler.CodeHookEvent, hookHandler HookHandler) (HookResponse, error) {
 	ok, hookRes, err := invokeHookSync(HookPreSandboxRequest, event, hookHandler)
 	if !ok || err != nil {
-		return handler.HTTPResponse{}, err
+		return HookResponse{}, err
 	}
 
-	httpRes := hookRes.HTTPResponse
-
-	return httpRes, nil
+	return hookRes, nil
 }
 
-func invokeHookSync(typ HookType, event handler.HookEvent, hookHandler HookHandler) (ok bool, res HookResponse, err error) {
-	slog.Debug("HookInvocationStart", "type", typ)
+func invokeHookSync(hookType HookType, event handler.CodeHookEvent, hookHandler HookHandler) (ok bool, res HookResponse, err error) {
+	slog.Debug("HookInvocationStart", "type", hookType)
 
 	res, err = hookHandler.InvokeHook(HookRequest{
-		Type:  typ,
+		Type:  hookType,
 		Event: event,
 	})
 	if err != nil {
-		slog.Error("HookInvocationError", "type", typ, "error", err.Error())
+		slog.Error("HookInvocationError", "type", hookType, "error", err.Error())
 		return false, HookResponse{}, err
 	}
 
-	slog.Debug("HookInvocationFinish", "type", typ)
+	slog.Debug("HookInvocationFinish", "type", hookType)
 
 	return true, res, nil
 }

@@ -1,8 +1,10 @@
-package handler
+package hooks
 
 import (
 	"net/http"
 	"strconv"
+
+	api "github.com/codiewio/codenire/api/gen"
 )
 
 type HTTPRequest struct {
@@ -14,14 +16,15 @@ type HTTPRequest struct {
 
 type HTTPHeader map[string]string
 
-type HTTPResponse struct {
-	StatusCode   int
-	Body         string
-	Header       HTTPHeader
-	IsTerminated bool
+type HookResponse struct {
+	StatusCode        int
+	Body              string
+	Header            HTTPHeader
+	IsTerminated      bool
+	SubmissionRequest api.SubmissionRequest
 }
 
-func (resp HTTPResponse) WriteTo(w http.ResponseWriter) {
+func (resp HookResponse) WriteTo(w http.ResponseWriter) {
 	headers := w.Header()
 	for key, value := range resp.Header {
 		headers.Set(key, value)
@@ -40,7 +43,7 @@ func (resp HTTPResponse) WriteTo(w http.ResponseWriter) {
 
 // MergeWith returns a copy of resp1, where non-default values from resp2 overwrite
 // values from resp1.
-func (resp1 HTTPResponse) MergeWith(resp2 HTTPResponse) HTTPResponse {
+func (resp1 HookResponse) MergeWith(resp2 HookResponse) HookResponse {
 	// Clone the response 1 and use it as a basis
 	newResp := resp1
 

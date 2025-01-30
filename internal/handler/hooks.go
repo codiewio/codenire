@@ -2,21 +2,22 @@ package handler
 
 import (
 	"context"
+	"github.com/codiewio/codenire/pkg/hooks"
 
 	api "github.com/codiewio/codenire/api/gen"
 )
 
-type HookEvent struct {
+type CodeHookEvent struct {
 	Context           context.Context
 	SubmissionRequest api.SubmissionRequest
-	HTTPRequest       HTTPRequest
+	HTTPRequest       hooks.HTTPRequest
 }
 
-func newHookEvent(c *httpContext, sr api.SubmissionRequest) HookEvent {
-	return HookEvent{
+func newCodeHookEvent(c *httpContext, sr api.SubmissionRequest) CodeHookEvent {
+	return CodeHookEvent{
 		Context:           c,
 		SubmissionRequest: sr,
-		HTTPRequest: HTTPRequest{
+		HTTPRequest: hooks.HTTPRequest{
 			Method:     c.req.Method,
 			URI:        c.req.RequestURI,
 			RemoteAddr: c.req.RemoteAddr,

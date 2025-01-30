@@ -7,16 +7,22 @@ import (
 )
 
 func (h *Handler) ImagesListHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	if r.Method == http.MethodGet {
+		refreshData(w)
 		return
 	}
 
-	res := images.ConfigList
+	if r.Method == http.MethodPost {
+		_ = images.PullImageConfigList(h.Config.BackendURL + "/images/list")
+		refreshData(w)
+		return
+	}
 
-	writeJSONResponse(w, res, http.StatusOK)
+	http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	return
 }
 
-func (h *Handler) RefreshImageConfigList(w http.ResponseWriter, r *http.Request) {
-
+func refreshData(w http.ResponseWriter) {
+	res := images.ConfigList
+	writeJSONResponse(w, res, http.StatusOK)
 }

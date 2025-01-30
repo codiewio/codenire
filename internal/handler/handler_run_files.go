@@ -42,7 +42,7 @@ func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.Config.PreRequestCallback != nil {
-		resp2, err := h.Config.PreRequestCallback(newHookEvent(c, req))
+		resp2, err := h.Config.PreRequestCallback(newCodeHookEvent(c, req))
 		if err != nil {
 			err = fmt.Errorf("[playground] pre-SubmissionRequest callback failed: %w", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -53,6 +53,8 @@ func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
 			resp2.WriteTo(w)
 			return
 		}
+
+		req = resp2.SubmissionRequest
 	}
 
 	apiRes, err := runCode(r.Context(), req, h.Config.BackendURL+"/run")

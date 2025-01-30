@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	api "github.com/codiewio/codenire/api/gen"
+	"github.com/codiewio/codenire/internal/images"
 	"net/http"
 )
 
@@ -36,8 +37,11 @@ func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO:: Get from config
-	srcFile := "index.php"
+	cfg := images.GetImageConfig(preReq.TemplateId)
+	if cfg == nil {
+		http.Error(w, fmt.Sprintf("[playground] template `%s` not found", preReq.TemplateId), http.StatusBadRequest)
+		return
+	}
 
 	req := api.SubmissionRequest{
 		TemplateId: preReq.TemplateId,
@@ -45,10 +49,11 @@ func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
 		Files:      make(map[string]string),
 	}
 
-	req.Files[srcFile] = preReq.Code
+	sourceFile := cfg.ScriptOptions.SourceFile
+	req.Files[sourceFile] = preReq.Code
 
 	if h.Config.PreRequestCallback != nil {
-		resp2, err := h.Config.PreRequestCallback(newHookEvent(c, req))
+		resp2, err := h.Config.PreRequestCallback(newCodeHookEvent(c, req))
 		if err != nil {
 			err = fmt.Errorf("[playground] pre-SubmissionRequest callback failed: %w", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -59,6 +64,8 @@ func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
 			resp2.WriteTo(w)
 			return
 		}
+
+		req = resp2.SubmissionRequest
 	}
 
 	apiRes, err := runCode(r.Context(), req, h.Config.BackendURL+"/run")

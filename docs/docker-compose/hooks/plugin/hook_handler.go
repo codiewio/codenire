@@ -5,6 +5,7 @@ import (
 
 	"github.com/codiewio/codenire/pkg/hooks"
 	codeniredplugin "github.com/codiewio/codenire/pkg/hooks/plugin"
+
 	"github.com/hashicorp/go-plugin"
 )
 
@@ -19,10 +20,10 @@ func (g *CodenireHandler) Setup() error {
 func (g *CodenireHandler) InvokeHook(req hooks.HookRequest) (res hooks.HookResponse, err error) {
 	log.Println("CodenireHandler.InvokeHook is invoked")
 
-	res.HTTPResponse.Header = make(map[string]string)
+	res.Header = make(map[string]string)
 
 	if req.Type == hooks.HookPreSandboxRequest {
-		// Some handle logic
+		// Some handle logic (auth or transform request or separate code handle)
 	}
 
 	return res, nil

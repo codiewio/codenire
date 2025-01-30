@@ -1,6 +1,9 @@
 package handler
 
-import "time"
+import (
+	"github.com/codiewio/codenire/pkg/hooks"
+	"time"
+)
 
 type Config struct {
 	BackendURL string
@@ -8,7 +11,7 @@ type Config struct {
 
 	FileHooksDir                     string
 	PluginHookPath                   string
-	PreRequestCallback               func(hook HookEvent) (HTTPResponse, error)
+	PreRequestCallback               func(hook CodeHookEvent) (hooks.HookResponse, error)
 	GracefulRequestCompletionTimeout time.Duration
 	ShutdownTimeout                  time.Duration
 }

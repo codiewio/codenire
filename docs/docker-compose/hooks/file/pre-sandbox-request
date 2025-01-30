@@ -7,10 +7,12 @@
 
 isGolang="$(cat /dev/stdin | jq -e '.Event.Request.templateId == "foo"')"
 
+echo "Maks event"
+
 if [ "$isGolang" = "true" ]; then
   cat <<END
   {
-    "HTTPResponse": {
+    "HookResponse": {
       "StatusCode": 400,
       "Body": "Golang not supported",
       "Headers": [],

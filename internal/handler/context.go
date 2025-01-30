@@ -36,7 +36,7 @@ func (h *Handler) newContext(w http.ResponseWriter, r *http.Request) *httpContex
 	// the post-receive hook stops an upload or if another uploads requests a lock to be released.
 	cancellableCtx, cancelHandling := context.WithCancelCause(requestCtx)
 	// On top of cancellableCtx, we construct a new context which gets cancelled with a delay.
-	// See HookEvent.Context for more details, but the gist is that we want to give data stores
+	// See CodeHookEvent.Context for more details, but the gist is that we want to give data stores
 	// some more time to finish their buisness.
 	delayedCtx := newDelayedContext(cancellableCtx, h.Config.GracefulRequestCompletionTimeout)
 

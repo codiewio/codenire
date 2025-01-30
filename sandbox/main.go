@@ -106,13 +106,13 @@ func main() {
 
 	go func() {
 		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("Server failed: %v", err)
+			log.Fatalf("server failed: %v", err)
 		}
 	}()
 
-	log.Printf("Application is running, port %s", *listenAddr)
+	log.Printf("[sandbox] application is running, port %s", *listenAddr)
 	<-done
-	log.Println("Shutdown complete.")
+	log.Println("[sandbox] shutdown complete.")
 }
 
 func checkGVisorIsolation() {

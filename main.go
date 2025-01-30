@@ -67,7 +67,7 @@ func main() {
 			log.Fatalf("unable to setup hooks for handler: %s", err)
 		}
 
-		cfg.PreRequestCallback = func(ev handler2.HookEvent) (handler2.HTTPResponse, error) {
+		cfg.PreRequestCallback = func(ev handler2.CodeHookEvent) (hooks.HookResponse, error) {
 			return hooks.PreSandboxRequestCallback(ev, hookHandler)
 		}
 	}
@@ -84,11 +84,13 @@ func main() {
 
 	err = images.PullImageConfigList(cfg.BackendURL + "/images/list")
 	if err != nil {
-		panic("sandbox not ready")
+		panic("sandbox not ready yet")
 	}
 
-	log.Printf("Listening on :%v ...", port)
+	log.Printf("listening on :%v ...", port)
 	err = http.ListenAndServe(":"+port, s)
+
+	log.Printf("[playground] application is running, port %s", port)
 
 	if errors.Is(err, http.ErrServerClosed) {
 		// ErrServerClosed means that http.Server.Shutdown was called due to an interruption signal.
@@ -96,7 +98,7 @@ func main() {
 		<-shutdownComplete
 	} else {
 		// Any other error is relayed to the user.
-		log.Fatalf("Unable to serve: %s", err)
+		log.Fatalf("[playground] unable to serve: %s", err)
 	}
 }
 

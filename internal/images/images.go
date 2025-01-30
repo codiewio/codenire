@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+
 	api "github.com/codiewio/codenire/api/gen"
 	"github.com/codiewio/codenire/internal/client"
-	"net/http"
 )
 
 var ConfigList *api.ImageConfigList
@@ -30,12 +32,24 @@ func PullImageConfigList(url string) error {
 	defer resp.Body.Close()
 
 	var execRes api.ImageConfigList
-
 	if err = json.NewDecoder(resp.Body).Decode(&execRes); err != nil {
 		return err
 	}
 
 	ConfigList = &execRes
+
+	log.Printf("images config list data refreshed")
+
+	return nil
+}
+
+func GetImageConfig(templateId string) *api.ImageConfig {
+	configs := *ConfigList
+	for _, config := range configs {
+		if config.Name == templateId {
+			return &config
+		}
+	}
 
 	return nil
 }
