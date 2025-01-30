@@ -2,30 +2,20 @@
 
 set -e
 
+docker system prune -f
+echo "Docker prune finished"
+
 # Main Sandbox
 docker pull codiew/codenire-sandbox:latest
-
-# copy dockerfiles for sandbox in tmp dir from var.dockerfiles_repository (terraform variable)
-tmp_dir=$(mktemp -d)
-cd "$tmp_dir" && git clone "$1" .
-
 
 # Stop and Remove old container
 docker ps -a --filter "name=sandbox_dev" -q | xargs docker stop || true
 docker ps -a --filter "name=sandbox_dev" -q | xargs docker rm || true
 
-# replace dockerfiles
-rm -rf /ops/dockerfiles/*
-cp -r "$tmp_dir"/* /ops/dockerfiles/
-
-echo "Used dockefiles configs:"
-ls -la /ops/dockerfiles
-
 # Start app
 docker run -d --name sandbox_dev \
   -p 80:8081 \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v /ops/dockerfiles:/dockerfiles \
   --restart=always \
   --entrypoint "/usr/local/bin/sandbox" \
   codiew/codenire-sandbox:latest \

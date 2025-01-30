@@ -1,0 +1,17 @@
+{
+  "Name": "golang_1_23",
+  "Labels": [],
+  "Description": "Golang 1.23",
+
+  "CompileCmd": "GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o main",
+  "RunCmd": "./main",
+
+  "Options": {
+    "CompileTTL": 30,
+    "RunTTL": 5
+  },
+  "ScriptOptions": {
+    "Enable": true,
+    "SourceFile": "main.go"
+  }
+}

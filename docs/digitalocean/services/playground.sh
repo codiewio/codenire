@@ -2,6 +2,9 @@
 
 set -e
 
+docker system prune -f
+echo "Docker prune finished"
+
 # Main Playground
 docker pull codiew/codenire-playground:latest
 

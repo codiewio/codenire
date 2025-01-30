@@ -1,0 +1,15 @@
+{
+  "Name": "python_3",
+  "Labels": [],
+  "Description": "Python 3.12",
+  "CompileCmd": "",
+  "RunCmd": "python3 main.py",
+  "Options": {
+    "CompileTTL": 30,
+    "RunTTL": 5
+  },
+  "ScriptOptions": {
+    "Enable": true,
+    "SourceFile": "main.py"
+  }
+}
