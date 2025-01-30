@@ -11,7 +11,10 @@ Inspired by:
 - Google Playground: https://github.com/golang/playground
 
 
-![Demonstrated By codiew.io service](docs/docs/preview.gif)
+
+
+<img width="1262" alt="Screenshot 2025-01-30 at 16 43 36" src="https://github.com/user-attachments/assets/bd1d8b10-0489-4343-9200-ce4533992e3c" />
+
 
 *Playground demonstration in the [codiew.io](https://codiew.io) service.*
 
