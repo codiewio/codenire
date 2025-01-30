@@ -1,8 +1,9 @@
 package handler
 
 import (
-	"github.com/codiewio/codenire/pkg/hooks"
 	"time"
+
+	"github.com/codiewio/codenire/pkg/hooks"
 )
 
 type Config struct {
@@ -11,7 +12,7 @@ type Config struct {
 
 	FileHooksDir                     string
 	PluginHookPath                   string
-	PreRequestCallback               func(hook CodeHookEvent) (hooks.HookResponse, error)
+	PreRequestCallback               func(hook hooks.CodeHookEvent) (hooks.HookResponse, error)
 	GracefulRequestCompletionTimeout time.Duration
 	ShutdownTimeout                  time.Duration
 }

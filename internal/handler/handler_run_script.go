@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/codiewio/codenire/pkg/hooks"
+	"net/http"
+
 	api "github.com/codiewio/codenire/api/gen"
 	"github.com/codiewio/codenire/internal/images"
-	"net/http"
 )
 
 var (
@@ -14,7 +16,7 @@ var (
 )
 
 func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
-	c := h.getContext(w, r)
+	c := hooks.GetContext(w, r, h.Config.GracefulRequestCompletionTimeout)
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -53,7 +55,7 @@ func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
 	req.Files[sourceFile] = preReq.Code
 
 	if h.Config.PreRequestCallback != nil {
-		resp2, err := h.Config.PreRequestCallback(newCodeHookEvent(c, req))
+		resp2, err := h.Config.PreRequestCallback(hooks.NewCodeHookEvent(c, req))
 		if err != nil {
 			err = fmt.Errorf("[playground] pre-SubmissionRequest callback failed: %w", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)

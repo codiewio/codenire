@@ -1,4 +1,4 @@
-package handler
+package hooks
 
 import (
 	"context"
@@ -6,10 +6,10 @@ import (
 	"time"
 )
 
-// httpContext is wrapper around context.Context that also carries the
+// HttpContext is wrapper around context.Context that also carries the
 // corresponding HTTP request and response writer, as well as an
 // optional body reader
-type httpContext struct {
+type HttpContext struct {
 	context.Context
 
 	// res and req are the native request and response instances
@@ -25,9 +25,9 @@ type httpContext struct {
 	// request progresses and is identified.
 }
 
-// newContext constructs a new httpContext for the given request. This should only be done once
+// newContext constructs a new HttpContext for the given request. This should only be done once
 // per request and the context should be stored in the request, so it can be fetched with getContext.
-func (h *Handler) newContext(w http.ResponseWriter, r *http.Request) *httpContext {
+func newContext(w http.ResponseWriter, r *http.Request, graceTimeout time.Duration) *HttpContext {
 	// requestCtx is the context from the native request instance. It gets cancelled
 	// if the connection closes, the request is cancelled (HTTP/2), ServeHTTP returns
 	// or the server's base context is cancelled.
@@ -38,9 +38,9 @@ func (h *Handler) newContext(w http.ResponseWriter, r *http.Request) *httpContex
 	// On top of cancellableCtx, we construct a new context which gets cancelled with a delay.
 	// See CodeHookEvent.Context for more details, but the gist is that we want to give data stores
 	// some more time to finish their buisness.
-	delayedCtx := newDelayedContext(cancellableCtx, h.Config.GracefulRequestCompletionTimeout)
+	delayedCtx := newDelayedContext(cancellableCtx, graceTimeout)
 
-	ctx := &httpContext{
+	ctx := &HttpContext{
 		Context: delayedCtx,
 		res:     w,
 		resC:    http.NewResponseController(w),
@@ -55,17 +55,17 @@ func (h *Handler) newContext(w http.ResponseWriter, r *http.Request) *httpContex
 	return ctx
 }
 
-// getContext tries to retrieve a httpContext from the request or constructs a new one.
-func (h *Handler) getContext(w http.ResponseWriter, r *http.Request) *httpContext {
-	c, ok := r.Context().(*httpContext)
+// getContext tries to retrieve a HttpContext from the request or constructs a new one.
+func GetContext(w http.ResponseWriter, r *http.Request, graceTimeout time.Duration) *HttpContext {
+	c, ok := r.Context().(*HttpContext)
 	if !ok {
-		c = h.newContext(w, r)
+		c = newContext(w, r, graceTimeout)
 	}
 
 	return c
 }
 
-func (c httpContext) Value(key any) any {
+func (c HttpContext) Value(key any) any {
 	// We overwrite the Value function to ensure that the values from the request
 	// context are returned because c.Context does not contain any values.
 	return c.req.Context().Value(key)

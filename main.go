@@ -30,12 +30,12 @@ package main
 import (
 	"errors"
 	"flag"
-	handler2 "github.com/codiewio/codenire/internal/handler"
-	"github.com/codiewio/codenire/internal/images"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/codiewio/codenire/internal/handler"
+	"github.com/codiewio/codenire/internal/images"
 	"github.com/codiewio/codenire/pkg/hooks"
 	"github.com/codiewio/codenire/pkg/hooks/file"
 	"github.com/codiewio/codenire/pkg/hooks/plugin"
@@ -52,7 +52,7 @@ func main() {
 	flag.Parse()
 	log.Printf("Use backend URL on :%s ...", *BackendURL)
 
-	cfg := handler2.Config{
+	cfg := handler.Config{
 		BackendURL:                       *BackendURL,
 		Port:                             *Port,
 		PluginHookPath:                   *PluginHookPath,
@@ -67,12 +67,12 @@ func main() {
 			log.Fatalf("unable to setup hooks for handler: %s", err)
 		}
 
-		cfg.PreRequestCallback = func(ev handler2.CodeHookEvent) (hooks.HookResponse, error) {
+		cfg.PreRequestCallback = func(ev hooks.CodeHookEvent) (hooks.HookResponse, error) {
 			return hooks.PreSandboxRequestCallback(ev, hookHandler)
 		}
 	}
 
-	s, err := handler2.NewServer(&cfg)
+	s, err := handler.NewServer(&cfg)
 	if err != nil {
 		log.Fatalf("Error creating server: %v", err)
 	}
@@ -102,7 +102,7 @@ func main() {
 	}
 }
 
-func getHookHandler(config *handler2.Config) hooks.HookHandler {
+func getHookHandler(config *handler.Config) hooks.HookHandler {
 	if config.PluginHookPath != "" {
 		return &plugin.PluginHook{
 			Path: config.PluginHookPath,
