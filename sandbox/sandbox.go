@@ -66,7 +66,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	io.WriteString(w, "Hi from sandbox\nPlayground url: "+*playgroundUrl)
+	io.WriteString(w, "Hi from sandbox\n")
 }
 
 func runHandler(w http.ResponseWriter, r *http.Request) {

@@ -9,21 +9,6 @@ data "digitalocean_droplets" "sandbox_droplets" {
   }
 }
 
-data "digitalocean_droplets" "playground_droplets" {
-  filter {
-    key    = "tags"
-    values = ["${local.retry_join.tag_name}_${var.environment}"]
-  }
-  filter {
-    key = "tags"
-    values = ["${local.retry_join.tag_name}_playground"]
-  }
-}
-
-locals {
-  playground__private_ip = data.digitalocean_droplets.playground_droplets.droplets[0].ipv4_address
-}
-
 resource "null_resource" "run_sandbox" {
   # Trigger every terraform apply
   triggers = {
@@ -47,7 +32,7 @@ resource "null_resource" "run_sandbox" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/script.sh",
-      "/tmp/script.sh ${local.playground__private_ip}",
+      "/tmp/script.sh",
     ]
   }
 }

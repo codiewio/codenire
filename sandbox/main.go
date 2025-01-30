@@ -56,7 +56,6 @@ var (
 	replicaContainerCnt = flag.Int("replicaContainerCnt", 1, "number of parallel containers for every uniq image")
 	dockerFilesPath     = flag.String("dockerFilesPath", "", "configs paths")
 	isolated            = flag.Bool("isolated", false, "use gVisor Isolation for compile code")
-	playgroundUrl       = flag.String("playground-url", "http://play_dev", "playground url")
 
 	runSem       chan struct{}
 	graceTimeout = 5 * time.Second
