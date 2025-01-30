@@ -23,11 +23,6 @@ variable "environment" {
   default = "dev"
 }
 
-variable "dockerfiles_repository" {
-  type = string
-  default = "https://github.com/codiewio/dockerfiles.git"
-}
-
 variable "do_region" {
   type    = string
   default = "nyc1"
