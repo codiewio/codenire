@@ -55,7 +55,7 @@ var (
 	numWorkers          = flag.Int("workers", runtime.NumCPU(), "number of parallel gvisor containers to pre-spin up & let run concurrently")
 	replicaContainerCnt = flag.Int("replicaContainerCnt", 1, "number of parallel containers for every uniq image")
 	dockerFilesPath     = flag.String("dockerFilesPath", "", "configs paths")
-	isolated            = flag.Bool("isolated", false, "use gVisor Isolation for compile code")
+	isolated            = flag.Bool("isolated", false, "use gVisor isolation for compile code")
 
 	runSem       chan struct{}
 	graceTimeout = 5 * time.Second
