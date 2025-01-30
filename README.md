@@ -18,6 +18,11 @@ Inspired by:
 
 *Playground demonstration in the [codiew.io](https://codiew.io) service.*
 
+Special thanks to:
+<img width="130" alt="Screenshot 2025-01-30 at 17 19 20" src="https://github.com/user-attachments/assets/db4350d0-31a2-46cf-9e69-ef24b0075650" />
+
+
+
 
 # Infrastructure Schema
 
