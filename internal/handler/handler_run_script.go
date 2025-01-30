@@ -67,7 +67,9 @@ func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		req = resp2.SubmissionRequest
+		if resp2.ChangedSubmissionRequest != nil {
+			req = *resp2.ChangedSubmissionRequest
+		}
 	}
 
 	apiRes, err := runCode(r.Context(), req, h.Config.BackendURL+"/run")

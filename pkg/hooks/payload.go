@@ -17,11 +17,11 @@ type HTTPRequest struct {
 type HTTPHeader map[string]string
 
 type HookResponse struct {
-	StatusCode        int
-	Body              string
-	Header            HTTPHeader
-	IsTerminated      bool
-	SubmissionRequest api.SubmissionRequest
+	StatusCode               int
+	Body                     string
+	Header                   HTTPHeader
+	IsTerminated             bool
+	ChangedSubmissionRequest *api.SubmissionRequest
 }
 
 func (resp HookResponse) WriteTo(w http.ResponseWriter) {

@@ -77,7 +77,7 @@ func CleanupPlugins() {
 // This prevents users from executing bad plugins or executing a plugin
 // directory. It is a UX feature, not a security feature.
 var handshakeConfig = plugin.HandshakeConfig{
-	ProtocolVersion:  1,
+	ProtocolVersion:  2,
 	MagicCookieKey:   "CODENIRE_PLUGIN",
 	MagicCookieValue: "yes",
 }

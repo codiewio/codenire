@@ -43,6 +43,7 @@ func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.Config.PreRequestCallback != nil {
+		log.Printf("Pre hook!")
 		resp2, err := h.Config.PreRequestCallback(hooks.NewCodeHookEvent(c, req))
 		if err != nil {
 			err = fmt.Errorf("[playground] pre-SubmissionRequest callback failed: %w", err)
@@ -50,12 +51,17 @@ func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		log.Printf("Pre hook response!")
+
 		if resp2.IsTerminated {
 			resp2.WriteTo(w)
 			return
 		}
 
-		req = resp2.SubmissionRequest
+		if resp2.ChangedSubmissionRequest != nil {
+			req = *resp2.ChangedSubmissionRequest
+		}
+		log.Printf("after Pre hook req!", req)
 	}
 
 	apiRes, err := runCode(r.Context(), req, h.Config.BackendURL+"/run")
