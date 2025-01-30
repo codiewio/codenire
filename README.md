@@ -13,7 +13,7 @@ Inspired by:
 
 ![Demonstrated By codiew.io service](docs/docs/preview.gif)
 
-*Playground demonstration in the [https://codiew.io](codiew.io) service.*
+*Playground demonstration in the [codiew.io](https://codiew.io) service.*
 
 
 # Infrastructure Schema
