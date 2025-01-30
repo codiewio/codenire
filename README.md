@@ -11,6 +11,11 @@ Inspired by:
 - Google Playground: https://github.com/golang/playground
 
 
+![Demonstrated By codiew.io service](docs/docs/preview.gif)
+
+*Playground demonstration in the [https://codiew.io](codiew.io) service.*
+
+
 # Infrastructure Schema
 
 ![Image alt](docs/docs/general_schema.png)

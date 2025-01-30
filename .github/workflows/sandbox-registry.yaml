@@ -7,6 +7,7 @@ on:
       - '.github/workflows/sandbox-registry.yaml'
       - 'LICENSE.MD'
       - 'README.md'
+      - 'docs/**'
     branches:
       - main
   pull_request:
@@ -15,6 +16,7 @@ on:
       - '.github/workflows/sandbox-registry.yaml'
       - 'LICENSE.MD'
       - 'README.md'
+      - 'docs/**'
     branches:
       - main
 
