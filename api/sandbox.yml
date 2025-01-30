@@ -95,6 +95,8 @@ components:
           type: string
         Description:
           type: string
+        Version:
+          type: string
         CompileCmd:
           type: string
         RunCmd:

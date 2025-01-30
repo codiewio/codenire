@@ -30,11 +30,12 @@ package main
 import (
 	"errors"
 	"flag"
+	handler2 "github.com/codiewio/codenire/internal/handler"
+	"github.com/codiewio/codenire/internal/images"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/codiewio/codenire/handler"
 	"github.com/codiewio/codenire/pkg/hooks"
 	"github.com/codiewio/codenire/pkg/hooks/file"
 	"github.com/codiewio/codenire/pkg/hooks/plugin"
@@ -51,7 +52,7 @@ func main() {
 	flag.Parse()
 	log.Printf("Use backend URL on :%s ...", *BackendURL)
 
-	cfg := handler.Config{
+	cfg := handler2.Config{
 		BackendURL:                       *BackendURL,
 		Port:                             *Port,
 		PluginHookPath:                   *PluginHookPath,
@@ -66,12 +67,12 @@ func main() {
 			log.Fatalf("unable to setup hooks for handler: %s", err)
 		}
 
-		cfg.PreRequestCallback = func(ev handler.HookEvent) (handler.HTTPResponse, error) {
+		cfg.PreRequestCallback = func(ev handler2.HookEvent) (handler2.HTTPResponse, error) {
 			return hooks.PreSandboxRequestCallback(ev, hookHandler)
 		}
 	}
 
-	s, err := handler.NewServer(&cfg)
+	s, err := handler2.NewServer(&cfg)
 	if err != nil {
 		log.Fatalf("Error creating server: %v", err)
 	}
@@ -80,6 +81,11 @@ func main() {
 	shutdownComplete := s.SetupSignalHandler(func() {
 		plugin.CleanupPlugins()
 	})
+
+	err = images.PullImageConfigList(cfg.BackendURL + "/images/list")
+	if err != nil {
+		panic("sandbox not ready")
+	}
 
 	log.Printf("Listening on :%v ...", port)
 	err = http.ListenAndServe(":"+port, s)
@@ -94,7 +100,7 @@ func main() {
 	}
 }
 
-func getHookHandler(config *handler.Config) hooks.HookHandler {
+func getHookHandler(config *handler2.Config) hooks.HookHandler {
 	if config.PluginHookPath != "" {
 		return &plugin.PluginHook{
 			Path: config.PluginHookPath,

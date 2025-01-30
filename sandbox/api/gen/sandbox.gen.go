@@ -11,6 +11,7 @@ type ImageConfig struct {
 	Options       ImageConfigOption        `json:"Options"`
 	RunCmd        string                   `json:"RunCmd"`
 	ScriptOptions ImageConfigScriptOptions `json:"ScriptOptions"`
+	Version       *string                  `json:"Version,omitempty"`
 }
 
 // ImageConfigList defines model for ImageConfigList.

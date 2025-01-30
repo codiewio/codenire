@@ -38,6 +38,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"regexp"
+	"strings"
 	"time"
 
 	api "sandbox/api/gen"
@@ -64,43 +66,43 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	io.WriteString(w, "Hi from sandbox\n")
-}
-
-func listImageHandler(w http.ResponseWriter, _ *http.Request) {
-	res := api.ImageConfigList{}
-
-	rows := codenireManager.ImageList()
-	for _, row := range rows {
-		res = append(res, api.ImageConfig{
-			Name:        row.ImageConfig.Name,
-			Description: row.Description,
-
-			RunCmd:     row.RunCmd,
-			CompileCmd: row.CompileCmd,
-
-			Options: api.ImageConfigOption{
-				CompileTTL: row.Options.CompileTTL,
-				RunTTL:     row.Options.RunTTL,
-			},
-			ScriptOptions: api.ImageConfigScriptOptions{
-				SourceFile: row.ScriptOptions.SourceFile,
-			},
-		})
-	}
-
-	body, err := json.MarshalIndent(res, "", "  ")
-	if err != nil {
-		http.Error(w, "error encoding JSON", http.StatusInternalServerError)
-		log.Printf("json marshal: %v", err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(body)
+	io.WriteString(w, "Hi from sandbox\nPlayground url: "+*playgroundUrl)
 }
 
 func runHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
+
+	var req api.SandboxRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	tmpDir, err := os.MkdirTemp("", "tmp_sandbox")
+	if err != nil {
+		http.Error(w, "create tmp dir failed", http.StatusInternalServerError)
+		return
+	}
+	defer os.RemoveAll(tmpDir)
+
+	err = internal.Base64ToTar(req.Binary, tmpDir)
+	if err != nil {
+		sendRunError(w, "encode  files failed", http.StatusInternalServerError)
+		return
+	}
+
+	cont, err := codenireManager.GetContainer(r.Context(), req.SandId)
+	if err != nil {
+		sendRunError(w, fmt.Sprintf("get container %s failed with %s", req.SandId, err.Error()), http.StatusInternalServerError)
+		return
+	}
+	defer func() {
+		err = codenireManager.KillContainer(cont.CId)
+		if err != nil {
+			sendRunError(w, fmt.Sprintf("kill contaier err: %s", err.Error()), http.StatusInternalServerError)
+			return
+		}
+	}()
 
 	// Bound the number of requests being processed at once.
 	// (Before we slurp the binary into memory)
@@ -110,44 +112,6 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer func() { <-runSem }()
-
-	var req api.SandboxRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Printf("Invalid request 1")
-
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
-	tmpDir, err := os.MkdirTemp("", "tmp_sandbox")
-	if err != nil {
-		log.Printf("Invalid request 2")
-		http.Error(w, "create tmp dir failed", http.StatusInternalServerError)
-		return
-	}
-	defer os.RemoveAll(tmpDir)
-
-	err = internal.Base64ToTar(req.Binary, tmpDir)
-	if err != nil {
-		log.Printf("Invalid request 3")
-		sendRunError(w, "encode  files failed", http.StatusInternalServerError)
-		return
-	}
-
-	cont, err := codenireManager.GetContainer(r.Context(), req.SandId)
-	if err != nil {
-		log.Printf("Invalid request container by ID %s", req.SandId)
-		sendRunError(w, fmt.Sprintf("get container %s failed with %s", req.SandId, err.Error()), http.StatusInternalServerError)
-		return
-	}
-
-	defer func() {
-		err = codenireManager.KillContainer(cont.CId)
-		if err != nil {
-			sendRunError(w, fmt.Sprintf("kill contaier err: %s", err.Error()), http.StatusInternalServerError)
-			return
-		}
-	}()
 
 	// TODO:: Make Timeout?
 	out, err := exec.Command(
@@ -173,6 +137,9 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		compileCtx := registerTimeout(r.Context(), totalTimeout)
 		{
 			callCmd := fmt.Sprintf("cd %s && %s", cont.Image.Workdir, cont.Image.CompileCmd)
+			//callCmd = replacePlaceholders(callCmd, map[string]string{
+			//	"ARGS": req.Args,
+			//})
 
 			err := execCommandInsideContainer(compileCtx, &stderr, &stdout, *cont, callCmd)
 			if err != nil {
@@ -181,7 +148,9 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				sendRunError(w, fmt.Sprintf("some compilation error: %v", err), http.StatusInternalServerError)
+				log.Printf("some compilation error: %v", err)
+
+				sendRunError(w, "some compilation error", http.StatusInternalServerError)
 				return
 			}
 		}
@@ -190,6 +159,9 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	runTimeoutCtx := registerTimeout(timeoutCtx, defaultRunTimeout)
 	{
 		runCmd := fmt.Sprintf("cd %s && %s", cont.Image.Workdir, cont.Image.RunCmd)
+		runCmd = replacePlaceholders(runCmd, map[string]string{
+			"ARGS": req.Args,
+		})
 
 		err := execCommandInsideContainer(runTimeoutCtx, &stderr, &stdout, *cont, runCmd)
 		if err != nil {
@@ -202,7 +174,8 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 			if errors.As(err, &exitError) {
 				exitCode = exitError.ExitCode()
 			} else {
-				sendRunError(w, fmt.Sprintf("some compilation error: %v", err), http.StatusInternalServerError)
+				err = fmt.Errorf("some run error: %w", err)
+				sendRunError(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 		}
@@ -264,4 +237,48 @@ func sendRunError(w http.ResponseWriter, err string, code int) {
 	res.Stderr = []byte(err)
 
 	sendRunResponse(w, res)
+}
+
+func replacePlaceholders(input string, values map[string]string) string {
+	re := regexp.MustCompile(`\{\s*([A-Z0-9_]+)\s*\}`)
+	return re.ReplaceAllStringFunc(input, func(match string) string {
+		key := strings.TrimSpace(match[1 : len(match)-1])
+		if val, exists := values[key]; exists {
+			return val
+		}
+		return match
+	})
+}
+
+func listImageHandler(w http.ResponseWriter, _ *http.Request) {
+	res := api.ImageConfigList{}
+
+	rows := codenireManager.ImageList()
+	for _, row := range rows {
+		res = append(res, api.ImageConfig{
+			Name:        row.ImageConfig.Name,
+			Description: row.Description,
+
+			RunCmd:     row.RunCmd,
+			CompileCmd: row.CompileCmd,
+
+			Options: api.ImageConfigOption{
+				CompileTTL: row.Options.CompileTTL,
+				RunTTL:     row.Options.RunTTL,
+			},
+			ScriptOptions: api.ImageConfigScriptOptions{
+				SourceFile: row.ScriptOptions.SourceFile,
+			},
+			Version: &row.Version,
+		})
+	}
+
+	body, err := json.MarshalIndent(res, "", "  ")
+	if err != nil {
+		http.Error(w, "error encoding JSON", http.StatusInternalServerError)
+		log.Printf("json marshal: %v", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(body)
 }

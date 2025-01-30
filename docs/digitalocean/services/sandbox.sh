@@ -12,16 +12,20 @@ docker pull codiew/codenire-sandbox:latest
 docker ps -a --filter "name=sandbox_dev" -q | xargs docker stop || true
 docker ps -a --filter "name=sandbox_dev" -q | xargs docker rm || true
 
+echo "Playground ip: $1"
+
 # Start app
 docker run -d --name sandbox_dev \
   -p 80:8081 \
+  --add-host=playground-host:"$1" \
   -v /var/run/docker.sock:/var/run/docker.sock \
   --restart=always \
   --entrypoint "/usr/local/bin/sandbox" \
   codiew/codenire-sandbox:latest \
   --dockerFilesPath /dockerfiles \
   --replicaContainerCnt 1 \
-  --port 8081
+  --port 8081 \
+  --playground-url http://playground-host:80
 
 # Show start logs
 sleep 10

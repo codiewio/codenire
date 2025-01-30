@@ -3,8 +3,10 @@
   "Labels": [],
   "Description": "Golang 1.23",
 
-  "CompileCmd": "GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o main",
-  "RunCmd": "./main",
+  "CompileCmd": "pwd",
+  "RunCmd": "./main {ARGS}",
+
+  "Workdir": "/app",
 
   "Options": {
     "CompileTTL": 30,

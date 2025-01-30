@@ -62,6 +62,7 @@ func NewServer(config *Config, options ...func(s *Server) error) (*Server, error
 	s.mux.HandleFunc("/run-script", s.handler.RunScriptHandler)
 
 	s.mux.HandleFunc("/images/list", s.handler.ImagesListHandler)
+	s.mux.HandleFunc("/images/refresh", s.handler.RefreshImageConfigList)
 
 	return s, nil
 }

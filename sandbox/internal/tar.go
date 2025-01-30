@@ -1,3 +1,4 @@
+// Package internal
 // Copyright:
 //
 // 2024 The Codenire Authors. All rights reserved.

@@ -52,6 +52,8 @@ type ImageConfig struct {
 	RunCmd        string                   `json:"RunCmd"`
 	Options       ImageConfigOptions       `json:"Options"`
 	ScriptOptions ImageConfigScriptOptions `json:"ScriptOptions"`
+	Version       string                   `json:"Version,omitempty"`
+	Workdir       string                   `json:"Workdir,omitempty"`
 }
 
 type BuiltImage struct {
@@ -111,25 +113,25 @@ func (m *CodenireManager) Run() error {
 }
 
 func (m *CodenireManager) Boot() (err error) {
-	images := parseConfigFiles(
+	configs := parseConfigFiles(
 		m.dockerFilesPath,
 		internal.ListDirectories(m.dockerFilesPath),
 	)
 
 	pool := pond.NewPool(m.numSysWorkers)
-	for i := 0; i < len(images); i++ {
+	for i := 0; i < len(configs); i++ {
 		i := i
 		pool.Submit(func() {
-			log.Println("Build of Image started", "[Image]", images[i].Name)
+			log.Println("Build of Image started", "[Image]", configs[i].Name)
 
-			buildErr := m.buildImage(images[i], m.dockerFilesPath)
+			buildErr := m.buildImage(configs[i], m.dockerFilesPath)
 
 			if buildErr != nil {
-				log.Println("Build of Image failed", "[Image]", images[i].Name, "[err]", buildErr)
+				log.Println("Build of Image failed", "[Image]", configs[i].Name, "[err]", buildErr)
 				return
 			}
 
-			log.Println("Build of Image success", "[Image]", images[i].Name)
+			log.Println("Build of Image success", "[Image]", configs[i].Name, "[version]", configs[i].Version)
 		})
 
 	}
@@ -251,8 +253,11 @@ func (m *CodenireManager) buildImage(cfg ImageConfig, root string) error {
 	}
 
 	wd := imageInfo.Config.WorkingDir
-	if wd == "/" {
-		wd = "/tmp"
+	if wd == "/" || wd == "" {
+		wd = "/app_tmp"
+	}
+	if cfg.Workdir != "" {
+		wd = cfg.Workdir
 	}
 
 	builtImage := BuiltImage{
@@ -395,6 +400,10 @@ func parseConfigFiles(root string, directories []string) []ImageConfig {
 		if err := json.Unmarshal(content, &config); err != nil {
 			log.Printf("Parse config err 3: %s", err.Error())
 			continue
+		}
+
+		if config.Version == "" {
+			config.Version = "1.0"
 		}
 
 		res = append(res, config)

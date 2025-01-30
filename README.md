@@ -1,8 +1,8 @@
 # Сodenire Playground
 
-Open-source online code execution system featuring 
-a playground and sandbox. 
-Built on Docker images with robust isolation provided by [Google gVisor](https://github.com/google/gvisor). 
+Open-source online code execution system featuring
+a playground and sandbox.
+Built on Docker images with robust isolation provided by [Google gVisor](https://github.com/google/gvisor).
 
 The system is easily extensible with additional technologies and languages.
 
@@ -39,7 +39,7 @@ Special thanks to:
 
 **[!] The ability to register Docker images via API is not yet implemented and will be available in the near future!**
 
-Out of the box (in development), 
+Out of the box (in development),
 Dockerfiles and configurations for various languages can be found in /sandbox/dockerfiles
 
 # Usage Playground
@@ -62,7 +62,7 @@ Content-Type: application/json
 ```
 
 # Run/Set Up
-You can Run Playground local (or on MacOS/Ubuntu) via Docker Compose. 
+You can Run Playground local (or on MacOS/Ubuntu) via Docker Compose.
 
 **[!] If you start on MacOS you can't start with gVisor Environment**
 
@@ -88,7 +88,7 @@ services:
       "--backend-url", "http://sandbox_dev/run",
       "--port", "8081",
       "--hooks-plugins", "/plugin",
-#      "--hooks-dir", "/hooks-dir",
+      #      "--hooks-dir", "/hooks-dir",
     ]
 
   sandbox:

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/codiewio/codenire/internal/client"
 	"io"
 	"net/http"
 	"os"
@@ -104,7 +105,7 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendUrl string) 
 	sreq.Header.Add("Idempotency-Key", "1")
 
 	sreq.GetBody = func() (io.ReadCloser, error) { return io.NopCloser(bytes.NewBuffer(jsonData)), nil }
-	resp, err := SandboxBackendClient().Do(sreq)
+	resp, err := client.SandboxBackendClient().Do(sreq)
 	if err != nil {
 		return nil, fmt.Errorf("[playground] sandbox client request error: %w", err)
 	}

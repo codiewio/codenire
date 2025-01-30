@@ -56,6 +56,7 @@ var (
 	replicaContainerCnt = flag.Int("replicaContainerCnt", 1, "number of parallel containers for every uniq image")
 	dockerFilesPath     = flag.String("dockerFilesPath", "", "configs paths")
 	isolated            = flag.Bool("isolated", false, "use gVisor Isolation for compile code")
+	playgroundUrl       = flag.String("playground-url", "http://play_dev", "playground url")
 
 	runSem       chan struct{}
 	graceTimeout = 5 * time.Second
@@ -96,8 +97,8 @@ func main() {
 	h.Use(middleware.Recoverer)
 
 	h.Get("/", rootHandler)
-	h.Get("/images/list", listImageHandler)
 	h.Post("/run", runHandler)
+	h.Get("/images/list", listImageHandler)
 
 	httpServer = &http.Server{
 		Addr:    ":" + *listenAddr,
