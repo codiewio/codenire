@@ -136,12 +136,10 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	cont, err := codenireManager.GetContainer(r.Context(), req.SandId)
 	if err != nil {
-		log.Printf("Invalid request 4 %s", err.Error())
+		log.Printf("Invalid request container by ID %s", req.SandId)
 		sendRunError(w, fmt.Sprintf("get container %s failed with %s", req.SandId, err.Error()), http.StatusInternalServerError)
 		return
 	}
-
-	log.Printf("Got cId %s", cont.CId)
 
 	defer func() {
 		err = codenireManager.KillContainer(cont.CId)

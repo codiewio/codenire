@@ -58,7 +58,9 @@ func NewServer(config *Config, options ...func(s *Server) error) (*Server, error
 		io.WriteString(w, "Hi from playground\n")
 	})
 
-	s.mux.HandleFunc("/run", s.handler.RunHandler)
+	s.mux.HandleFunc("/run", s.handler.RunFilesHandler)
+	s.mux.HandleFunc("/run-script", s.handler.RunScriptHandler)
+
 	s.mux.HandleFunc("/images/list", s.handler.ImagesListHandler)
 
 	return s, nil

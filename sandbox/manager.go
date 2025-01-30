@@ -208,8 +208,6 @@ func (m *CodenireManager) KillContainer(cId string) (err error) {
 		return err
 	}
 
-	log.Printf("Killed cId %s", cId)
-
 	//m.imageContainers[]
 
 	return nil
@@ -327,7 +325,6 @@ func (m *CodenireManager) startContainers() {
 					c, err := m.runSndContainer(img)
 					if err != nil {
 						log.Printf("error starting container: %v", err)
-						// TODO::  why?!
 						time.Sleep(5 * time.Second)
 						continue
 					}
@@ -342,7 +339,7 @@ func (m *CodenireManager) startContainers() {
 	}
 
 	var cc []string
-	for c, _ := range m.imageContainers {
+	for c := range m.imageContainers {
 		cc = append(cc, c)
 	}
 	log.Printf("Run images %s", strings.Join(cc, ","))
@@ -399,8 +396,6 @@ func parseConfigFiles(root string, directories []string) []ImageConfig {
 			log.Printf("Parse config err 3: %s", err.Error())
 			continue
 		}
-
-		log.Println("MAKSKSKSKSKS", config.Name, config.RunCmd, config.CompileCmd)
 
 		res = append(res, config)
 	}

@@ -10,7 +10,7 @@ services:
       - "sandnet"
     entrypoint: [
       "/playground",
-      "--backend-url", "http://sandbox_dev/run",
+      "--backend-url", "http://sandbox_dev",
       "--port", "8081",
     ]
 

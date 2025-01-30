@@ -30,18 +30,18 @@ package main
 import (
 	"errors"
 	"flag"
-	"github.com/codiewio/codenire/pkg/hooks/file"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/codiewio/codenire/pkg/handler"
+	"github.com/codiewio/codenire/handler"
 	"github.com/codiewio/codenire/pkg/hooks"
+	"github.com/codiewio/codenire/pkg/hooks/file"
 	"github.com/codiewio/codenire/pkg/hooks/plugin"
 )
 
 var (
-	BackendURL     = flag.String("backend-url", "http://sandbox_dev/run", "URL for sandbox backend that runs Go binaries.")
+	BackendURL     = flag.String("backend-url", "http://sandbox_dev", "URL for sandbox backend that runs Go binaries.")
 	Port           = flag.String("port", "8081", "URL for sandbox backend that runs Go binaries.")
 	PluginHookPath = flag.String("hooks-plugins", "", "URL for sandbox backend that runs Go binaries.")
 	FileHooksDir   = flag.String("hooks-dir", "", "Directory to search for available hooks scripts")

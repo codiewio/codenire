@@ -7,10 +7,10 @@ info:
 paths:
   /run:
     post:
-      summary: Run Submission
-      operationId: runSubmission
+      summary: Run Multi Files Submission
+      operationId: runFilesSubmission
       requestBody:
-        description: Run a submission
+        description: Run Files Submission
         required: true
         content:
           application/json:
@@ -24,25 +24,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/SubmissionResponse'
 
-
-#  /script:
-#    post:
-#      summary: Run Script
-#      operationId: runScript
-#      requestBody:
-#        description: Run a script
-#        required: true
-#        content:
-#          application/json:
-#            schema:
-#              $ref: '#/components/schemas/ScriptRequest'
-#      responses:
-#        "200":
-#          description: Submission ran successfully
-#          content:
-#            application/json:
-#              schema:
-#                $ref: '#/components/schemas/ScriptResponse'
+  /run-script:
+    post:
+      summary: Run Script Submission
+      operationId: runScriptSubmission
+      requestBody:
+        description: Run Script Submission
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionScriptRequest'
+      responses:
+        "200":
+          description: Submission ran successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResponse'
 
 components:
   schemas:
@@ -61,6 +60,21 @@ components:
         - TemplateId
         - Args
         - Files
+
+    SubmissionScriptRequest:
+      type: object
+      properties:
+        Args:
+          type: string
+        TemplateId:
+          type: string
+        Code:
+          type: string
+      required:
+        - Code
+        - TemplateId
+        - Args
+
     SubmissionResponse:
       type: object
       properties:

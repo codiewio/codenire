@@ -35,8 +35,18 @@ type SubmissionResponseEvents struct {
 	Message string `json:"Message"`
 }
 
-// RunSubmissionJSONRequestBody defines body for RunSubmission for application/json ContentType.
-type RunSubmissionJSONRequestBody = SubmissionRequest
+// SubmissionScriptRequest defines model for SubmissionScriptRequest.
+type SubmissionScriptRequest struct {
+	Args       string `json:"Args"`
+	Code       string `json:"Code"`
+	TemplateId string `json:"TemplateId"`
+}
+
+// RunFilesSubmissionJSONRequestBody defines body for RunFilesSubmission for application/json ContentType.
+type RunFilesSubmissionJSONRequestBody = SubmissionRequest
+
+// RunScriptSubmissionJSONRequestBody defines body for RunScriptSubmission for application/json ContentType.
+type RunScriptSubmissionJSONRequestBody = SubmissionScriptRequest
 
 // Getter for additional properties for SubmissionResponse_Meta. Returns the specified
 // element and whether it was found

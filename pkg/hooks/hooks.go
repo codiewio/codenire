@@ -1,18 +1,17 @@
 package hooks
 
 import (
+	handler2 "github.com/codiewio/codenire/handler"
 	"log/slog"
-
-	"github.com/codiewio/codenire/pkg/handler"
 )
 
 type HookRequest struct {
 	Type  HookType
-	Event handler.HookEvent
+	Event handler2.HookEvent
 }
 
 type HookResponse struct {
-	HTTPResponse handler.HTTPResponse
+	HTTPResponse handler2.HTTPResponse
 }
 
 type HookHandler interface {
@@ -28,10 +27,10 @@ const (
 
 var AvailableHooks []HookType = []HookType{HookPreSandboxRequest}
 
-func PreSandboxRequestCallback(event handler.HookEvent, hookHandler HookHandler) (handler.HTTPResponse, error) {
+func PreSandboxRequestCallback(event handler2.HookEvent, hookHandler HookHandler) (handler2.HTTPResponse, error) {
 	ok, hookRes, err := invokeHookSync(HookPreSandboxRequest, event, hookHandler)
 	if !ok || err != nil {
-		return handler.HTTPResponse{}, err
+		return handler2.HTTPResponse{}, err
 	}
 
 	httpRes := hookRes.HTTPResponse
@@ -39,7 +38,7 @@ func PreSandboxRequestCallback(event handler.HookEvent, hookHandler HookHandler)
 	return httpRes, nil
 }
 
-func invokeHookSync(typ HookType, event handler.HookEvent, hookHandler HookHandler) (ok bool, res HookResponse, err error) {
+func invokeHookSync(typ HookType, event handler2.HookEvent, hookHandler HookHandler) (ok bool, res HookResponse, err error) {
 	slog.Debug("HookInvocationStart", "type", typ)
 
 	res, err = hookHandler.InvokeHook(HookRequest{
