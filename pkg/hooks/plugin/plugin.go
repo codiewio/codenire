@@ -87,7 +87,6 @@ var pluginMap = map[string]plugin.Plugin{
 	"hookHandler": &HookHandlerPlugin{},
 }
 
-// Here is an implementation that talks over RPC
 type HookHandlerRPC struct{ client *rpc.Client }
 
 func (g *HookHandlerRPC) Setup() error {
