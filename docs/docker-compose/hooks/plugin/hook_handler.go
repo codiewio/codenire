@@ -29,7 +29,7 @@ func (g *CodenireHandler) InvokeHook(req hooks.HookRequest) (res hooks.HookRespo
 }
 
 var handshakeConfig = plugin.HandshakeConfig{
-	ProtocolVersion:  1,
+	ProtocolVersion:  2,
 	MagicCookieKey:   "CODENIRE_PLUGIN",
 	MagicCookieValue: "yes",
 }
