@@ -21,7 +21,11 @@ type FileHook struct {
 }
 
 func (FileHook) Setup() error {
-	return nil, nil
+	return nil
+}
+
+func (h FileHook) Provision() any {
+	return nil
 }
 
 func (h FileHook) InvokeHook(req hooks.HookRequest) (res hooks.HookResponse, err error) {

@@ -34,7 +34,6 @@ import (
 	"net/http"
 	"time"
 
-	api "github.com/codiewio/codenire/api/gen"
 	"github.com/codiewio/codenire/internal/handler"
 	"github.com/codiewio/codenire/internal/images"
 	"github.com/codiewio/codenire/pkg/hooks"
@@ -64,13 +63,13 @@ func main() {
 
 	hookHandler := getHookHandler(&cfg)
 	if hookHandler != nil {
-		extTemplates, err := hookHandler.Setup()
+		err := hookHandler.Setup()
 
-		for _, t := range extTemplates.Templates {
-			images.ExtendedTemplates = append(images.ExtendedTemplates, api.ImageConfig{
-				Name: t,
-			})
-		}
+		//for _, t := range extTemplates.Templates {
+		//	images.ExtendedTemplates = append(images.ExtendedTemplates, api.ImageConfig{
+		//		Name: t,
+		//	})
+		//}
 
 		if err != nil {
 			log.Fatalf("unable to setup hooks for handler: %s", err)

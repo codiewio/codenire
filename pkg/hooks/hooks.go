@@ -15,6 +15,7 @@ type HookRequest struct {
 type HookHandler interface {
 	Setup() error
 	InvokeHook(req HookRequest) (res HookResponse, err error)
+	Provision() any
 }
 
 type CodeHookEvent struct {
