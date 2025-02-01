@@ -18,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	api "sandbox/api/gen"
 	"strings"
 	"sync"
 	"time"
@@ -35,31 +36,32 @@ const imageTagPrefix = "codenire_play/"
 const codenireConfigName = "config.json"
 
 type ImageConfigOptions struct {
-	CompileTTL *int `json:"compileTTL,omitempty"`
-	RunTTL     *int `json:"runTTL,omitempty"`
+	CompileTTL  *int `json:"compileTTL,omitempty"`
+	RunTTL      *int `json:"runTTL,omitempty"`
+	MemoryLimit *int `json:"MemoryLimit,omitempty"`
 }
 
 type ImageConfigScriptOptions struct {
 	SourceFile string `json:"sourceFile"`
 }
 
-type ImageConfig struct {
-	Name        string   `json:"Name"`
-	Labels      []string `json:"Labels"`
-	Description string   `json:"Description"`
-
-	CompileCmd    string                   `json:"CompileCmd"`
-	RunCmd        string                   `json:"RunCmd"`
-	Options       ImageConfigOptions       `json:"Options"`
-	ScriptOptions ImageConfigScriptOptions `json:"ScriptOptions"`
-	Version       string                   `json:"Version,omitempty"`
-	Workdir       string                   `json:"Workdir,omitempty"`
-}
+//type ImageConfig struct {
+//	Name        string   `json:"Name"`
+//	Labels      []string `json:"Labels"`
+//	Description string   `json:"Description"`
+//
+//	CompileCmd    string                   `json:"CompileCmd"`
+//	RunCmd        string                   `json:"RunCmd"`
+//	Options       ImageConfigOptions       `json:"Options"`
+//	Version       string                   `json:"Version,omitempty"`
+//	Workdir       string                   `json:"Workdir,omitempty"`
+//	ScriptOptions ImageConfigScriptOptions `json:"ScriptOptions"`
+//	DefaultFiles  map[string]string        `json:"DefaultFiles"`
+//}
 
 type BuiltImage struct {
-	ImageConfig
-	Id      string
-	Workdir string
+	api.ImageConfig
+	Id string
 }
 
 type StartedContainer struct {
@@ -215,7 +217,7 @@ func (m *CodenireManager) KillContainer(cId string) (err error) {
 	return nil
 }
 
-func (m *CodenireManager) buildImage(cfg ImageConfig, root string) error {
+func (m *CodenireManager) buildImage(cfg api.ImageConfig, root string) error {
 	tag := fmt.Sprintf("%s%s", imageTagPrefix, cfg.Name)
 
 	buf, err := internal.DirToTar(filepath.Join(root, cfg.Name))
@@ -256,14 +258,18 @@ func (m *CodenireManager) buildImage(cfg ImageConfig, root string) error {
 	if wd == "/" || wd == "" {
 		wd = "/app_tmp"
 	}
-	if cfg.Workdir != "" {
-		wd = cfg.Workdir
+	if cfg.Workdir == "" {
+		cfg.Workdir = wd
+	}
+
+	memoryLimit := 100 << 20
+	if cfg.Options.MemoryLimit == nil {
+		cfg.Options.MemoryLimit = &memoryLimit
 	}
 
 	builtImage := BuiltImage{
 		ImageConfig: cfg,
 		Id:          imageInfo.RepoTags[0],
-		Workdir:     wd,
 	}
 	m.imgs = append(m.imgs, builtImage)
 
@@ -279,12 +285,14 @@ func (m *CodenireManager) runSndContainer(img BuiltImage) (string, error) {
 	}
 
 	hostConfig := &dockercontainer.HostConfig{
-		Runtime:     m.getRuntime(),
+		Runtime:     m.runtime(),
 		AutoRemove:  true,
 		NetworkMode: network.NetworkNone,
+		Resources: dockercontainer.Resources{
+			Memory:     int64(*img.Options.MemoryLimit),
+			MemorySwap: 0,
+		},
 	}
-	hostConfig.Memory = 100 << 20
-	hostConfig.MemorySwap = 0
 
 	name := stripImageName(img.Id)
 	name = fmt.Sprintf("play_run_%s_%s", name, internal.RandHex(8))
@@ -350,7 +358,7 @@ func (m *CodenireManager) startContainers() {
 	log.Printf("Run images %s", strings.Join(cc, ","))
 }
 
-func (m *CodenireManager) getRuntime() string {
+func (m *CodenireManager) runtime() string {
 	if m.isolated {
 		return "runsc"
 	}
@@ -368,8 +376,8 @@ func stripImageName(imgName string) string {
 	return parts[1]
 }
 
-func parseConfigFiles(root string, directories []string) []ImageConfig {
-	var res []ImageConfig
+func parseConfigFiles(root string, directories []string) []api.ImageConfig {
+	var res []api.ImageConfig
 
 	for _, d := range directories {
 		dir := filepath.Join(root, d)
@@ -396,7 +404,7 @@ func parseConfigFiles(root string, directories []string) []ImageConfig {
 			continue
 		}
 
-		var config ImageConfig
+		var config api.ImageConfig
 		if err := json.Unmarshal(content, &config); err != nil {
 			log.Printf("Parse config err 3: %s", err.Error())
 			continue
@@ -438,7 +446,7 @@ func uniq(slice []string) []string {
 	return result
 }
 
-func duplicates(items []ImageConfig) []string {
+func duplicates(items []api.ImageConfig) []string {
 	nameCount := make(map[string]int)
 	var duplicates []string
 

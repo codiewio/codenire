@@ -5,16 +5,15 @@ import (
 
 	"github.com/codiewio/codenire/pkg/hooks"
 	codeniredplugin "github.com/codiewio/codenire/pkg/hooks/plugin"
-
 	"github.com/hashicorp/go-plugin"
 )
 
 type CodenireHandler struct {
 }
 
-func (g *CodenireHandler) Setup() error {
+func (g *CodenireHandler) Setup() (*hooks.ExternalTemplates, error) {
 	log.Println("CodenireHandler.Setup is invoked")
-	return nil
+	return nil, nil
 }
 
 func (g *CodenireHandler) InvokeHook(req hooks.HookRequest) (res hooks.HookResponse, err error) {

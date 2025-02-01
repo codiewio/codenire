@@ -6,12 +6,14 @@ package api
 // ImageConfig defines model for ImageConfig.
 type ImageConfig struct {
 	CompileCmd    string                   `json:"CompileCmd"`
+	DefaultFiles  map[string]string        `json:"DefaultFiles"`
 	Description   string                   `json:"Description"`
 	Name          string                   `json:"Name"`
 	Options       ImageConfigOption        `json:"Options"`
 	RunCmd        string                   `json:"RunCmd"`
 	ScriptOptions ImageConfigScriptOptions `json:"ScriptOptions"`
-	Version       *string                  `json:"Version,omitempty"`
+	Version       string                   `json:"Version"`
+	Workdir       string                   `json:"Workdir"`
 }
 
 // ImageConfigList defines model for ImageConfigList.
@@ -19,8 +21,9 @@ type ImageConfigList = []ImageConfig
 
 // ImageConfigOption defines model for ImageConfigOption.
 type ImageConfigOption struct {
-	CompileTTL *int `json:"CompileTTL,omitempty"`
-	RunTTL     *int `json:"RunTTL,omitempty"`
+	CompileTTL  *int `json:"CompileTTL,omitempty"`
+	MemoryLimit *int `json:"MemoryLimit,omitempty"`
+	RunTTL      *int `json:"RunTTL,omitempty"`
 }
 
 // ImageConfigScriptOptions defines model for ImageConfigScriptOptions.
@@ -33,8 +36,9 @@ type SandboxRequest struct {
 	Args string `json:"args"`
 
 	// Binary files in tar archive encoded with base64
-	Binary string `json:"binary"`
-	SandId string `json:"sandId"`
+	Binary          string             `json:"binary"`
+	ExtendedOptions *map[string]string `json:"extendedOptions,omitempty"`
+	SandId          string             `json:"sandId"`
 }
 
 // SandboxResponse defines model for SandboxResponse.

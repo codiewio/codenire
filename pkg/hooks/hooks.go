@@ -2,9 +2,14 @@ package hooks
 
 import (
 	"context"
-	api "github.com/codiewio/codenire/api/gen"
 	"log/slog"
+
+	api "github.com/codiewio/codenire/api/gen"
 )
+
+type ExternalTemplates struct {
+	templates []string
+}
 
 type HookRequest struct {
 	Type  HookType
@@ -12,7 +17,7 @@ type HookRequest struct {
 }
 
 type HookHandler interface {
-	Setup() error
+	Setup() (*ExternalTemplates, error)
 	InvokeHook(req HookRequest) (res HookResponse, err error)
 }
 

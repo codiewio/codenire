@@ -20,8 +20,8 @@ type FileHook struct {
 	Directory string
 }
 
-func (FileHook) Setup() error {
-	return nil
+func (FileHook) Setup() (*hooks.ExternalTemplates, error) {
+	return nil, nil
 }
 
 func (h FileHook) InvokeHook(req hooks.HookRequest) (res hooks.HookResponse, err error) {

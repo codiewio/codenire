@@ -12,6 +12,7 @@ import (
 
 	api "github.com/codiewio/codenire/api/gen"
 	"github.com/codiewio/codenire/internal/client"
+	"github.com/codiewio/codenire/internal/images"
 	"github.com/codiewio/codenire/pkg/hooks"
 )
 
@@ -42,16 +43,20 @@ func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cfg := images.GetImageConfig(req.TemplateId)
+	if cfg == nil {
+		http.Error(w, fmt.Sprintf("[playground] template `%s` not found", req.TemplateId), http.StatusBadRequest)
+		return
+	}
+	req.Files = addDefaultFiles(req.Files, cfg.DefaultFiles)
+
 	if h.Config.PreRequestCallback != nil {
-		log.Printf("Pre hook!")
 		resp2, err := h.Config.PreRequestCallback(hooks.NewCodeHookEvent(c, req))
 		if err != nil {
 			err = fmt.Errorf("[playground] pre-SubmissionRequest callback failed: %w", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
-		log.Printf("Pre hook response!")
 
 		if resp2.IsTerminated {
 			resp2.WriteTo(w)
@@ -61,7 +66,6 @@ func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
 		if resp2.ChangedSubmissionRequest != nil {
 			req = *resp2.ChangedSubmissionRequest
 		}
-		log.Printf("after Pre hook req!", req)
 	}
 
 	apiRes, err := runCode(r.Context(), req, h.Config.BackendURL+"/run")
@@ -127,7 +131,6 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendUrl string) 
 	}
 
 	var execRes api.SandboxResponse
-
 	if err = json.NewDecoder(resp.Body).Decode(&execRes); err != nil {
 		return nil, fmt.Errorf("[playground] jSON decode error from backend: %w", err)
 	}

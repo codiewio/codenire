@@ -3,17 +3,21 @@
   "Labels": [],
   "Description": "Golang 1.23",
 
-  "CompileCmd": "pwd",
+  "CompileCmd": "go build -o main .",
   "RunCmd": "./main {ARGS}",
 
   "Workdir": "/app",
 
   "Options": {
     "CompileTTL": 30,
-    "RunTTL": 5
+    "RunTTL": 5,
+    "MemoryLimit": 524288000
   },
   "ScriptOptions": {
     "Enable": true,
     "SourceFile": "main.go"
+  },
+  "DefaultFiles": {
+    "go.mod": "module play\n"
   }
 }

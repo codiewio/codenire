@@ -10,9 +10,10 @@ import (
 
 // SubmissionRequest defines model for SubmissionRequest.
 type SubmissionRequest struct {
-	Args       string            `json:"Args"`
-	Files      map[string]string `json:"Files"`
-	TemplateId string            `json:"TemplateId"`
+	Args            string             `json:"Args"`
+	ExtendedOptions *map[string]string `json:"ExtendedOptions,omitempty"`
+	Files           map[string]string  `json:"Files"`
+	TemplateId      string             `json:"TemplateId"`
 }
 
 // SubmissionResponse defines model for SubmissionResponse.
@@ -37,9 +38,10 @@ type SubmissionResponseEvents struct {
 
 // SubmissionScriptRequest defines model for SubmissionScriptRequest.
 type SubmissionScriptRequest struct {
-	Args       string `json:"Args"`
-	Code       string `json:"Code"`
-	TemplateId string `json:"TemplateId"`
+	Args            string             `json:"Args"`
+	Code            string             `json:"Code"`
+	ExtendedOptions *map[string]string `json:"ExtendedOptions,omitempty"`
+	TemplateId      string             `json:"TemplateId"`
 }
 
 // RunFilesSubmissionJSONRequestBody defines body for RunFilesSubmission for application/json ContentType.

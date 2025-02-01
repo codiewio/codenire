@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/codiewio/codenire/pkg/hooks"
 	"net/http"
 
 	api "github.com/codiewio/codenire/api/gen"
 	"github.com/codiewio/codenire/internal/images"
+	"github.com/codiewio/codenire/pkg/hooks"
 )
 
 var (
@@ -53,6 +53,7 @@ func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
 
 	sourceFile := cfg.ScriptOptions.SourceFile
 	req.Files[sourceFile] = preReq.Code
+	req.Files = addDefaultFiles(req.Files, cfg.DefaultFiles)
 
 	if h.Config.PreRequestCallback != nil {
 		resp2, err := h.Config.PreRequestCallback(hooks.NewCodeHookEvent(c, req))

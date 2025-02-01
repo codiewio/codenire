@@ -63,7 +63,9 @@ func main() {
 
 	hookHandler := getHookHandler(&cfg)
 	if hookHandler != nil {
-		if err := hookHandler.Setup(); err != nil {
+		extTemplates, err := hookHandler.Setup()
+		_ = extTemplates
+		if err != nil {
 			log.Fatalf("unable to setup hooks for handler: %s", err)
 		}
 
@@ -83,6 +85,7 @@ func main() {
 	})
 
 	err = images.PullImageConfigList(cfg.BackendURL + "/images/list")
+
 	if err != nil {
 		panic("sandbox not ready yet")
 	}

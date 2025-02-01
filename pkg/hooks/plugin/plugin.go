@@ -24,7 +24,7 @@ type PluginHook struct {
 
 // Setup initiates the connection to the plugin. Note: When the main process ends,
 // you must call CleanupClients() to ensure that the subprocess is properly cleaned up.
-func (h *PluginHook) Setup() error {
+func (h *PluginHook) Setup() (*hooks.ExternalTemplates, error) {
 	// We're a host! Start by launching the plugin process.
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: handshakeConfig,
@@ -112,7 +112,7 @@ type HookHandlerRPCServer struct {
 	Impl hooks.HookHandler
 }
 
-func (s *HookHandlerRPCServer) Setup(args interface{}, resp *interface{}) error {
+func (s *HookHandlerRPCServer) Setup(args interface{}, resp *interface{}) (*hooks.ExternalTemplates, error) {
 	return s.Impl.Setup()
 }
 

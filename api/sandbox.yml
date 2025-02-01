@@ -65,6 +65,10 @@ components:
           description: files in tar archive encoded with base64
         args:
           type: string
+        extendedOptions:
+          type: object
+          additionalProperties:
+            type: string
       required:
         - sandId
         - binary
@@ -76,6 +80,8 @@ components:
         CompileTTL:
           type: integer
         RunTTL:
+          type: integer
+        MemoryLimit:
           type: integer
       required:
         - SourceFile
@@ -101,10 +107,16 @@ components:
           type: string
         RunCmd:
           type: string
+        Workdir:
+          type: string
         Options:
           $ref: '#/components/schemas/ImageConfigOption'
         ScriptOptions:
           $ref: '#/components/schemas/ImageConfigScriptOptions'
+        DefaultFiles:
+          type: object
+          additionalProperties:
+            type: string
       required:
         - Name
         - Id
@@ -113,6 +125,9 @@ components:
         - RunCmd
         - Options
         - ScriptOptions
+        - DefaultFiles
+        - Version
+        - Workdir
 
     ImageConfigList:
       type: array

@@ -60,3 +60,13 @@ func writeJSONResponse(w http.ResponseWriter, resp interface{}, status int) {
 		return
 	}
 }
+
+func addDefaultFiles(files, defaultFiles map[string]string) map[string]string {
+	for key, value := range defaultFiles {
+		if _, exists := files[key]; !exists {
+			files[key] = value
+		}
+	}
+
+	return files
+}

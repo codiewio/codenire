@@ -56,6 +56,10 @@ components:
           type: object
           additionalProperties:
             type: string
+        ExtendedOptions:
+          type: object
+          additionalProperties:
+            type: string
       required:
         - TemplateId
         - Args
@@ -70,6 +74,10 @@ components:
           type: string
         Code:
           type: string
+        ExtendedOptions:
+          type: object
+          additionalProperties:
+            type: string
       required:
         - Code
         - TemplateId

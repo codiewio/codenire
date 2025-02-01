@@ -87,19 +87,19 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = internal.Base64ToTar(req.Binary, tmpDir)
 	if err != nil {
-		sendRunError(w, "encode  files failed", http.StatusInternalServerError)
+		sendRunError(w, "encode  files failed")
 		return
 	}
 
 	cont, err := codenireManager.GetContainer(r.Context(), req.SandId)
 	if err != nil {
-		sendRunError(w, fmt.Sprintf("get container %s failed with %s", req.SandId, err.Error()), http.StatusInternalServerError)
+		sendRunError(w, fmt.Sprintf("get container %s failed with %s", req.SandId, err.Error()))
 		return
 	}
 	defer func() {
 		err = codenireManager.KillContainer(cont.CId)
 		if err != nil {
-			sendRunError(w, fmt.Sprintf("kill contaier err: %s", err.Error()), http.StatusInternalServerError)
+			sendRunError(w, fmt.Sprintf("kill contaier err: %s", err.Error()))
 			return
 		}
 	}()
@@ -123,40 +123,39 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("Invalid request 7")
-		sendRunError(w, fmt.Sprintf("failed to connect to docker: %v, %s", err, out), http.StatusInternalServerError)
+		sendRunError(w, fmt.Sprintf("failed to connect to docker: %v, %s", err, out))
 		return
 	}
 
-	timeoutCtx := registerTimeout(r.Context(), totalTimeout)
+	timeoutCtx := registerCmdTimeout(r.Context(), totalTimeout)
 	res := &api.SandboxResponse{}
 
 	var stdout, stderr bytes.Buffer
 	var exitCode int
 
 	if cont.Image.CompileCmd != "" {
-		compileCtx := registerTimeout(r.Context(), totalTimeout)
+		compileCtx := registerCmdTimeout(r.Context(), totalTimeout)
 		{
 			callCmd := fmt.Sprintf("cd %s && %s", cont.Image.Workdir, cont.Image.CompileCmd)
-			//callCmd = replacePlaceholders(callCmd, map[string]string{
-			//	"ARGS": req.Args,
-			//})
+			callCmd = replacePlaceholders(callCmd, map[string]string{
+				"ARGS": req.Args,
+			})
 
 			err := execCommandInsideContainer(compileCtx, &stderr, &stdout, *cont, callCmd)
 			if err != nil {
 				if errors.Is(compileCtx.Err(), context.DeadlineExceeded) {
-					sendRunError(w, "timeout on compilation", http.StatusRequestTimeout)
+					sendRunError(w, "timeout compilation")
 					return
 				}
 
-				log.Printf("some compilation error: %v", err)
-
-				sendRunError(w, "some compilation error", http.StatusInternalServerError)
+				flushStdWithErr(res, exitCode, stderr, stdout)
+				sendResponse(w, res)
 				return
 			}
 		}
 	}
 
-	runTimeoutCtx := registerTimeout(timeoutCtx, defaultRunTimeout)
+	runTimeoutCtx := registerCmdTimeout(timeoutCtx, defaultRunTimeout)
 	{
 		runCmd := fmt.Sprintf("cd %s && %s", cont.Image.Workdir, cont.Image.RunCmd)
 		runCmd = replacePlaceholders(runCmd, map[string]string{
@@ -166,26 +165,55 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		err := execCommandInsideContainer(runTimeoutCtx, &stderr, &stdout, *cont, runCmd)
 		if err != nil {
 			if errors.Is(runTimeoutCtx.Err(), context.DeadlineExceeded) {
-				sendRunError(w, "timeout on running", http.StatusRequestTimeout)
+				sendRunError(w, "timeout execute")
 				return
 			}
 
 			var exitError *exec.ExitError
 			if errors.As(err, &exitError) {
 				exitCode = exitError.ExitCode()
-			} else {
-				err = fmt.Errorf("some run error: %w", err)
-				sendRunError(w, err.Error(), http.StatusInternalServerError)
-				return
 			}
+
+			flushStdWithErr(res, exitCode, stderr, stdout)
+			sendResponse(w, res)
+			return
 		}
 	}
 
+	flushStd(res, exitCode, stderr, stdout)
+	sendResponse(w, res)
+}
+
+func sendResponse(w http.ResponseWriter, res *api.SandboxResponse) {
+	jres, err := json.MarshalIndent(res, "", "  ")
+	if err != nil {
+		http.Error(w, "error encoding JSON", http.StatusInternalServerError)
+		log.Printf("json marshal: %v", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Length", fmt.Sprint(len(jres)))
+	w.Write(jres)
+}
+
+func sendRunError(w http.ResponseWriter, err string) {
+	res := &api.SandboxResponse{}
+	res.Stderr = []byte(err)
+
+	sendRunResponse(w, res)
+}
+
+func flushStd(res *api.SandboxResponse, exitCode int, stderr bytes.Buffer, stdout bytes.Buffer) {
 	res.ExitCode = exitCode
 	res.Stderr = stderr.Bytes()
 	res.Stdout = stdout.Bytes()
+}
 
-	sendRunResponse(w, res)
+func flushStdWithErr(res *api.SandboxResponse, exitCode int, stderr bytes.Buffer, stdout bytes.Buffer) {
+	mergedOutput := append(stdout.Bytes(), '\n')
+	mergedOutput = append(mergedOutput, stderr.Bytes()...)
+	res.Stderr = mergedOutput
+	res.Stdout = nil
 }
 
 func execCommandInsideContainer(ctx context.Context, stderr *bytes.Buffer, stdout *bytes.Buffer, container StartedContainer, execCmd string) error {
@@ -208,7 +236,8 @@ func execCommandInsideContainer(ctx context.Context, stderr *bytes.Buffer, stdou
 
 	return nil
 }
-func registerTimeout(ctx context.Context, timeout time.Duration) context.Context {
+
+func registerCmdTimeout(ctx context.Context, timeout time.Duration) context.Context {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 
 	go func() {
@@ -231,14 +260,6 @@ func sendRunResponse(w http.ResponseWriter, r *api.SandboxResponse) {
 	w.Header().Set("Content-Length", fmt.Sprint(len(jres)))
 	w.Write(jres)
 }
-
-func sendRunError(w http.ResponseWriter, err string, code int) {
-	res := &api.SandboxResponse{}
-	res.Stderr = []byte(err)
-
-	sendRunResponse(w, res)
-}
-
 func replacePlaceholders(input string, values map[string]string) string {
 	re := regexp.MustCompile(`\{\s*([A-Z0-9_]+)\s*\}`)
 	return re.ReplaceAllStringFunc(input, func(match string) string {
@@ -251,29 +272,7 @@ func replacePlaceholders(input string, values map[string]string) string {
 }
 
 func listImageHandler(w http.ResponseWriter, _ *http.Request) {
-	res := api.ImageConfigList{}
-
-	rows := codenireManager.ImageList()
-	for _, row := range rows {
-		res = append(res, api.ImageConfig{
-			Name:        row.ImageConfig.Name,
-			Description: row.Description,
-
-			RunCmd:     row.RunCmd,
-			CompileCmd: row.CompileCmd,
-
-			Options: api.ImageConfigOption{
-				CompileTTL: row.Options.CompileTTL,
-				RunTTL:     row.Options.RunTTL,
-			},
-			ScriptOptions: api.ImageConfigScriptOptions{
-				SourceFile: row.ScriptOptions.SourceFile,
-			},
-			Version: &row.Version,
-		})
-	}
-
-	body, err := json.MarshalIndent(res, "", "  ")
+	body, err := json.MarshalIndent(codenireManager.ImageList(), "", "  ")
 	if err != nil {
 		http.Error(w, "error encoding JSON", http.StatusInternalServerError)
 		log.Printf("json marshal: %v", err)
