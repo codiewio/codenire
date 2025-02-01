@@ -11,9 +11,9 @@ import (
 type CodenireHandler struct {
 }
 
-func (g *CodenireHandler) Setup() (*hooks.ExternalTemplates, error) {
+func (g *CodenireHandler) Setup() error {
 	log.Println("CodenireHandler.Setup is invoked")
-	return nil, nil
+	return nil
 }
 
 func (g *CodenireHandler) InvokeHook(req hooks.HookRequest) (res hooks.HookResponse, err error) {

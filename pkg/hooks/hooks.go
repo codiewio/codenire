@@ -7,17 +7,13 @@ import (
 	api "github.com/codiewio/codenire/api/gen"
 )
 
-type ExternalTemplates struct {
-	Templates []string
-}
-
 type HookRequest struct {
 	Type  HookType
 	Event CodeHookEvent
 }
 
 type HookHandler interface {
-	Setup() (*ExternalTemplates, error)
+	Setup() error
 	InvokeHook(req HookRequest) (res HookResponse, err error)
 }
 
