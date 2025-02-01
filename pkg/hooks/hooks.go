@@ -8,7 +8,7 @@ import (
 )
 
 type ExternalTemplates struct {
-	templates []string
+	Templates []string
 }
 
 type HookRequest struct {

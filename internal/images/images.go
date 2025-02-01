@@ -11,6 +11,7 @@ import (
 	"github.com/codiewio/codenire/internal/client"
 )
 
+var ExtendedTemplates api.ImageConfigList
 var ConfigList *api.ImageConfigList
 
 func PullImageConfigList(url string) error {
@@ -36,6 +37,7 @@ func PullImageConfigList(url string) error {
 		return err
 	}
 
+	execRes = append(execRes, ExtendedTemplates...)
 	ConfigList = &execRes
 
 	log.Printf("images config list data refreshed")
