@@ -16,10 +16,6 @@ func (g *CodenireHandler) Setup() error {
 	return nil
 }
 
-func (g *CodenireHandler) Provision() any {
-	return nil
-}
-
 func (g *CodenireHandler) InvokeHook(req hooks.HookRequest) (res hooks.HookResponse, err error) {
 	log.Println("CodenireHandler.InvokeHook is invoked")
 

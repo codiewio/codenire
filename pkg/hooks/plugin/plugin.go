@@ -62,10 +62,6 @@ func (h *PluginHook) Setup() error {
 	return h.handlerImpl.Setup()
 }
 
-func (h *PluginHook) Provision() any {
-	return nil
-}
-
 func (h *PluginHook) InvokeHook(req hooks.HookRequest) (hooks.HookResponse, error) {
 	return h.handlerImpl.InvokeHook(req)
 }
@@ -96,12 +92,7 @@ type HookHandlerRPC struct{ client *rpc.Client }
 func (g *HookHandlerRPC) Setup() error {
 	var res interface{}
 	err := g.client.Call("Plugin.Setup", new(interface{}), &res)
-	log.Println("[MAKSSS] Plugin.Setup response", res)
 	return err
-}
-
-func (g *HookHandlerRPC) Provision() any {
-	return nil
 }
 
 func (g *HookHandlerRPC) InvokeHook(req hooks.HookRequest) (res hooks.HookResponse, err error) {
