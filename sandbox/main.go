@@ -110,9 +110,9 @@ func main() {
 		}
 	}()
 
-	log.Printf("[sandbox] application is running, port %s", *listenAddr)
+	log.Printf("application is running, port %s", *listenAddr)
 	<-done
-	log.Println("[sandbox] shutdown complete.")
+	log.Println("shutdown complete.")
 }
 
 func checkGVisorIsolation() {

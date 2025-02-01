@@ -30,8 +30,10 @@ package main
 import (
 	"errors"
 	"flag"
+	api "github.com/codiewio/codenire/api/gen"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/codiewio/codenire/internal/handler"
@@ -42,10 +44,11 @@ import (
 )
 
 var (
-	BackendURL     = flag.String("backend-url", "http://sandbox_dev", "URL for sandbox backend that runs Go binaries.")
-	Port           = flag.String("port", "8081", "URL for sandbox backend that runs Go binaries.")
-	PluginHookPath = flag.String("hooks-plugins", "", "URL for sandbox backend that runs Go binaries.")
-	FileHooksDir   = flag.String("hooks-dir", "", "Directory to search for available hooks scripts")
+	BackendURL        = flag.String("backend-url", "http://sandbox_dev", "URL for sandbox backend that runs Go binaries.")
+	Port              = flag.String("port", "8081", "URL for sandbox backend that runs Go binaries.")
+	PluginHookPath    = flag.String("hooks-plugins", "", "URL for sandbox backend that runs Go binaries.")
+	FileHooksDir      = flag.String("hooks-dir", "", "Directory to search for available hooks scripts")
+	ExternalTemplates = flag.String("external-templates", "", "Comma separated list of templates which will handled externally (plugin for example)")
 )
 
 func main() {
@@ -65,11 +68,7 @@ func main() {
 	if hookHandler != nil {
 		err := hookHandler.Setup()
 
-		//for _, t := range extTemplates.Templates {
-		//	images.ExtendedTemplates = append(images.ExtendedTemplates, api.ImageConfig{
-		//		Name: t,
-		//	})
-		//}
+		parseExternalTemplates()
 
 		if err != nil {
 			log.Fatalf("unable to setup hooks for handler: %s", err)
@@ -99,7 +98,7 @@ func main() {
 	log.Printf("listening on :%v ...", port)
 	err = http.ListenAndServe(":"+port, s)
 
-	log.Printf("[playground] application is running, port %s", port)
+	log.Printf("application is running, port %s", port)
 
 	if errors.Is(err, http.ErrServerClosed) {
 		// ErrServerClosed means that http.Server.Shutdown was called due to an interruption signal.
@@ -107,7 +106,17 @@ func main() {
 		<-shutdownComplete
 	} else {
 		// Any other error is relayed to the user.
-		log.Fatalf("[playground] unable to serve: %s", err)
+		log.Fatalf("unable to serve: %s", err)
+	}
+}
+
+func parseExternalTemplates() {
+	templates := strings.Split(*ExternalTemplates, ",")
+	for _, t := range templates {
+		images.ExtendedTemplates = append(images.ExtendedTemplates, api.ImageConfig{
+			Name:     t,
+			Provider: "external",
+		})
 	}
 }
 

@@ -35,13 +35,13 @@ func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		http.Error(w, "[playground] invalid request: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "invalid request: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	cfg := images.GetImageConfig(preReq.TemplateId)
 	if cfg == nil {
-		http.Error(w, fmt.Sprintf("[playground] template `%s` not found", preReq.TemplateId), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("template `%s` not found", preReq.TemplateId), http.StatusBadRequest)
 		return
 	}
 
@@ -58,7 +58,7 @@ func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
 	if h.Config.PreRequestCallback != nil {
 		resp2, err := h.Config.PreRequestCallback(hooks.NewCodeHookEvent(c, req))
 		if err != nil {
-			err = fmt.Errorf("[playground] pre-SubmissionRequest callback failed: %w", err)
+			err = fmt.Errorf("pre-SubmissionRequest callback failed: %w", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

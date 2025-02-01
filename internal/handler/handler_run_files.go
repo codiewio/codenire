@@ -39,13 +39,13 @@ func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		http.Error(w, "[playground] invalid request: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "invalid request: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	cfg := images.GetImageConfig(req.TemplateId)
 	if cfg == nil {
-		http.Error(w, fmt.Sprintf("[playground] template `%s` not found", req.TemplateId), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("template `%s` not found", req.TemplateId), http.StatusBadRequest)
 		return
 	}
 	req.Files = addDefaultFiles(req.Files, cfg.DefaultFiles)
@@ -53,7 +53,7 @@ func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
 	if h.Config.PreRequestCallback != nil {
 		resp2, err := h.Config.PreRequestCallback(hooks.NewCodeHookEvent(c, req))
 		if err != nil {
-			err = fmt.Errorf("[playground] pre-SubmissionRequest callback failed: %w", err)
+			err = fmt.Errorf("pre-SubmissionRequest callback failed: %w", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -80,13 +80,13 @@ func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
 func runCode(ctx context.Context, req api.SubmissionRequest, backendUrl string) (*api.SubmissionResponse, error) {
 	tmpDir, err := os.MkdirTemp("", "box")
 	if err != nil {
-		return nil, fmt.Errorf("[playground] create tmp dir error: %w", err)
+		return nil, fmt.Errorf("create tmp dir error: %w", err)
 	}
 	defer os.RemoveAll(tmpDir)
 
 	err = copyFilesToTmpDir(tmpDir, req.Files)
 	if err != nil {
-		return nil, fmt.Errorf("[playground] copying files into tmp dir failed: %w", err)
+		return nil, fmt.Errorf("copying files into tmp dir failed: %w", err)
 	}
 
 	b, err := tarToBase64(tmpDir)
@@ -112,7 +112,7 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendUrl string) 
 		bytes.NewBuffer(jsonData),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("[playground] request marshal error: " + err.Error())
+		return nil, fmt.Errorf("request marshal error: " + err.Error())
 	}
 
 	sreq.Header.Add("Idempotency-Key", "1")
@@ -120,19 +120,19 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendUrl string) 
 	sreq.GetBody = func() (io.ReadCloser, error) { return io.NopCloser(bytes.NewBuffer(jsonData)), nil }
 	resp, err := client.SandboxBackendClient().Do(sreq)
 	if err != nil {
-		return nil, fmt.Errorf("[playground] sandbox client request error: %w", err)
+		return nil, fmt.Errorf("sandbox client request error: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// TODO:: [HOOK] post-response hook
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("[playground] unexpected http status from backend: %d", resp.StatusCode)
+		return nil, fmt.Errorf("unexpected http status from backend: %d", resp.StatusCode)
 	}
 
 	var execRes api.SandboxResponse
 	if err = json.NewDecoder(resp.Body).Decode(&execRes); err != nil {
-		return nil, fmt.Errorf("[playground] jSON decode error from backend: %w", err)
+		return nil, fmt.Errorf("jSON decode error from backend: %w", err)
 	}
 
 	rec := new(Recorder)
@@ -140,7 +140,7 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendUrl string) 
 	rec.Stderr().Write(execRes.Stderr)
 	events, err := rec.Events()
 	if err != nil {
-		return nil, fmt.Errorf("[playground] error decoding events: %w", err)
+		return nil, fmt.Errorf("error decoding events: %w", err)
 	}
 
 	apiRes := &api.SubmissionResponse{

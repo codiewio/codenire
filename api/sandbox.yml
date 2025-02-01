@@ -117,6 +117,9 @@ components:
           type: object
           additionalProperties:
             type: string
+        Provider:
+          description: Configuration provider (built-in, api, external)
+          type: string
       required:
         - Name
         - Id
@@ -128,6 +131,7 @@ components:
         - DefaultFiles
         - Version
         - Workdir
+        - Provider
 
     ImageConfigList:
       type: array

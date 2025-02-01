@@ -262,11 +262,6 @@ func (m *CodenireManager) buildImage(cfg api.ImageConfig, root string) error {
 		cfg.Workdir = wd
 	}
 
-	memoryLimit := 100 << 20
-	if cfg.Options.MemoryLimit == nil {
-		cfg.Options.MemoryLimit = &memoryLimit
-	}
-
 	builtImage := BuiltImage{
 		ImageConfig: cfg,
 		Id:          imageInfo.RepoTags[0],
@@ -413,6 +408,13 @@ func parseConfigFiles(root string, directories []string) []api.ImageConfig {
 		if config.Version == "" {
 			config.Version = "1.0"
 		}
+
+		memoryLimit := 100 << 20
+		if config.Options.MemoryLimit == nil {
+			config.Options.MemoryLimit = &memoryLimit
+		}
+
+		config.Provider = "built-in"
 
 		res = append(res, config)
 	}
