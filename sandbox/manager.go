@@ -18,7 +18,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	api "sandbox/api/gen"
 	"strings"
 	"sync"
 	"time"
@@ -29,38 +28,15 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 
+	contract "sandbox/api/gen"
 	"sandbox/internal"
 )
 
 const imageTagPrefix = "codenire_play/"
 const codenireConfigName = "config.json"
 
-type ImageConfigOptions struct {
-	CompileTTL  *int `json:"compileTTL,omitempty"`
-	RunTTL      *int `json:"runTTL,omitempty"`
-	MemoryLimit *int `json:"MemoryLimit,omitempty"`
-}
-
-type ImageConfigScriptOptions struct {
-	SourceFile string `json:"sourceFile"`
-}
-
-//type ImageConfig struct {
-//	Name        string   `json:"Name"`
-//	Labels      []string `json:"Labels"`
-//	Description string   `json:"Description"`
-//
-//	CompileCmd    string                   `json:"CompileCmd"`
-//	RunCmd        string                   `json:"RunCmd"`
-//	Options       ImageConfigOptions       `json:"Options"`
-//	Version       string                   `json:"Version,omitempty"`
-//	Workdir       string                   `json:"Workdir,omitempty"`
-//	ScriptOptions ImageConfigScriptOptions `json:"ScriptOptions"`
-//	DefaultFiles  map[string]string        `json:"DefaultFiles"`
-//}
-
 type BuiltImage struct {
-	api.ImageConfig
+	contract.ImageConfig
 	Id string
 }
 
@@ -124,18 +100,13 @@ func (m *CodenireManager) Boot() (err error) {
 	for i := 0; i < len(configs); i++ {
 		i := i
 		pool.Submit(func() {
-			log.Println("Build of Image started", "[Image]", configs[i].Name)
 
 			buildErr := m.buildImage(configs[i], m.dockerFilesPath)
-
 			if buildErr != nil {
-				log.Println("Build of Image failed", "[Image]", configs[i].Name, "[err]", buildErr)
+				log.Println("Build of Image failed", "[Image]", configs[i].Template, "[err]", buildErr)
 				return
 			}
-
-			log.Println("Build of Image success", "[Image]", configs[i].Name, "[version]", configs[i].Version)
 		})
-
 	}
 
 	pool.StopAndWait()
@@ -217,10 +188,10 @@ func (m *CodenireManager) KillContainer(cId string) (err error) {
 	return nil
 }
 
-func (m *CodenireManager) buildImage(cfg api.ImageConfig, root string) error {
-	tag := fmt.Sprintf("%s%s", imageTagPrefix, cfg.Name)
+func (m *CodenireManager) buildImage(cfg contract.ImageConfig, root string) error {
+	tag := fmt.Sprintf("%s%s", imageTagPrefix, cfg.Template)
 
-	buf, err := internal.DirToTar(filepath.Join(root, cfg.Name))
+	buf, err := internal.DirToTar(filepath.Join(root, cfg.Template))
 	if err != nil {
 		return err
 	}
@@ -251,7 +222,7 @@ func (m *CodenireManager) buildImage(cfg api.ImageConfig, root string) error {
 	}
 
 	if len(imageInfo.RepoTags) < 1 {
-		return fmt.Errorf("tags not found for %s", cfg.Name)
+		return fmt.Errorf("tags not found for %s", cfg.Template)
 	}
 
 	wd := imageInfo.Config.WorkingDir
@@ -315,12 +286,12 @@ func (m *CodenireManager) runSndContainer(img BuiltImage) (string, error) {
 func (m *CodenireManager) startContainers() {
 	var ii []string
 	for _, img := range m.imgs {
-		ii = append(ii, img.Name)
+		ii = append(ii, img.Template)
 	}
 	log.Printf("To start: %s", strings.Join(ii, ","))
 
 	for _, img := range m.imgs {
-		m.imageContainers[img.Name] = make(chan StartedContainer, m.idleContainersCount)
+		m.imageContainers[img.Template] = make(chan StartedContainer, m.idleContainersCount)
 
 		// TODO:: change workers num logic
 		for i := 0; i < m.idleContainersCount; i++ {
@@ -337,7 +308,7 @@ func (m *CodenireManager) startContainers() {
 						continue
 					}
 
-					m.imageContainers[img.Name] <- StartedContainer{
+					m.imageContainers[img.Template] <- StartedContainer{
 						CId:   c,
 						Image: img,
 					}
@@ -371,8 +342,8 @@ func stripImageName(imgName string) string {
 	return parts[1]
 }
 
-func parseConfigFiles(root string, directories []string) []api.ImageConfig {
-	var res []api.ImageConfig
+func parseConfigFiles(root string, directories []string) []contract.ImageConfig {
+	var res []contract.ImageConfig
 
 	for _, d := range directories {
 		dir := filepath.Join(root, d)
@@ -399,7 +370,7 @@ func parseConfigFiles(root string, directories []string) []api.ImageConfig {
 			continue
 		}
 
-		var config api.ImageConfig
+		var config contract.ImageConfig
 		if err := json.Unmarshal(content, &config); err != nil {
 			log.Printf("Parse config err 3: %s", err.Error())
 			continue
@@ -448,12 +419,12 @@ func uniq(slice []string) []string {
 	return result
 }
 
-func duplicates(items []api.ImageConfig) []string {
+func duplicates(items []contract.ImageConfig) []string {
 	nameCount := make(map[string]int)
 	var duplicates []string
 
 	for _, item := range items {
-		nameCount[item.Name]++
+		nameCount[item.Template]++
 	}
 
 	for name, count := range nameCount {

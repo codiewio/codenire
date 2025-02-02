@@ -97,10 +97,14 @@ components:
     ImageConfig:
       type: object
       properties:
+        Template:
+          type: string
         Name:
           type: string
-        Description:
-          type: string
+        Groups:
+          type: array
+          items:
+            type: string
         Version:
           type: string
         CompileCmd:
@@ -121,9 +125,10 @@ components:
           description: Configuration provider (built-in, api, external)
           type: string
       required:
-        - Name
+        - Template
         - Id
-        - Description
+        - Name
+        - Groups
         - CompileCmd
         - RunCmd
         - Options

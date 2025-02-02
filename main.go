@@ -114,7 +114,7 @@ func parseExternalTemplates() {
 	templates := strings.Split(*ExternalTemplates, ",")
 	for _, t := range templates {
 		images.ExtendedTemplates = append(images.ExtendedTemplates, api.ImageConfig{
-			Name:     t,
+			Template: t,
 			Provider: "external",
 		})
 	}

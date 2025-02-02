@@ -48,7 +48,7 @@ func PullImageConfigList(url string) error {
 func GetImageConfig(templateId string) *api.ImageConfig {
 	configs := *ConfigList
 	for _, config := range configs {
-		if config.Name == templateId {
+		if config.Template == templateId {
 			return &config
 		}
 	}

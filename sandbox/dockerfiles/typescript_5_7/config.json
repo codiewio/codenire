@@ -1,7 +1,7 @@
 {
-  "Name": "typescript_5_7",
-  "Labels": [],
-  "Description": "Typescript 5.7",
+  "Template": "typescript_5_7",
+  "Groups": [],
+  "Name": "Typescript 5.7",
   "CompileCmd": "tsc -p tsconfig.json",
   "RunCmd": "node ./dist/index.js {ARGS}",
   "Options": {

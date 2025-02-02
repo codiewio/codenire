@@ -7,7 +7,7 @@ package api
 type ImageConfig struct {
 	CompileCmd   string            `json:"CompileCmd"`
 	DefaultFiles map[string]string `json:"DefaultFiles"`
-	Description  string            `json:"Description"`
+	Groups       []string          `json:"Groups"`
 	Name         string            `json:"Name"`
 	Options      ImageConfigOption `json:"Options"`
 
@@ -15,6 +15,7 @@ type ImageConfig struct {
 	Provider      string                   `json:"Provider"`
 	RunCmd        string                   `json:"RunCmd"`
 	ScriptOptions ImageConfigScriptOptions `json:"ScriptOptions"`
+	Template      string                   `json:"Template"`
 	Version       string                   `json:"Version"`
 	Workdir       string                   `json:"Workdir"`
 }

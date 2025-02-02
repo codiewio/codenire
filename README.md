@@ -128,3 +128,14 @@ networks:
 # Lifecycle Request Hooks
 
 TODO:: add description
+
+# Roadmap
+- [x] Multifiles/singe scripts
+- [x] gVisor Isolation
+- [x] Hooks to override some request
+- [ ] Metrics
+- [ ] Tests
+- [ ] Change container replica strategy
+- [ ] Statefull sandbox
+- [ ] Compile with open network
+- [ ] WS messaging

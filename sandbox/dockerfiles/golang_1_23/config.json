@@ -1,13 +1,10 @@
 {
-  "Name": "golang_1_23",
-  "Labels": [],
-  "Description": "Golang 1.23",
-
+  "Template": "golang_1_23",
+  "Groups": ["go"],
+  "Name": "Golang 1.23",
   "CompileCmd": "go build -o main .",
   "RunCmd": "./main {ARGS}",
-
   "Workdir": "/app",
-
   "Options": {
     "CompileTTL": 30,
     "RunTTL": 5,

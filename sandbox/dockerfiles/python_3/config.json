@@ -1,7 +1,7 @@
 {
-  "Name": "python_3",
-  "Labels": [],
-  "Description": "Python 3.12",
+  "Template": "python_3",
+  "Groups": [],
+  "Name": "Python 3.12",
   "CompileCmd": "",
   "RunCmd": "python3 main.py",
   "Options": {

@@ -42,7 +42,7 @@ import (
 	"strings"
 	"time"
 
-	api "sandbox/api/gen"
+	contract "sandbox/api/gen"
 	"sandbox/internal"
 )
 
@@ -72,7 +72,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 func runHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	var req api.SandboxRequest
+	var req contract.SandboxRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
@@ -128,7 +128,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	timeoutCtx := registerCmdTimeout(r.Context(), totalTimeout)
-	res := &api.SandboxResponse{}
+	res := &contract.SandboxResponse{}
 
 	var stdout, stderr bytes.Buffer
 	var exitCode int
@@ -184,7 +184,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, res)
 }
 
-func sendResponse(w http.ResponseWriter, res *api.SandboxResponse) {
+func sendResponse(w http.ResponseWriter, res *contract.SandboxResponse) {
 	jres, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
 		http.Error(w, "error encoding JSON", http.StatusInternalServerError)
@@ -197,19 +197,19 @@ func sendResponse(w http.ResponseWriter, res *api.SandboxResponse) {
 }
 
 func sendRunError(w http.ResponseWriter, err string) {
-	res := &api.SandboxResponse{}
+	res := &contract.SandboxResponse{}
 	res.Stderr = []byte(err)
 
 	sendRunResponse(w, res)
 }
 
-func flushStd(res *api.SandboxResponse, exitCode int, stderr bytes.Buffer, stdout bytes.Buffer) {
+func flushStd(res *contract.SandboxResponse, exitCode int, stderr bytes.Buffer, stdout bytes.Buffer) {
 	res.ExitCode = exitCode
 	res.Stderr = stderr.Bytes()
 	res.Stdout = stdout.Bytes()
 }
 
-func flushStdWithErr(res *api.SandboxResponse, exitCode int, stderr bytes.Buffer, stdout bytes.Buffer) {
+func flushStdWithErr(res *contract.SandboxResponse, exitCode int, stderr bytes.Buffer, stdout bytes.Buffer) {
 	mergedOutput := append(stdout.Bytes(), '\n')
 	mergedOutput = append(mergedOutput, stderr.Bytes()...)
 	res.Stderr = mergedOutput
@@ -249,7 +249,7 @@ func registerCmdTimeout(ctx context.Context, timeout time.Duration) context.Cont
 	return ctx
 }
 
-func sendRunResponse(w http.ResponseWriter, r *api.SandboxResponse) {
+func sendRunResponse(w http.ResponseWriter, r *contract.SandboxResponse) {
 	jres, err := json.MarshalIndent(r, "", "  ")
 	if err != nil {
 		http.Error(w, "error encoding JSON", http.StatusInternalServerError)

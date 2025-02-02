@@ -1,7 +1,7 @@
 {
-  "Name": "php83",
-  "Labels": [],
-  "Description": "PHP 8.3",
+  "Template": "php83",
+  "Labels": ["php"],
+  "Name": "PHP 8.3",
   "CompileCmd": "",
   "RunCmd": "php index.php",
   "Options": {
