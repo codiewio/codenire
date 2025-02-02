@@ -33,7 +33,7 @@ Special thanks to:
 ![Image alt](docs/docs/general_schema.png)
 
 
-# Sandbox Provision Containers Schema
+# Sandbox Provision Templates Schema
 
 ![Image alt](docs/docs/sandbox_schema.png)
 

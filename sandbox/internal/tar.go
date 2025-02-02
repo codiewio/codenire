@@ -66,39 +66,56 @@ func DirToTar(sourceDir string) (bytes.Buffer, error) {
 	return buf, err
 }
 
-func Base64ToTar(base64Data, destDir string) error {
+func Base64ToTar(base64Data, destDir string, stdin string) error {
 	tarData, err := base64.StdEncoding.DecodeString(base64Data)
 	if err != nil {
-		return fmt.Errorf("ошибка декодирования Base64: %v", err)
+		return fmt.Errorf("base64 decode error: %v", err)
 	}
 
 	tarReader := tar.NewReader(bytes.NewReader(tarData))
 
+	// write stdin value in input.txt
+	inputFilePath := filepath.Join(destDir, "input.txt")
+	file, err := os.OpenFile(inputFilePath, os.O_CREATE|os.O_RDWR, 0644)
+	if err != nil {
+		return fmt.Errorf("error creating input.txt file: %v", err)
+	}
+	defer file.Close()
+
+	// Записываем данные из stdin в input.txt
+	_, err = file.WriteString(stdin)
+	if err != nil {
+		return fmt.Errorf("error writing to input.txt: %v", err)
+	}
+
 	for {
 		header, err := tarReader.Next()
 		if err == io.EOF {
-			break
+			break // End of the tar archive
 		}
 		if err != nil {
-			return fmt.Errorf("ошибка чтения заголовка: %v", err)
+			return fmt.Errorf("error reading header: %v", err) // Error while reading the header
 		}
 
 		targetPath := filepath.Join(destDir, header.Name)
 
 		switch header.Typeflag {
 		case tar.TypeDir:
+			// Create directory if it doesn't exist
 			if err := os.MkdirAll(targetPath, os.FileMode(header.Mode)); err != nil {
-				return fmt.Errorf("ошибка создания директории %s: %v", targetPath, err)
+				return fmt.Errorf("error creating directory %s: %v", targetPath, err) // Error creating directory
 			}
 		case tar.TypeReg:
+			// Open file for writing, create it if it doesn't exist
 			file, err := os.OpenFile(targetPath, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
 			if err != nil {
-				return fmt.Errorf("ошибка создания файла %s: %v", targetPath, err)
+				return fmt.Errorf("error creating file %s: %v", targetPath, err) // Error creating file
 			}
 			defer file.Close()
 
+			// Copy the content from tar archive to the file
 			if _, err := io.Copy(file, tarReader); err != nil {
-				return fmt.Errorf("ошибка записи в файл %s: %v", targetPath, err)
+				return fmt.Errorf("error writing to file %s: %v", targetPath, err) // Error writing to file
 			}
 		}
 	}

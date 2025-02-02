@@ -34,6 +34,7 @@ import (
 
 const imageTagPrefix = "codenire_play/"
 const codenireConfigName = "config.json"
+const codenireMultiConfigName = "multi_config.json"
 
 type BuiltImage struct {
 	contract.ImageConfig
@@ -182,8 +183,6 @@ func (m *CodenireManager) KillContainer(cId string) (err error) {
 	if err != nil {
 		return err
 	}
-
-	//m.imageContainers[]
 
 	return nil
 }
@@ -358,7 +357,6 @@ func parseConfigFiles(root string, directories []string) []contract.ImageConfig 
 		}
 
 		configPath := filepath.Join(dir, codenireConfigName)
-
 		if _, err := os.Stat(configPath); os.IsNotExist(err) {
 			log.Printf("Parse config err 1: %s", err.Error())
 			continue

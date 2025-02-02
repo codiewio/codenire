@@ -23,7 +23,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SandboxResponse'
-  /images/list:
+  /templates/list:
     get:
       summary: Get image config list
       operationId: getImageConfigList
@@ -69,10 +69,14 @@ components:
           type: object
           additionalProperties:
             type: string
+        stdin:
+          description: data which will available via stdin reader
+          type: string
       required:
         - sandId
         - binary
         - args
+        - stdin
 
     ImageConfigOption:
       type: object
