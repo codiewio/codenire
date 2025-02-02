@@ -23,6 +23,6 @@ func (h *Handler) ImagesListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func refreshData(w http.ResponseWriter) {
-	res := images.ConfigList
+	res := images.ImageTemplateList
 	writeJSONResponse(w, res, http.StatusOK)
 }

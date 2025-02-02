@@ -12,7 +12,7 @@ import (
 )
 
 var ExtendedTemplates api.ImageConfigList
-var ConfigList *api.ImageConfigList
+var ImageTemplateList *api.ImageConfigList
 
 func PullImageConfigList(url string) error {
 	req, err := http.NewRequestWithContext(
@@ -38,7 +38,7 @@ func PullImageConfigList(url string) error {
 	}
 
 	execRes = append(execRes, ExtendedTemplates...)
-	ConfigList = &execRes
+	ImageTemplateList = &execRes
 
 	log.Printf("images config list data refreshed")
 
@@ -46,7 +46,7 @@ func PullImageConfigList(url string) error {
 }
 
 func GetImageConfig(templateId string) *api.ImageConfig {
-	configs := *ConfigList
+	configs := *ImageTemplateList
 	for _, config := range configs {
 		if config.Template == templateId {
 			return &config
