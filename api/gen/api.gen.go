@@ -13,7 +13,10 @@ type SubmissionRequest struct {
 	Args            string             `json:"Args"`
 	ExtendedOptions *map[string]string `json:"ExtendedOptions,omitempty"`
 	Files           map[string]string  `json:"Files"`
-	TemplateId      string             `json:"TemplateId"`
+
+	// Stdin data which will available via stdin reader
+	Stdin      string `json:"Stdin"`
+	TemplateId string `json:"TemplateId"`
 }
 
 // SubmissionResponse defines model for SubmissionResponse.
@@ -41,7 +44,10 @@ type SubmissionScriptRequest struct {
 	Args            string             `json:"Args"`
 	Code            string             `json:"Code"`
 	ExtendedOptions *map[string]string `json:"ExtendedOptions,omitempty"`
-	TemplateId      string             `json:"TemplateId"`
+
+	// Stdin data which will available via stdin reader
+	Stdin      string `json:"Stdin"`
+	TemplateId string `json:"TemplateId"`
 }
 
 // RunFilesSubmissionJSONRequestBody defines body for RunFilesSubmission for application/json ContentType.

@@ -13,7 +13,7 @@ func (h *Handler) ImagesListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
-		_ = images.PullImageConfigList(h.Config.BackendURL + "/images/list")
+		_ = images.PullImageConfigList(h.Config.BackendURL + "/templates/list")
 		refreshData(w)
 		return
 	}

@@ -1,0 +1,15 @@
+{
+  "Template": "cpp",
+  "Labels": ["cpp"],
+  "Name": "C++",
+  "CompileCmd": "",
+  "RunCmd": "",
+  "Options": {
+    "CompileTTL": 30,
+    "RunTTL": 5
+  },
+  "ScriptOptions": {
+    "Enable": true,
+    "SourceFile": "main.cpp"
+  }
+}

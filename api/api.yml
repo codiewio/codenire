@@ -56,6 +56,9 @@ components:
           type: object
           additionalProperties:
             type: string
+        Stdin:
+          description: data which will available via stdin reader
+          type: string
         ExtendedOptions:
           type: object
           additionalProperties:
@@ -64,6 +67,7 @@ components:
         - TemplateId
         - Args
         - Files
+        - Stdin
 
     SubmissionScriptRequest:
       type: object
@@ -78,10 +82,14 @@ components:
           type: object
           additionalProperties:
             type: string
+        Stdin:
+          description: data which will available via stdin reader
+          type: string
       required:
         - Code
         - TemplateId
         - Args
+        - Stdin
 
     SubmissionResponse:
       type: object

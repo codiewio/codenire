@@ -30,6 +30,8 @@ RUN set -xe \
 # Final stage: Run the binary
 FROM alpine:latest
 
+RUN apk add --no-cache curl
+
 # and finally the binary
 COPY --from=builder /playground/bin/playground /playground
 

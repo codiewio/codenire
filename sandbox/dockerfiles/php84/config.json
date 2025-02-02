@@ -1,0 +1,15 @@
+{
+  "Template": "php84",
+  "Labels": ["php"],
+  "Name": "PHP 8.4",
+  "CompileCmd": "",
+  "RunCmd": "php index.php",
+  "Options": {
+    "CompileTTL": 30,
+    "RunTTL": 5
+  },
+  "ScriptOptions": {
+    "Enable": true,
+    "SourceFile": "index.php"
+  }
+}

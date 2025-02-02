@@ -43,6 +43,9 @@ type SandboxRequest struct {
 	Binary          string             `json:"binary"`
 	ExtendedOptions *map[string]string `json:"extendedOptions,omitempty"`
 	SandId          string             `json:"sandId"`
+
+	// Stdin data which will available via stdin reader
+	Stdin string `json:"stdin"`
 }
 
 // SandboxResponse defines model for SandboxResponse.

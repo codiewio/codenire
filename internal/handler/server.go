@@ -61,7 +61,7 @@ func NewServer(config *Config, options ...func(s *Server) error) (*Server, error
 	s.mux.HandleFunc("/run", s.handler.RunFilesHandler)
 	s.mux.HandleFunc("/run-script", s.handler.RunScriptHandler)
 
-	s.mux.HandleFunc("/images/list", s.handler.ImagesListHandler)
+	s.mux.HandleFunc("/templates/list", s.handler.ImagesListHandler)
 
 	return s, nil
 }

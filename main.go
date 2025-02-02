@@ -30,6 +30,7 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 	api "github.com/codiewio/codenire/api/gen"
 	"log"
 	"net/http"
@@ -54,6 +55,11 @@ var (
 func main() {
 	flag.Parse()
 	log.Printf("Use backend URL on :%s ...", *BackendURL)
+
+	if err := waitForSandbox(5, 10*time.Second); err != nil {
+		log.Println(err)
+		return
+	}
 
 	cfg := handler.Config{
 		BackendURL:                       *BackendURL,
@@ -89,7 +95,7 @@ func main() {
 		plugin.CleanupPlugins()
 	})
 
-	err = images.PullImageConfigList(cfg.BackendURL + "/images/list")
+	err = images.PullImageConfigList(cfg.BackendURL + "/templates/list")
 
 	if err != nil {
 		panic("sandbox not ready yet")
@@ -98,7 +104,7 @@ func main() {
 	log.Printf("listening on :%v ...", port)
 	err = http.ListenAndServe(":"+port, s)
 
-	log.Printf("application is running, port %s", port)
+	log.Printf("playground is running, port %s", port)
 
 	if errors.Is(err, http.ErrServerClosed) {
 		// ErrServerClosed means that http.Server.Shutdown was called due to an interruption signal.
@@ -134,4 +140,17 @@ func getHookHandler(config *handler.Config) hooks.HookHandler {
 	}
 
 	return nil
+}
+
+func waitForSandbox(maxRetries int, interval time.Duration) error {
+	for i := 0; i < maxRetries; i++ {
+		resp, err := http.Get(*BackendURL + "/health")
+		if err == nil && resp.StatusCode == http.StatusOK {
+			fmt.Println("sandbox is healthy!")
+			return nil
+		}
+		fmt.Printf("waiting for sandbox... (%d/%d)\n", i+1, maxRetries)
+		time.Sleep(interval)
+	}
+	return fmt.Errorf("sandbox is not available after %d retries", maxRetries)
 }

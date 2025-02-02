@@ -85,7 +85,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	err = internal.Base64ToTar(req.Binary, tmpDir)
+	err = internal.Base64ToTar(req.Binary, tmpDir, req.Stdin)
 	if err != nil {
 		sendRunError(w, "encode  files failed")
 		return
@@ -136,12 +136,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	if cont.Image.CompileCmd != "" {
 		compileCtx := registerCmdTimeout(r.Context(), totalTimeout)
 		{
-			callCmd := fmt.Sprintf("cd %s && %s", cont.Image.Workdir, cont.Image.CompileCmd)
-			callCmd = replacePlaceholders(callCmd, map[string]string{
-				"ARGS": req.Args,
-			})
-
-			err := execCommandInsideContainer(compileCtx, &stderr, &stdout, *cont, callCmd)
+			err := execContainerShell(compileCtx, &stderr, &stdout, *cont, cont.Image.CompileCmd, req.Args, cont.Image)
 			if err != nil {
 				if errors.Is(compileCtx.Err(), context.DeadlineExceeded) {
 					sendRunError(w, "timeout compilation")
@@ -157,21 +152,11 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	runTimeoutCtx := registerCmdTimeout(timeoutCtx, defaultRunTimeout)
 	{
-		runCmd := fmt.Sprintf("cd %s && %s", cont.Image.Workdir, cont.Image.RunCmd)
-		runCmd = replacePlaceholders(runCmd, map[string]string{
-			"ARGS": req.Args,
-		})
-
-		err := execCommandInsideContainer(runTimeoutCtx, &stderr, &stdout, *cont, runCmd)
+		err := execContainerShell(runTimeoutCtx, &stderr, &stdout, *cont, cont.Image.RunCmd, req.Args, cont.Image)
 		if err != nil {
 			if errors.Is(runTimeoutCtx.Err(), context.DeadlineExceeded) {
 				sendRunError(w, "timeout execute")
 				return
-			}
-
-			var exitError *exec.ExitError
-			if errors.As(err, &exitError) {
-				exitCode = exitError.ExitCode()
 			}
 
 			flushStdWithErr(res, exitCode, stderr, stdout)
@@ -216,14 +201,19 @@ func flushStdWithErr(res *contract.SandboxResponse, exitCode int, stderr bytes.B
 	res.Stdout = nil
 }
 
-func execCommandInsideContainer(ctx context.Context, stderr *bytes.Buffer, stdout *bytes.Buffer, container StartedContainer, execCmd string) error {
+func execContainerShell(ctx context.Context, stderr *bytes.Buffer, stdout *bytes.Buffer, container StartedContainer, runCmd, args string, cfg BuiltImage) error {
+	sh := fmt.Sprintf("cd %s && %s < input.txt", cfg.Workdir, runCmd)
+	sh = replacePlaceholders(sh, map[string]string{
+		"ARGS": args,
+	})
+
 	cmd := exec.CommandContext(
 		ctx,
 		"docker",
 		"exec",
 		container.CId,
 		"sh", "-c",
-		execCmd,
+		sh,
 	)
 
 	cmd.Stderr = stderr
@@ -271,7 +261,7 @@ func replacePlaceholders(input string, values map[string]string) string {
 	})
 }
 
-func listImageHandler(w http.ResponseWriter, _ *http.Request) {
+func listTemplatesHandler(w http.ResponseWriter, _ *http.Request) {
 	body, err := json.MarshalIndent(codenireManager.ImageList(), "", "  ")
 	if err != nil {
 		http.Error(w, "error encoding JSON", http.StatusInternalServerError)

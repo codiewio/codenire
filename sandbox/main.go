@@ -29,6 +29,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"log"
@@ -96,8 +97,10 @@ func main() {
 	h.Use(middleware.Recoverer)
 
 	h.Get("/", rootHandler)
+	h.Get("/health", healthHandler)
+
 	h.Post("/run", runHandler)
-	h.Get("/images/list", listImageHandler)
+	h.Get("/templates/list", listTemplatesHandler)
 
 	httpServer = &http.Server{
 		Addr:    ":" + *listenAddr,
@@ -110,7 +113,7 @@ func main() {
 		}
 	}()
 
-	log.Printf("application is running, port %s", *listenAddr)
+	log.Printf("sandbox is running, port %s", *listenAddr)
 	<-done
 	log.Println("shutdown complete.")
 }
@@ -183,4 +186,10 @@ func gracefulShutdown(done chan struct{}) {
 			log.Println("Shutdown timed out!")
 		}
 	}
+}
+
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }

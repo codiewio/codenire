@@ -1,0 +1,15 @@
+{
+  "Template": "python_2",
+  "Groups": [],
+  "Name": "Python 2.7",
+  "CompileCmd": "",
+  "RunCmd": "python main.py",
+  "Options": {
+    "CompileTTL": 30,
+    "RunTTL": 5
+  },
+  "ScriptOptions": {
+    "Enable": true,
+    "SourceFile": "main.py"
+  }
+}
