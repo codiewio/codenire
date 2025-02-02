@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"go/parser"
-	"go/token"
 	"io"
 	"net/http"
 	"os"
@@ -20,15 +18,6 @@ type Handler struct {
 
 func copyFilesToTmpDir(tmpDir string, files map[string]string) error {
 	for f, src := range files {
-		// TODO:: golang logic — remove it
-		if !strings.Contains(f, "/") {
-			fset := token.NewFileSet()
-			f, err := parser.ParseFile(fset, f, src, parser.PackageClauseOnly)
-			if err == nil && f.Name.Name != "main" {
-				return errors.New(fmt.Sprint("package name must be main", err.Error()))
-			}
-		}
-
 		in := filepath.Join(tmpDir, f)
 		if strings.Contains(f, "/") {
 			if err := os.MkdirAll(filepath.Dir(in), 0755); err != nil {
