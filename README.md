@@ -135,6 +135,7 @@ TODO:: add description
 - [x] Hooks to override some request
 - [ ] Metrics
 - [ ] Tests
+- [ ] Add golinter
 - [ ] Change container replica strategy
 - [ ] Statefull sandbox
 - [ ] Compile with open network
