@@ -53,19 +53,33 @@ Dockerfiles and configurations for various languages can be found in /sandbox/do
 # Usage Playground
 
 ```
+# Input request result:
+
 POST https://codenire.com/run
 Content-Type: application/json
 
 {
-  "templateId": "php8.3",
-
+  "templateId": "go1.23",
   "files": {
     "index.php": "<?php\n// /index.php\n\n require_once __DIR__ . '/src/foo.php';\nrequire_once __DIR__ . '/src/bar/bar.php';\n\n// Call functions\n$resultFoo = foo();\n$resultBar = bar();\n\n// Calculate\n$product = $resultFoo * $resultBar;\n\n// Result\nvar_dump($product);",
     "src/foo.php": "<?php\n\nfunction foo() {\n    return 20;\n}",
     "src/bar/bar.php": "<?php\n\nfunction bar() {\n    return 3;\n}"
   },
-  "args": "--name \"Elon Mask\" -age=45",
-  "stdin": "1\n2\n3"
+  "args": "--name \"Mark\"",
+  "stdin": "100.00"
+}
+
+
+
+# Output result:
+
+{
+  "Events": [
+    {
+      "Kind": "stdout",
+      "Message": "Hello, Mark!\nStdin data: 100.00\n"
+    }
+  ]
 }
 ```
 
