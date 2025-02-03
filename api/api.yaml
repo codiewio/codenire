@@ -1,0 +1,322 @@
+openapi: 3.0.0
+info:
+  title: Submission API
+  version: "1.0.0"
+  description: API for managing code submissions
+
+paths:
+  /run:
+    post:
+      summary: Run Multi Files Submission
+      operationId: runFilesSubmission
+      requestBody:
+        description: Run Files Submission
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionRequest'
+      responses:
+        "200":
+          description: Submission ran successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResponse'
+
+  /run-script:
+    post:
+      summary: Run Script Submission
+      operationId: runScriptSubmission
+      requestBody:
+        description: Run Script Submission
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionScriptRequest'
+      responses:
+        "200":
+          description: Submission ran successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResponse'
+
+
+
+  /template/list:
+    get:
+      summary: Get Template List
+      operationId: getTemplateList
+      responses:
+        "200":
+          description: Get Template List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TemplateItemResponse'
+
+  /action/list:
+    get:
+      summary: Get with refresh Action List
+      operationId: refreshActionList
+      responses:
+        "200":
+          description: Get with refresh Action List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActionListResponse'
+
+
+    post:
+      summary: Get Actual Action List
+      operationId: getActionList
+      responses:
+        "200":
+          description: Get with refresh Action List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActionListResponse'
+
+components:
+  schemas:
+
+    SubmissionRequest:
+      type: object
+      properties:
+        TemplateId:
+          type: string
+        Args:
+          type: string
+        Files:
+          type: object
+          additionalProperties:
+            type: string
+        Stdin:
+          description: data which will available via stdin reader
+          type: string
+        ActionId:
+          type: string
+          default: "default"
+      required:
+        - TemplateId
+        - Args
+        - Files
+        - Stdin
+
+    SubmissionScriptRequest:
+      type: object
+      properties:
+        Args:
+          type: string
+        TemplateId:
+          type: string
+        Code:
+          type: string
+        ActionId:
+          type: string
+          default: "default"
+        Stdin:
+          description: data which will available via stdin reader
+          type: string
+      required:
+        - Code
+        - TemplateId
+        - Args
+        - Stdin
+
+    SubmissionResponse:
+      type: object
+      properties:
+        Events:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubmissionResponseEvents'
+        Time:
+          type: string
+        Errors:
+          type: array
+          items:
+            type: string
+        Meta:
+          type: object
+          properties:
+            Version:
+              type: string
+          additionalProperties: true
+      required:
+        - Events
+
+    SubmissionResponseEvents:
+      type: object
+      properties:
+        Message:
+          type: string
+        Kind:
+          type: string
+      required:
+        - Message
+        - Kind
+
+    SandboxResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        exitCode:
+          type: integer
+        stdout:
+          type: string
+          format: byte
+        stderr:
+          type: string
+          format: byte
+      required:
+        - exitCode
+        - stdout
+        - stderr
+
+    SandboxRequest:
+      type: object
+      properties:
+        sandId:
+          type: string
+        binary:
+          type: string
+          description: files in tar archive encoded with base64
+        args:
+          type: string
+        extendedOptions:
+          type: object
+          additionalProperties:
+            type: string
+        stdin:
+          description: data which will available via stdin reader
+          type: string
+        action:
+          type: string
+      required:
+        - sandId
+        - binary
+        - args
+        - stdin
+        - action
+
+    ContainerOptions:
+      type: object
+      properties:
+        CompileTTL:
+          type: integer
+        RunTTL:
+          type: integer
+        MemoryLimit:
+          type: integer
+      required:
+        - SourceFile
+
+    ImageConfigScriptOptions:
+      type: object
+      properties:
+        SourceFile:
+          type: string
+      required:
+        - SourceFile
+
+    ImageTemplateConfig:
+      type: object
+      properties:
+        Template:
+          type: string
+        Groups:
+          type: array
+          items:
+            type: string
+        Version:
+          type: string
+        ContainerOptions:
+          $ref: '#/components/schemas/ContainerOptions'
+        Workdir:
+          type: string
+        # Configuration provider (built-in, api, external)
+        Provider:
+          type: string
+      required:
+        - Template
+        - Groups
+        - ContainerOptions
+        - Version
+        - Workdir
+        - Provider
+
+    ImageActionConfig:
+      type: object
+      properties:
+        IsDefault:
+          type: boolean
+          default: false
+        Id:
+          type: string
+        Name:
+          type: string
+        CompileCmd:
+          type: string
+        RunCmd:
+          type: string
+        ScriptOptions:
+          $ref: '#/components/schemas/ImageConfigScriptOptions'
+        DefaultFiles:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+        - Id
+        - Name
+        - CompileCmd
+        - RunCmd
+        - ScriptOptions
+        - DefaultFiles
+        - IsDefault
+
+    ImageConfig:
+      type: object
+      allOf:
+        - type: object
+          properties:
+            Actions:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/ImageActionConfig'
+          required:
+            - Actions
+        - $ref: '#/components/schemas/ImageTemplateConfig'
+
+    ActionItemResponse:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ImageActionConfig'
+        - $ref: '#/components/schemas/ImageTemplateConfig'
+
+    ActionListResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/ActionItemResponse'
+
+    TemplateItemResponse:
+      type: object
+      properties:
+        TemplateId:
+          type: string
+        Actions:
+          type: array
+          items:
+            type: string
+

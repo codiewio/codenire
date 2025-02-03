@@ -19,8 +19,6 @@ services:
     build:
       context: ./sandbox
       dockerfile: Dockerfile
-    ports:
-      - "80:80"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./infra/docker-compose/dockerfiles:/dockerfiles

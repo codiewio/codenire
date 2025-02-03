@@ -11,8 +11,8 @@ import (
 	"github.com/codiewio/codenire/internal/client"
 )
 
-var ExtendedTemplates api.ImageConfigList
-var ImageTemplateList *api.ImageConfigList
+var ExtendedTemplates []api.ImageConfig
+var ImageTemplateList *[]api.ImageConfig
 
 func PullImageConfigList(url string) error {
 	req, err := http.NewRequestWithContext(
@@ -32,7 +32,7 @@ func PullImageConfigList(url string) error {
 	}
 	defer resp.Body.Close()
 
-	var execRes api.ImageConfigList
+	var execRes []api.ImageConfig
 	if err = json.NewDecoder(resp.Body).Decode(&execRes); err != nil {
 		return err
 	}

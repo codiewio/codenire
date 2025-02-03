@@ -392,20 +392,23 @@ func parseConfigFiles(root string, directories []string) []contract.ImageConfig 
 
 		{
 			_, defaultExists := config.Actions["default"]
-			var first contract.ImageActionConfig
+			var first *contract.ImageActionConfig
 
 			for _, actionConfig := range config.Actions {
-				first = actionConfig
+				if first == nil {
+					first = &actionConfig
+				}
 
 				if actionConfig.IsDefault && !defaultExists {
 					defaultExists = true
+					actionConfig.IsDefault = true
 					config.Actions["default"] = actionConfig
 					continue
 				}
 			}
 
-			if !defaultExists && first.Name != "" {
-				config.Actions["default"] = first
+			if first != nil && !defaultExists && first.Name != "" {
+				config.Actions["default"] = *first
 				defaultExists = true
 			}
 

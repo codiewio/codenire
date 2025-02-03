@@ -8,6 +8,92 @@ import (
 	"fmt"
 )
 
+// ActionItemResponse defines model for ActionItemResponse.
+type ActionItemResponse struct {
+	CompileCmd       string                   `json:"CompileCmd"`
+	ContainerOptions ContainerOptions         `json:"ContainerOptions"`
+	DefaultFiles     map[string]string        `json:"DefaultFiles"`
+	Groups           []string                 `json:"Groups"`
+	Id               string                   `json:"Id"`
+	IsDefault        bool                     `json:"IsDefault"`
+	Name             string                   `json:"Name"`
+	Provider         string                   `json:"Provider"`
+	RunCmd           string                   `json:"RunCmd"`
+	ScriptOptions    ImageConfigScriptOptions `json:"ScriptOptions"`
+	Template         string                   `json:"Template"`
+	Version          string                   `json:"Version"`
+	Workdir          string                   `json:"Workdir"`
+}
+
+// ActionListResponse defines model for ActionListResponse.
+type ActionListResponse = []ActionItemResponse
+
+// ContainerOptions defines model for ContainerOptions.
+type ContainerOptions struct {
+	CompileTTL  *int `json:"CompileTTL,omitempty"`
+	MemoryLimit *int `json:"MemoryLimit,omitempty"`
+	RunTTL      *int `json:"RunTTL,omitempty"`
+}
+
+// ImageActionConfig defines model for ImageActionConfig.
+type ImageActionConfig struct {
+	CompileCmd    string                   `json:"CompileCmd"`
+	DefaultFiles  map[string]string        `json:"DefaultFiles"`
+	Id            string                   `json:"Id"`
+	IsDefault     bool                     `json:"IsDefault"`
+	Name          string                   `json:"Name"`
+	RunCmd        string                   `json:"RunCmd"`
+	ScriptOptions ImageConfigScriptOptions `json:"ScriptOptions"`
+}
+
+// ImageConfig defines model for ImageConfig.
+type ImageConfig struct {
+	Actions          map[string]ImageActionConfig `json:"Actions"`
+	ContainerOptions ContainerOptions             `json:"ContainerOptions"`
+	Groups           []string                     `json:"Groups"`
+	Provider         string                       `json:"Provider"`
+	Template         string                       `json:"Template"`
+	Version          string                       `json:"Version"`
+	Workdir          string                       `json:"Workdir"`
+}
+
+// ImageConfigScriptOptions defines model for ImageConfigScriptOptions.
+type ImageConfigScriptOptions struct {
+	SourceFile string `json:"SourceFile"`
+}
+
+// ImageTemplateConfig defines model for ImageTemplateConfig.
+type ImageTemplateConfig struct {
+	ContainerOptions ContainerOptions `json:"ContainerOptions"`
+	Groups           []string         `json:"Groups"`
+	Provider         string           `json:"Provider"`
+	Template         string           `json:"Template"`
+	Version          string           `json:"Version"`
+	Workdir          string           `json:"Workdir"`
+}
+
+// SandboxRequest defines model for SandboxRequest.
+type SandboxRequest struct {
+	Action string `json:"action"`
+	Args   string `json:"args"`
+
+	// Binary files in tar archive encoded with base64
+	Binary          string             `json:"binary"`
+	ExtendedOptions *map[string]string `json:"extendedOptions,omitempty"`
+	SandId          string             `json:"sandId"`
+
+	// Stdin data which will available via stdin reader
+	Stdin string `json:"stdin"`
+}
+
+// SandboxResponse defines model for SandboxResponse.
+type SandboxResponse struct {
+	Error    *string `json:"error,omitempty"`
+	ExitCode int     `json:"exitCode"`
+	Stderr   []byte  `json:"stderr"`
+	Stdout   []byte  `json:"stdout"`
+}
+
 // SubmissionRequest defines model for SubmissionRequest.
 type SubmissionRequest struct {
 	ActionId *string           `json:"ActionId,omitempty"`
@@ -48,6 +134,12 @@ type SubmissionScriptRequest struct {
 	// Stdin data which will available via stdin reader
 	Stdin      string `json:"Stdin"`
 	TemplateId string `json:"TemplateId"`
+}
+
+// TemplateItemResponse defines model for TemplateItemResponse.
+type TemplateItemResponse struct {
+	Actions    *[]string `json:"Actions,omitempty"`
+	TemplateId *string   `json:"TemplateId,omitempty"`
 }
 
 // RunFilesSubmissionJSONRequestBody defines body for RunFilesSubmission for application/json ContentType.
