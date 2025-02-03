@@ -26,9 +26,17 @@ Special thanks to:
 </a>
 
 
+# 🌟Features
+
+- Multi-Language Support: Run Python, Go, and Node.js code in isolated Docker containers.
+- Multi-Files Support: Run code that consists of multiple files
+- Easy extensible: You can create your own build to run code via API or by loading a folder with configurations at startup.
+- (in working) Dependency Management: Automatic handling of project dependencies (pip, go mod, npm)
+- Flexible Execution: Custom entrypoints for both single-file code and full projects
+- Scalable System: Expandable via a load balancer between a playground and a sandbox.
 
 
-# Infrastructure Schema
+# 🐙Infrastructure Schema
 
 ![Image alt](docs/docs/general_schema.png)
 
@@ -51,13 +59,13 @@ Content-Type: application/json
 {
   "templateId": "php8.3",
 
-  "args": "--name \"Elon Mask\" -age=45",
-
   "files": {
-    "index.php": "<?php\n// /index.php\n\n// Some comment\n require_once __DIR__ . '/src/foo.php';\nrequire_once __DIR__ . '/src/bar/bar.php';\n\n// Call functions\n$resultFoo = foo();\n$resultBar = bar();\n\n// Calculate\n$product = $resultFoo * $resultBar;\n\n// Result\nvar_dump($product);",
+    "index.php": "<?php\n// /index.php\n\n require_once __DIR__ . '/src/foo.php';\nrequire_once __DIR__ . '/src/bar/bar.php';\n\n// Call functions\n$resultFoo = foo();\n$resultBar = bar();\n\n// Calculate\n$product = $resultFoo * $resultBar;\n\n// Result\nvar_dump($product);",
     "src/foo.php": "<?php\n\nfunction foo() {\n    return 20;\n}",
     "src/bar/bar.php": "<?php\n\nfunction bar() {\n    return 3;\n}"
-  }
+  },
+  "args": "--name \"Elon Mask\" -age=45",
+  "stdin": "1\n2\n3"
 }
 ```
 
@@ -97,7 +105,7 @@ services:
       context: ./sandbox
       dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "8082:80"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       # You can set up your path with configs 
