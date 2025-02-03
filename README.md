@@ -59,11 +59,9 @@ POST https://codenire.com/run
 Content-Type: application/json
 
 {
-  "templateId": "go1.23",
+  "templateId": "golang_1_23",
   "files": {
-    "index.php": "<?php\n// /index.php\n\n require_once __DIR__ . '/src/foo.php';\nrequire_once __DIR__ . '/src/bar/bar.php';\n\n// Call functions\n$resultFoo = foo();\n$resultBar = bar();\n\n// Calculate\n$product = $resultFoo * $resultBar;\n\n// Result\nvar_dump($product);",
-    "src/foo.php": "<?php\n\nfunction foo() {\n    return 20;\n}",
-    "src/bar/bar.php": "<?php\n\nfunction bar() {\n    return 3;\n}"
+    "main.go": "package main\n\nimport (\n\t\"flag\"\n\t\"fmt\"\n)\n\nfunc main() {\n\t// Process command-line arguments\n\tname := flag.String(\"name\", \"default\", \"User name\")\n\tflag.Parse()\n\n\t// Read data from stdin\n\tvar input string\n\t_, err := fmt.Scan(&input)\n\tif err != nil {\n\t\tfmt.Println(\"Error reading from stdin:\", err)\n\t\treturn\n\t}\n\n\t// Print arguments and stdin data\n\tfmt.Printf(\"Hello, %s!\\n\", *name)\n\tfmt.Printf(\"Stdin data: %s\\n\", input)\n}\n"
   },
   "args": "--name \"Mark\"",
   "stdin": "100.00"
