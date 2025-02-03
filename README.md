@@ -13,7 +13,7 @@ Inspired by:
 
 
 <a href="https://codiew.io" target="_blank">
-<img width="1262" alt="Screenshot 2025-01-30 at 16 43 36" src="https://github.com/user-attachments/assets/bd1d8b10-0489-4343-9200-ce4533992e3c" />
+  <img width="1242" alt="Screenshot 2025-02-04 at 01 04 36" src="https://github.com/user-attachments/assets/dc79a2c8-b095-4987-909e-239f0d0afc74" />
 </a>
 
 
