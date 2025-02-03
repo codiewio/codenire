@@ -10,9 +10,9 @@ import (
 
 // SubmissionRequest defines model for SubmissionRequest.
 type SubmissionRequest struct {
-	Args            string             `json:"Args"`
-	ExtendedOptions *map[string]string `json:"ExtendedOptions,omitempty"`
-	Files           map[string]string  `json:"Files"`
+	ActionId *string           `json:"ActionId,omitempty"`
+	Args     string            `json:"Args"`
+	Files    map[string]string `json:"Files"`
 
 	// Stdin data which will available via stdin reader
 	Stdin      string `json:"Stdin"`
@@ -41,9 +41,9 @@ type SubmissionResponseEvents struct {
 
 // SubmissionScriptRequest defines model for SubmissionScriptRequest.
 type SubmissionScriptRequest struct {
-	Args            string             `json:"Args"`
-	Code            string             `json:"Code"`
-	ExtendedOptions *map[string]string `json:"ExtendedOptions,omitempty"`
+	ActionId *string `json:"ActionId,omitempty"`
+	Args     string  `json:"Args"`
+	Code     string  `json:"Code"`
 
 	// Stdin data which will available via stdin reader
 	Stdin      string `json:"Stdin"`

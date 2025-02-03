@@ -49,7 +49,14 @@ func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("template `%s` not found", req.TemplateId), http.StatusBadRequest)
 		return
 	}
-	req.Files = addDefaultFiles(req.Files, cfg.DefaultFiles)
+
+	action, err := getAction(req.ActionId, cfg)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	req.Files = addDefaultFiles(req.Files, action.DefaultFiles)
 
 	if h.Config.PreRequestCallback != nil {
 		resp2, err := h.Config.PreRequestCallback(hooks.NewCodeHookEvent(c, req))
@@ -108,15 +115,22 @@ func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	action, err := getAction(preReq.ActionId, cfg)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	req := api.SubmissionRequest{
 		TemplateId: preReq.TemplateId,
 		Args:       preReq.Args,
 		Files:      make(map[string]string),
+		ActionId:   preReq.ActionId,
 	}
 
-	sourceFile := cfg.ScriptOptions.SourceFile
+	sourceFile := action.ScriptOptions.SourceFile
 	req.Files[sourceFile] = preReq.Code
-	req.Files = addDefaultFiles(req.Files, cfg.DefaultFiles)
+	req.Files = addDefaultFiles(req.Files, action.DefaultFiles)
 
 	if h.Config.PreRequestCallback != nil {
 		resp2, err := h.Config.PreRequestCallback(hooks.NewCodeHookEvent(c, req))
@@ -162,12 +176,17 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendUrl string) 
 		return nil, fmt.Errorf("fail on create tar files: %w", err)
 	}
 
+	action := "default"
+	if req.ActionId != nil {
+		action = *req.ActionId
+	}
 	jsonData, err := json.Marshal(
 		api.SandboxRequest{
 			Args:   req.Args,
 			SandId: req.TemplateId,
 			Binary: b,
 			Stdin:  req.Stdin,
+			Action: action,
 		},
 	)
 	if err != nil {
@@ -219,4 +238,18 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendUrl string) 
 	}
 
 	return apiRes, nil
+}
+
+func getAction(reqAction *string, cfg *api.ImageConfig) (*api.ImageActionConfig, error) {
+	actionId := "default"
+	if reqAction != nil {
+		actionId = *reqAction
+	}
+
+	action, ok := cfg.Actions[actionId]
+	if !ok {
+		return nil, fmt.Errorf("action `%s` not found", *reqAction)
+	}
+
+	return &action, nil
 }

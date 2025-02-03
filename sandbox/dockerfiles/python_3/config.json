@@ -1,15 +1,24 @@
 {
   "Template": "python_3",
   "Groups": [],
-  "Name": "Python 3.12",
-  "CompileCmd": "",
-  "RunCmd": "python3 main.py",
-  "Options": {
+  "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5
   },
-  "ScriptOptions": {
-    "Enable": true,
-    "SourceFile": "main.py"
+
+
+
+  "Actions": {
+    "default": {
+      "IsDefault": true,
+      "Id": "default",
+      "Name": "Python 3.12",
+      "CompileCmd": "",
+      "RunCmd": "python main.py < {STDIN}",
+      "ScriptOptions": {
+        "Enable": true,
+        "SourceFile": "main.py"
+      }
+    }
   }
 }

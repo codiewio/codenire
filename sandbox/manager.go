@@ -34,7 +34,7 @@ import (
 
 const imageTagPrefix = "codenire_play/"
 const codenireConfigName = "config.json"
-const codenireMultiConfigName = "multi_config.json"
+const defaultMemoryLimit = 100 << 20
 
 type BuiltImage struct {
 	contract.ImageConfig
@@ -254,7 +254,7 @@ func (m *CodenireManager) runSndContainer(img BuiltImage) (string, error) {
 		AutoRemove:  true,
 		NetworkMode: network.NetworkNone,
 		Resources: dockercontainer.Resources{
-			Memory:     int64(*img.Options.MemoryLimit),
+			Memory:     int64(*img.ContainerOptions.MemoryLimit),
 			MemorySwap: 0,
 		},
 	}
@@ -374,16 +374,46 @@ func parseConfigFiles(root string, directories []string) []contract.ImageConfig 
 			continue
 		}
 
+		if len(config.Actions) < 1 {
+			log.Printf("There are not actions in %s: %s", config.Template, err.Error())
+			continue
+		}
+
+		config.Provider = "built-in"
+
 		if config.Version == "" {
 			config.Version = "1.0"
 		}
 
-		memoryLimit := 100 << 20
-		if config.Options.MemoryLimit == nil {
-			config.Options.MemoryLimit = &memoryLimit
+		memoryLimit := defaultMemoryLimit
+		if config.ContainerOptions.MemoryLimit == nil {
+			config.ContainerOptions.MemoryLimit = &memoryLimit
 		}
 
-		config.Provider = "built-in"
+		{
+			_, defaultExists := config.Actions["default"]
+			var first contract.ImageActionConfig
+
+			for _, actionConfig := range config.Actions {
+				first = actionConfig
+
+				if actionConfig.IsDefault && !defaultExists {
+					defaultExists = true
+					config.Actions["default"] = actionConfig
+					continue
+				}
+			}
+
+			if !defaultExists && first.Name != "" {
+				config.Actions["default"] = first
+				defaultExists = true
+			}
+
+			if !defaultExists {
+				log.Printf("There aren't default action for %s", config.Template)
+				continue
+			}
+		}
 
 		res = append(res, config)
 	}

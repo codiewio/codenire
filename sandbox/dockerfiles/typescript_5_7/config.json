@@ -1,18 +1,26 @@
 {
   "Template": "typescript_5_7",
   "Groups": [],
-  "Name": "Typescript 5.7",
-  "CompileCmd": "tsc -p tsconfig.json",
-  "RunCmd": "node ./dist/index.js {ARGS}",
-  "Options": {
+  "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5
   },
-  "ScriptOptions": {
-    "Enable": true,
-    "SourceFile": "index.ts"
-  },
-  "DefaultFiles": {
-    "tsconfig.json": "{\n\"compilerOptions\": {\n\"outDir\": \"./dist/\",\n\"lib\": [\n  \"es6\",\n  \"dom\"\n],\n\"experimentalDecorators\": true,\n\"emitDecoratorMetadata\": true,\n\"moduleResolution\": \"node\",\n\"noImplicitAny\": true,\n\"skipLibCheck\": true\n}\n}"
+
+
+  "Actions": {
+    "default": {
+      "IsDefault": true,
+      "Id": "default",
+      "Name": "Typescript 5.7",
+      "CompileCmd": "tsc -p tsconfig.json",
+      "RunCmd": "node ./dist/index.js {ARGS} < {STDIN}",
+      "ScriptOptions": {
+        "Enable": true,
+        "SourceFile": "index.ts"
+      },
+      "DefaultFiles": {
+        "tsconfig.json": "{\n\"compilerOptions\": {\n\"outDir\": \"./dist/\",\n\"lib\": [\n  \"es6\",\n  \"dom\"\n],\n\"experimentalDecorators\": true,\n\"emitDecoratorMetadata\": true,\n\"moduleResolution\": \"node\",\n\"noImplicitAny\": true,\n\"skipLibCheck\": true\n}\n}"
+      }
+    }
   }
 }

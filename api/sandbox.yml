@@ -72,13 +72,16 @@ components:
         stdin:
           description: data which will available via stdin reader
           type: string
+        action:
+          type: string
       required:
         - sandId
         - binary
         - args
         - stdin
+        - action
 
-    ImageConfigOption:
+    ContainerOptions:
       type: object
       properties:
         CompileTTL:
@@ -98,12 +101,10 @@ components:
       required:
         - SourceFile
 
-    ImageConfig:
+    ImageTemplateConfig:
       type: object
       properties:
         Template:
-          type: string
-        Name:
           type: string
         Groups:
           type: array
@@ -111,36 +112,62 @@ components:
             type: string
         Version:
           type: string
+        ContainerOptions:
+          $ref: '#/components/schemas/ContainerOptions'
+        Workdir:
+          type: string
+        # Configuration provider (built-in, api, external)
+        Provider:
+          type: string
+      required:
+        - Template
+        - Groups
+        - ContainerOptions
+        - Version
+        - Workdir
+        - Provider
+
+    ImageActionConfig:
+      type: object
+      properties:
+        IsDefault:
+          type: boolean
+          default: false
+        Id:
+          type: string
+        Name:
+          type: string
         CompileCmd:
           type: string
         RunCmd:
           type: string
-        Workdir:
-          type: string
-        Options:
-          $ref: '#/components/schemas/ImageConfigOption'
         ScriptOptions:
           $ref: '#/components/schemas/ImageConfigScriptOptions'
         DefaultFiles:
           type: object
           additionalProperties:
             type: string
-        Provider:
-          description: Configuration provider (built-in, api, external)
-          type: string
       required:
-        - Template
         - Id
         - Name
-        - Groups
         - CompileCmd
         - RunCmd
-        - Options
         - ScriptOptions
         - DefaultFiles
-        - Version
-        - Workdir
-        - Provider
+        - IsDefault
+
+    ImageConfig:
+      type: object
+      allOf:
+        - type: object
+          properties:
+            Actions:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/ImageActionConfig'
+          required:
+            - Actions
+        - $ref: '#/components/schemas/ImageTemplateConfig'
 
     ImageConfigList:
       type: array

@@ -59,10 +59,9 @@ components:
         Stdin:
           description: data which will available via stdin reader
           type: string
-        ExtendedOptions:
-          type: object
-          additionalProperties:
-            type: string
+        ActionId:
+          type: string
+          default: "default"
       required:
         - TemplateId
         - Args
@@ -78,10 +77,9 @@ components:
           type: string
         Code:
           type: string
-        ExtendedOptions:
-          type: object
-          additionalProperties:
-            type: string
+        ActionId:
+          type: string
+          default: "default"
         Stdin:
           description: data which will available via stdin reader
           type: string

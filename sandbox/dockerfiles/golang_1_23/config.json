@@ -1,20 +1,26 @@
 {
   "Template": "golang_1_23",
   "Groups": ["go"],
-  "Name": "Golang 1.23",
-  "CompileCmd": "go build -o main .",
-  "RunCmd": "./main {ARGS}",
   "Workdir": "/app",
-  "Options": {
+  "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5,
     "MemoryLimit": 524288000
   },
-  "ScriptOptions": {
-    "Enable": true,
-    "SourceFile": "main.go"
-  },
-  "DefaultFiles": {
-    "go.mod": "module play\n"
+
+  "Actions": {
+    "golang1.23": {
+      "Id": "golang1.23",
+      "Name": "Golang 1.23",
+      "CompileCmd": "go build -o main .",
+      "RunCmd": "./main {ARGS} < {STDIN}",
+      "ScriptOptions": {
+        "Enable": true,
+        "SourceFile": "main.go"
+      },
+      "DefaultFiles": {
+        "go.mod": "module play\n"
+      }
+    }
   }
 }

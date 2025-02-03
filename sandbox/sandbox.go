@@ -46,21 +46,6 @@ import (
 	"sandbox/internal"
 )
 
-const (
-	maxBinarySize         = 100 << 20
-	startContainerTimeout = 100 * time.Second
-	defaultRunTimeout     = 5 * time.Second
-	defaultCompileTimeout = 30 * time.Second
-	totalTimeout          = defaultRunTimeout + defaultCompileTimeout
-	maxOutputSize         = 100 << 20
-	memoryLimitBytes      = 100 << 20
-)
-
-var (
-	errTooMuchOutput = errors.New("output too large")
-	errRunTimeout    = errors.New("timeout running program")
-)
-
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
@@ -70,6 +55,8 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func runHandler(w http.ResponseWriter, r *http.Request) {
+	//fmt.Println("Get sandbox req:", time.Now().UnixMilli())
+
 	var err error
 
 	var req contract.SandboxRequest
@@ -85,17 +72,21 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	err = internal.Base64ToTar(req.Binary, tmpDir, req.Stdin)
+	stdinFile, err := internal.Base64ToTar(req.Binary, tmpDir, req.Stdin)
 	if err != nil {
 		sendRunError(w, "encode  files failed")
 		return
 	}
+
+	//fmt.Println("Handled sandbox req:", time.Now().UnixMilli())
 
 	cont, err := codenireManager.GetContainer(r.Context(), req.SandId)
 	if err != nil {
 		sendRunError(w, fmt.Sprintf("get container %s failed with %s", req.SandId, err.Error()))
 		return
 	}
+
+	//fmt.Printf("Got container %s: %d\n", cont.Image.Id, time.Now().UnixMilli())
 	defer func() {
 		err = codenireManager.KillContainer(cont.CId)
 		if err != nil {
@@ -113,6 +104,11 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() { <-runSem }()
 
+	action, exists := cont.Image.Actions[req.Action]
+	if !exists {
+		sendRunError(w, fmt.Sprintf("action %s not found with template %s", req.Action, req.SandId))
+	}
+
 	// TODO:: Make Timeout?
 	out, err := exec.Command(
 		"docker",
@@ -127,45 +123,47 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	totalTimeout := time.Duration(*cont.Image.ContainerOptions.CompileTTL+*cont.Image.ContainerOptions.RunTTL) * time.Second
+
 	timeoutCtx := registerCmdTimeout(r.Context(), totalTimeout)
 	res := &contract.SandboxResponse{}
 
 	var stdout, stderr bytes.Buffer
-	var exitCode int
 
-	if cont.Image.CompileCmd != "" {
+	if action.CompileCmd != "" {
 		compileCtx := registerCmdTimeout(r.Context(), totalTimeout)
 		{
-			err := execContainerShell(compileCtx, &stderr, &stdout, *cont, cont.Image.CompileCmd, req.Args, cont.Image)
+			err := execContainerShell(compileCtx, &stderr, &stdout, *cont, action.CompileCmd, req.Args, nil, cont.Image)
 			if err != nil {
 				if errors.Is(compileCtx.Err(), context.DeadlineExceeded) {
 					sendRunError(w, "timeout compilation")
 					return
 				}
 
-				flushStdWithErr(res, exitCode, stderr, stdout)
+				flushStdWithErr(res, stderr, stdout)
 				sendResponse(w, res)
 				return
 			}
 		}
 	}
 
-	runTimeoutCtx := registerCmdTimeout(timeoutCtx, defaultRunTimeout)
+	runTtl := time.Duration(*cont.Image.ContainerOptions.RunTTL) * time.Second
+	runTimeoutCtx := registerCmdTimeout(timeoutCtx, runTtl)
 	{
-		err := execContainerShell(runTimeoutCtx, &stderr, &stdout, *cont, cont.Image.RunCmd, req.Args, cont.Image)
+		err := execContainerShell(runTimeoutCtx, &stderr, &stdout, *cont, action.RunCmd, req.Args, stdinFile, cont.Image)
 		if err != nil {
 			if errors.Is(runTimeoutCtx.Err(), context.DeadlineExceeded) {
 				sendRunError(w, "timeout execute")
 				return
 			}
 
-			flushStdWithErr(res, exitCode, stderr, stdout)
+			flushStdWithErr(res, stderr, stdout)
 			sendResponse(w, res)
 			return
 		}
 	}
 
-	flushStd(res, exitCode, stderr, stdout)
+	flushStd(res, stderr, stdout)
 	sendResponse(w, res)
 }
 
@@ -188,24 +186,29 @@ func sendRunError(w http.ResponseWriter, err string) {
 	sendRunResponse(w, res)
 }
 
-func flushStd(res *contract.SandboxResponse, exitCode int, stderr bytes.Buffer, stdout bytes.Buffer) {
-	res.ExitCode = exitCode
+func flushStd(res *contract.SandboxResponse, stderr bytes.Buffer, stdout bytes.Buffer) {
 	res.Stderr = stderr.Bytes()
 	res.Stdout = stdout.Bytes()
 }
 
-func flushStdWithErr(res *contract.SandboxResponse, exitCode int, stderr bytes.Buffer, stdout bytes.Buffer) {
+func flushStdWithErr(res *contract.SandboxResponse, stderr bytes.Buffer, stdout bytes.Buffer) {
 	mergedOutput := append(stdout.Bytes(), '\n')
 	mergedOutput = append(mergedOutput, stderr.Bytes()...)
 	res.Stderr = mergedOutput
 	res.Stdout = nil
 }
 
-func execContainerShell(ctx context.Context, stderr *bytes.Buffer, stdout *bytes.Buffer, container StartedContainer, runCmd, args string, cfg BuiltImage) error {
-	sh := fmt.Sprintf("cd %s && %s < input.txt", cfg.Workdir, runCmd)
-	sh = replacePlaceholders(sh, map[string]string{
+func execContainerShell(ctx context.Context, stderr *bytes.Buffer, stdout *bytes.Buffer, container StartedContainer, runCmd, args string, stdinFileName *string, cfg BuiltImage) error {
+	//fmt.Printf("Call command %s: %d\n", runCmd, time.Now().UnixMilli())
+
+	sh := fmt.Sprintf("cd %s && %s", cfg.Workdir, runCmd)
+	placeholders := map[string]string{
 		"ARGS": args,
-	})
+	}
+	if stdinFileName != nil {
+		placeholders["STDIN"] = *stdinFileName
+	}
+	sh = replacePlaceholders(sh, placeholders)
 
 	cmd := exec.CommandContext(
 		ctx,
@@ -223,6 +226,8 @@ func execContainerShell(ctx context.Context, stderr *bytes.Buffer, stdout *bytes
 	if err != nil {
 		return err
 	}
+
+	//fmt.Printf("Finish command %s: %d\n", runCmd, time.Now().UnixMilli())
 
 	return nil
 }

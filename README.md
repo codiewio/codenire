@@ -130,13 +130,15 @@ networks:
 TODO:: add description
 
 # Roadmap
-- [x] Multifiles/singe scripts
-- [x] gVisor Isolation
-- [x] Hooks to override some request
-- [ ] Metrics
-- [ ] Tests
+- [x] Add Multifiles/singe scripts
+- [x] Add gVisor Isolation
+- [x] Add Hooks to catch/override some request (for auth, for handle code in external system)
+- [x] Add Multi actions in once container (different runs in one docker img, for example multi version of c++ in cpp container)
+- [ ] Add Metrics
+- [ ] Add Tests
 - [ ] Add golinter
+- [ ] Add debug info in API req/resp
 - [ ] Change container replica strategy
-- [ ] Statefull sandbox
+- [ ] Add Statefull sandbox
 - [ ] Compile with open network
-- [ ] WS messaging
+- [ ] Add WS messaging
