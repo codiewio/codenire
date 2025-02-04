@@ -16,6 +16,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Playground
       - uses: actions/setup-go@v5
         with:
           go-version: stable
@@ -24,3 +25,16 @@ jobs:
         with:
           version: v1.63.4
 
+
+      # Sandbox
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Copy .golangci config
+        run: |
+          cp ./.golangci.yml ./sandbox/
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.63.4
+          working-directory: sandbox
