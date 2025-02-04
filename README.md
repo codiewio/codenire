@@ -158,7 +158,7 @@ TODO:: add description
 - [ ] Add Tests
 - [ ] Add golinter
 - [ ] Add debug info in API req/resp
-- [ ] Change container replica strategy
+- [x] Change container replica strategy
 - [ ] Add Statefull sandbox
-- [ ] Compile with open network
+- [x] Compile with open network
 - [ ] Add WS messaging

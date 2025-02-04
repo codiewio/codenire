@@ -128,7 +128,7 @@ func (m *CodenireManager) ImageList() []BuiltImage {
 
 func (m *CodenireManager) GetContainer(ctx context.Context, id string) (*StartedContainer, error) {
 	select {
-	case c := <-m.imageContainers[id]:
+	case c := <-m.getContainer(id):
 		return &c, nil
 	case <-ctx.Done():
 		return nil, ctx.Err()
@@ -297,9 +297,6 @@ func (m *CodenireManager) startContainers() {
 	log.Printf("To start: %s", strings.Join(ii, ","))
 
 	for _, img := range m.imgs {
-		m.imageContainers[img.Template] = make(chan StartedContainer, m.idleContainersCount)
-
-		// TODO:: change workers num logic
 		for i := 0; i < m.idleContainersCount; i++ {
 			go func() {
 				for {
@@ -309,12 +306,11 @@ func (m *CodenireManager) startContainers() {
 
 					c, err := m.runSndContainer(img)
 					if err != nil {
-						log.Printf("error starting container: %v", err)
-						time.Sleep(5 * time.Second)
+						time.Sleep(10 * time.Second)
 						continue
 					}
 
-					m.imageContainers[img.Template] <- StartedContainer{
+					m.getContainer(img.Template) <- StartedContainer{
 						CId:   c,
 						Image: img,
 					}
@@ -328,6 +324,16 @@ func (m *CodenireManager) startContainers() {
 		cc = append(cc, c)
 	}
 	log.Printf("Run images %s", strings.Join(cc, ","))
+}
+
+func (m *CodenireManager) getContainer(template string) chan StartedContainer {
+	m.Lock()
+	defer m.Unlock()
+
+	if _, exists := m.imageContainers[template]; !exists {
+		m.imageContainers[template] = make(chan StartedContainer)
+	}
+	return m.imageContainers[template]
 }
 
 func (m *CodenireManager) runtime() string {
