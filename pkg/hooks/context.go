@@ -44,9 +44,10 @@ func newContext(w http.ResponseWriter, r *http.Request, graceTimeout time.Durati
 	ctx := &HttpContext{
 		Context: delayedCtx,
 		res:     w,
-		resC:    http.NewResponseController(w),
-		req:     r,
-		cancel:  cancelHandling,
+		//nolint
+		resC:   http.NewResponseController(w),
+		req:    r,
+		cancel: cancelHandling,
 	}
 
 	go func() {
