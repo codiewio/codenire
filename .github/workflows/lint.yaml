@@ -20,6 +20,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: stable
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
@@ -27,13 +28,11 @@ jobs:
 
 
       # Sandbox
-      - uses: actions/setup-go@v5
-        with:
-          go-version: stable
       - name: Copy .golangci config
         run: |
           cp ./.golangci.yml ./sandbox/
-      - name: golangci-lint
+
+      - name: golangci-lint sandbox
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.63.4
