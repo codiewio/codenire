@@ -1,4 +1,16 @@
 services:
+  network_proxy:
+    container_name: package_dev
+    image: ubuntu/squid
+    restart: always
+    ports:
+      - "3128:3128"
+    volumes:
+      - ./squid.conf:/etc/squid/squid.conf
+      - squid_cache:/var/spool/squid
+    networks:
+      - isolated_net
+
   playground:
     image: codiew/codenire-playground:latest
     ports:
@@ -7,7 +19,8 @@ services:
     tty: true
     restart: always
     networks:
-      - "sandnet"
+      - sandnet
+      - isolated_net
     entrypoint: [
       "/playground",
       "--backend-url", "http://sandbox_dev/run",
@@ -36,3 +49,9 @@ services:
 networks:
   sandnet:
     name: codenire
+  isolated_net:
+    driver: bridge
+
+volumes:
+  squid_cache:
+  squid_logs:

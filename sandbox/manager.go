@@ -25,7 +25,6 @@ import (
 	"github.com/alitto/pond/v2"
 	"github.com/docker/docker/api/types"
 	dockercontainer "github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 
 	contract "sandbox/api/gen"
@@ -46,6 +45,11 @@ type StartedContainer struct {
 	Image BuiltImage
 }
 
+type NetworkOptions struct {
+	Network   string
+	ProxyHost string
+}
+
 type ContainerManager interface {
 	Boot() error
 	ImageList() []BuiltImage
@@ -64,26 +68,25 @@ type CodenireManager struct {
 
 	dockerClient *client.Client
 	killSignal   bool
-	devMode      bool
 	isolated     bool
 
 	dockerFilesPath string
+	nwOpts          NetworkOptions
 }
 
-func NewCodenireManager(dev bool, replicCnt int, dockerFilesPath string, isolated bool) *CodenireManager {
+func NewCodenireManager() *CodenireManager {
 	c, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic("fail on create docker client")
 	}
 
 	return &CodenireManager{
-		devMode:             dev,
 		dockerClient:        c,
 		imageContainers:     make(map[string]chan StartedContainer),
 		numSysWorkers:       runtime.NumCPU(),
-		idleContainersCount: replicCnt,
-		dockerFilesPath:     dockerFilesPath,
-		isolated:            isolated,
+		idleContainersCount: *replicaContainerCnt,
+		dockerFilesPath:     *dockerFilesPath,
+		isolated:            *isolated,
 	}
 }
 
@@ -199,7 +202,7 @@ func (m *CodenireManager) buildImage(cfg contract.ImageConfig, root string) erro
 		Dockerfile:     "Dockerfile",
 		Tags:           []string{tag},
 		Labels:         map[string]string{},
-		SuppressOutput: !m.devMode,
+		SuppressOutput: !*dev,
 	}
 
 	buildResponse, err := m.dockerClient.ImageBuild(context.Background(), &buf, buildOptions)
@@ -210,7 +213,7 @@ func (m *CodenireManager) buildImage(cfg contract.ImageConfig, root string) erro
 
 	scanner := bufio.NewScanner(buildResponse.Body)
 	for scanner.Scan() {
-		if m.devMode {
+		if *dev {
 			fmt.Println("[DEBUG BUILD]", scanner.Text())
 		}
 	}
@@ -247,12 +250,16 @@ func (m *CodenireManager) runSndContainer(img BuiltImage) (string, error) {
 	containerConfig := &dockercontainer.Config{
 		Image: img.Id,
 		Cmd:   []string{"tail", "-f", "/dev/null"},
+		Env: []string{
+			fmt.Sprintf("HTTP_PROXY=%s", *isolatedGateway),
+			fmt.Sprintf("HTTPS_PROXY=%s", *isolatedGateway),
+		},
 	}
 
 	hostConfig := &dockercontainer.HostConfig{
 		Runtime:     m.runtime(),
 		AutoRemove:  true,
-		NetworkMode: network.NetworkNone,
+		NetworkMode: dockercontainer.NetworkMode(*isolatedNetwork),
 		Resources: dockercontainer.Resources{
 			Memory:     int64(*img.ContainerOptions.MemoryLimit),
 			MemorySwap: 0,

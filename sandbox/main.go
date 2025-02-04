@@ -57,6 +57,8 @@ var (
 	replicaContainerCnt = flag.Int("replicaContainerCnt", 1, "number of parallel containers for every uniq image")
 	dockerFilesPath     = flag.String("dockerFilesPath", "", "configs paths")
 	isolated            = flag.Bool("isolated", false, "use gVisor isolation for compile code")
+	isolatedNetwork     = flag.String("isolatedNetwork", "none", "isolated network")
+	isolatedGateway     = flag.String("isolatedGateway", "http://package_dev:3128", "proxy which pass traffik from internal newtwork")
 
 	runSem       chan struct{}
 	graceTimeout = 5 * time.Second
@@ -67,7 +69,7 @@ var (
 func main() {
 	flag.Parse()
 
-	checkGVisorIsolation()
+	checkIsolation()
 
 	out, err := exec.Command("docker", "version").CombinedOutput()
 	if err != nil {
@@ -76,7 +78,7 @@ func main() {
 
 	log.Printf("Go playground sandbox starting.")
 
-	codenireManager = NewCodenireManager(*dev, *replicaContainerCnt, *dockerFilesPath, *isolated)
+	codenireManager = NewCodenireManager()
 	codenireManager.KillAll()
 
 	runSem = make(chan struct{}, *numWorkers)
@@ -118,7 +120,7 @@ func main() {
 	log.Println("shutdown complete.")
 }
 
-func checkGVisorIsolation() {
+func checkIsolation() {
 	if !*isolated {
 		return
 	}
@@ -155,6 +157,7 @@ func checkGVisorIsolation() {
 	}
 
 	log.Println("runsc runtime not available in the system.")
+	log.Printf("Isolated Network: %s", *isolatedNetwork)
 	os.Exit(1)
 }
 
@@ -188,7 +191,7 @@ func gracefulShutdown(done chan struct{}) {
 	}
 }
 
-func healthHandler(w http.ResponseWriter, r *http.Request) {
+func healthHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
