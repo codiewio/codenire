@@ -54,10 +54,10 @@ func NewServer(config *Config, options ...func(s *Server) error) (*Server, error
 	s.mux.HandleFunc("/run-script", s.handler.RunScriptHandler)
 
 	s.mux.HandleFunc("/action/list", s.handler.ActionListHandler)
-	//s.mux.HandleFunc("/action/add", s.handler.ActionAddHandler)
+	// s.mux.HandleFunc("/action/add", s.handler.ActionAddHandler)
 
-	//s.mux.HandleFunc("/template/list", s.handler.TemplateListHandler)
-	//s.mux.HandleFunc("/template/add", s.handler.TemplateAddHandler)
+	// s.mux.HandleFunc("/template/list", s.handler.TemplateListHandler)
+	// s.mux.HandleFunc("/template/add", s.handler.TemplateAddHandler)
 
 	return s, nil
 }
