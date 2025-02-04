@@ -159,7 +159,7 @@ TODO:: add description
 - [ ] Add Tests
 - Add GoLinter
   - [x] Playground
-  - [ ] Sandbox
+  - [x] Sandbox
 - [ ] Add debug info in API req/resp
 - [x] Change container replica strategy
 - [ ] Add StateFull sandbox

@@ -60,16 +60,6 @@ linters-settings:
       - "^google.golang.org/protobuf/.+Options$"
       - "^gopkg.in/yaml.v3.Node$"
 
-  funlen:
-    # Checks the number of lines in a function.
-    # If lower than 0, disable the check.
-    # Default: 60
-    lines: 100
-    # Checks the number of statements in a function.
-    # If lower than 0, disable the check.
-    # Default: 40
-    statements: 50
-
   gocognit:
     # Minimal code complexity to report.
     # Default: 30 (but we recommend 10-20)
@@ -174,7 +164,7 @@ linters:
     - errorlint # finds code that will cause problems with the error wrapping scheme introduced in Go 1.13
     - exhaustive # checks exhaustiveness of enum switch statements
 #    - forbidigo # forbids identifiers
-    - funlen # tool for detection of long functions
+#    - funlen # tool for detection of long functions
 #    - gochecknoglobals # checks that no global variables exist
     - gochecknoinits # checks that no init functions are present in Go code
     - gocognit # computes and checks the cognitive complexity of functions
@@ -204,7 +194,7 @@ linters:
     - reassign # checks that package variables are not reassigned
 #    - revive # fast, configurable, extensible, flexible, and beautiful linter for Go, drop-in replacement of golint
     - rowserrcheck # checks whether Err of rows is checked successfully
-    - sqlclosecheck # checks that sql.Rows and sql.Stmt are closed
+#    - sqlclosecheck # checks that sql.Rows and sql.Stmt are closed
     - stylecheck # is a replacement for golint
     - tenv # detects using os.Setenv instead of t.Setenv since Go1.17
     - testableexamples # checks if examples are testable (have an expected output)

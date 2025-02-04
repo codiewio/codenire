@@ -16,47 +16,53 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
+const maxFilesLimit = 1 * 1024 * 1024
+
+// DirToTar creates a tar archive from the specified directory
 func DirToTar(sourceDir string) (bytes.Buffer, error) {
 	var buf bytes.Buffer
 	tarWriter := tar.NewWriter(&buf)
-	defer tarWriter.Close()
+	defer func() {
+		_ = tarWriter.Close()
+	}()
 
 	err := filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return fmt.Errorf("ошибка обхода директории %s: %v", path, err)
+			return fmt.Errorf("error walking through directory %s: %w", path, err)
 		}
 
 		if path == sourceDir {
 			return nil
 		}
 
-		// Создаем заголовок для файла или папки
 		header, err := tar.FileInfoHeader(info, path)
 		if err != nil {
-			return fmt.Errorf("ошибка создания заголовка для %s: %v", path, err)
+			return fmt.Errorf("error creating header for %s: %w", path, err)
 		}
 
 		header.Name, err = filepath.Rel(sourceDir, path)
 		if err != nil {
-			return fmt.Errorf("ошибка получения относительного пути для %s: %v", path, err)
+			return fmt.Errorf("error getting relative path for %s: %w", path, err)
 		}
 
-		// Пишем заголовок в архив
-		if err := tarWriter.WriteHeader(header); err != nil {
-			return fmt.Errorf("ошибка записи заголовка: %v", err)
+		if err2 := tarWriter.WriteHeader(header); err2 != nil {
+			return fmt.Errorf("error writing header: %w", err2)
 		}
 
 		if !info.IsDir() {
-			file, err := os.Open(path)
-			if err != nil {
-				return fmt.Errorf("ошибка открытия файла %s: %v", path, err)
+			file, err2 := os.Open(path)
+			if err2 != nil {
+				return fmt.Errorf("error opening file %s: %w", path, err2)
 			}
-			defer file.Close()
+			defer func() {
+				_ = file.Close()
+			}()
 
-			if _, err := io.Copy(tarWriter, file); err != nil {
-				return fmt.Errorf("ошибка записи содержимого файла %s в архив: %v", path, err)
+			if _, err3 := io.Copy(tarWriter, file); err3 != nil {
+				return fmt.Errorf("error writing file content %s to archive: %w", path, err3)
 			}
 		}
 
@@ -66,22 +72,24 @@ func DirToTar(sourceDir string) (bytes.Buffer, error) {
 	return buf, err
 }
 
+// nolint:gocognit
 func Base64ToTar(base64Data, destDir string, stdin string) (stdinFile *string, err error) {
 	tarData, err := base64.StdEncoding.DecodeString(base64Data)
 	if err != nil {
-		return nil, fmt.Errorf("base64 decode error: %v", err)
+		return nil, fmt.Errorf("base64 decode error: %w", err)
 	}
 
 	tarReader := tar.NewReader(bytes.NewReader(tarData))
-
 	{
 		inputName := fmt.Sprintf("input_%s.txt", RandHex(8))
 		inputFilePath := filepath.Join(destDir, inputName)
-		file, err := os.OpenFile(inputFilePath, os.O_CREATE|os.O_RDWR, 0644)
-		if err != nil {
-			return nil, fmt.Errorf("error creating input.txt file: %w", err)
+		file, err2 := os.OpenFile(inputFilePath, os.O_CREATE|os.O_RDWR, 0644)
+		if err2 != nil {
+			return nil, fmt.Errorf("error creating input.txt file: %w", err2)
 		}
-		defer file.Close()
+		defer func() {
+			_ = file.Close()
+		}()
 
 		_, err = file.WriteString(stdin)
 		if err != nil {
@@ -92,33 +100,46 @@ func Base64ToTar(base64Data, destDir string, stdin string) (stdinFile *string, e
 	}
 
 	for {
-		header, err := tarReader.Next()
-		if err == io.EOF {
+		header, err2 := tarReader.Next()
+		if err2 == io.EOF {
 			break // End of the tar archive
 		}
-		if err != nil {
-			return nil, fmt.Errorf("error reading header: %v", err)
+		if err2 != nil {
+			return nil, fmt.Errorf("error reading header: %w", err2)
 		}
 
-		targetPath := filepath.Join(destDir, header.Name)
+		cleanName := filepath.Clean(header.Name)
+		if strings.HasPrefix(cleanName, "..") {
+			return nil, fmt.Errorf("detected path traversal attempt: %s", header.Name)
+		}
+
+		targetPath := filepath.Join(destDir, cleanName)
+
+		//nolint:gosec
+		mode := os.FileMode(header.Mode)
 
 		switch header.Typeflag {
 		case tar.TypeDir:
 			// Create directory if it doesn't exist
-			if err := os.MkdirAll(targetPath, os.FileMode(header.Mode)); err != nil {
-				return nil, fmt.Errorf("error creating directory %s: %v", targetPath, err)
+			if err = os.MkdirAll(targetPath, mode); err != nil {
+				return nil, fmt.Errorf("error creating directory %s: %w", targetPath, err)
 			}
 		case tar.TypeReg:
 			// Open file for writing, create it if it doesn't exist
-			file, err := os.OpenFile(targetPath, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
-			if err != nil {
-				return nil, fmt.Errorf("error creating file %s: %v", targetPath, err)
+			file, err3 := os.OpenFile(targetPath, os.O_CREATE|os.O_RDWR, mode)
+			if err3 != nil {
+				return nil, fmt.Errorf("error creating file %s: %w", targetPath, err3)
 			}
-			defer file.Close()
+
+			defer func() {
+				_ = file.Close()
+			}()
 
 			// Copy the content from tar archive to the file
-			if _, err := io.Copy(file, tarReader); err != nil {
-				return nil, fmt.Errorf("error writing to file %s: %v", targetPath, err)
+			limitedReader := io.LimitReader(tarReader, maxFilesLimit)
+
+			if _, err4 := io.Copy(file, limitedReader); err4 != nil {
+				return nil, fmt.Errorf("error writing to file %s: %w", targetPath, err4)
 			}
 		}
 	}

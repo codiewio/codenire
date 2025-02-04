@@ -1,30 +1,18 @@
-
 export SHELL := /bin/sh
 
 LOCAL_BIN := $(CURDIR)/.bin
 OAPI_CODEGEN_VERSION := v2.2.0
 OAPI_CODEGEN_BIN=$(LOCAL_BIN)/oapi-codegen
 
+.PHONY: contracts-generate
 contracts-generate:
-	#which $(OAPI_CODEGEN_BIN)
-	# go types
-	cd api &&  $(OAPI_CODEGEN_BIN) -package api -generate types api.yml > ./gen/api.gen.go
-	cd api &&  $(OAPI_CODEGEN_BIN) -package api -generate types sandbox.yml > ./gen/sandbox.gen.go
-	cd api &&  $(OAPI_CODEGEN_BIN) -package api -generate types sandbox.yml > ../sandbox/api/gen/sandbox.gen.go
-
+	cd api &&  $(OAPI_CODEGEN_BIN) -config playground-cfg.yaml api.yaml
+	cd api &&  $(OAPI_CODEGEN_BIN) -config sandbox-cfg.yaml api.yaml
 
 .PHONY: install-oapi-codegen
 install-oapi-codegen:
 	$(call fn_install_goutil,github.com/deepmap/oapi-codegen/v2/cmd/oapi-codegen,$(OAPI_CODEGEN_VERSION),$(OAPI_CODEGEN_BIN),"-tags=''")
 
-# fn_install_goutil устанавливает бинарь из гошного пакета.
-# Параметры:
-# 1 - uri пакета для сборки бинаря;
-# 2 - версия пакета вида vX.Y.Z или latest;
-# 3 - полный путь для установки бинаря.
-# 4 - опциональные build флаги
-# Работает не через go install, чтобы иметь возможность использовать разные версии в разных модулях и не добавлять пакет в зависимости текущего модуля.
-# Проверяет наличие бинаря, создаёт временную директорию, инициализирует в ней временный модуль, в котором вызывает установку и сборку бинаря.
 define fn_install_goutil
 	@[ ! -f $(3)@$(2) ] \
 		|| exit 0 \
@@ -41,3 +29,16 @@ define fn_install_goutil
 		&& echo "$(3) installed!" \
 		&& echo "********************************"
 endef
+
+.PHONY: lint-play
+lint-play:
+	docker run -t --rm -v $(PWD):/app -w /app golangci/golangci-lint:v1.63.4 golangci-lint run -v
+
+.PHONY: lint-sand
+lint-sand:
+	docker run -t --rm -v $(PWD)/sandbox:/app -v $(PWD)/.golangci.yml:/app/.golangci.yml -w /app golangci/golangci-lint:v1.63.4 golangci-lint run -v
+
+.PHONY: lint
+lint:
+	make lint-play
+	make lint-sand

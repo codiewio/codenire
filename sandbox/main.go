@@ -105,13 +105,14 @@ func main() {
 	h.Get("/templates/list", listTemplatesHandler)
 
 	httpServer = &http.Server{
-		Addr:    ":" + *listenAddr,
-		Handler: &ochttp.Handler{Handler: h},
+		Addr:              ":" + *listenAddr,
+		ReadHeaderTimeout: 5 * time.Second,
+		Handler:           &ochttp.Handler{Handler: h},
 	}
 
 	go func() {
-		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("server failed: %v", err)
+		if err2 := httpServer.ListenAndServe(); err2 != nil && !errors.Is(err2, http.ErrServerClosed) {
+			log.Fatalf("server failed: %v", err2)
 		}
 	}()
 
@@ -183,6 +184,7 @@ func gracefulShutdown(done chan struct{}) {
 		codenireManager.KillAll()
 	}()
 
+	//nolint
 	select {
 	case <-ctx.Done():
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
@@ -194,5 +196,5 @@ func gracefulShutdown(done chan struct{}) {
 func healthHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }

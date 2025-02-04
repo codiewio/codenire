@@ -9,7 +9,7 @@ import (
 
 const defaultAction = "default"
 
-func (h *Handler) ActionsListHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ActionListHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		writeData(w)
 		return

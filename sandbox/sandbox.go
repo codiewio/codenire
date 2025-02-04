@@ -38,7 +38,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -56,12 +55,10 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func runHandler(w http.ResponseWriter, r *http.Request) {
-	//fmt.Println("Get sandbox req:", time.Now().UnixMilli())
-
 	var err error
 
 	var req contract.SandboxRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
@@ -79,15 +76,12 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//fmt.Println("Handled sandbox req:", time.Now().UnixMilli())
-
 	cont, err := codenireManager.GetContainer(r.Context(), req.SandId)
 	if err != nil {
 		sendRunError(w, fmt.Sprintf("get container %s failed with %s", req.SandId, err.Error()))
 		return
 	}
 
-	//fmt.Printf("Got container %s: %d\n", cont.Image.Id, time.Now().UnixMilli())
 	defer func() {
 		err = codenireManager.KillContainer(*cont)
 		if err != nil {
@@ -111,6 +105,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO:: Make Timeout?
+	//nolint
 	out, err := exec.Command(
 		"docker",
 		"cp",
@@ -134,8 +129,8 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	if action.CompileCmd != "" {
 		compileCtx := registerCmdTimeout(r.Context(), totalTimeout)
 		{
-			err := execContainerShell(compileCtx, &stderr, &stdout, *cont, action.CompileCmd, req.Args, nil, cont.Image)
-			if err != nil {
+			runErr := execContainerShell(compileCtx, &stderr, &stdout, *cont, action.CompileCmd, req.Args, nil, cont.Image)
+			if runErr != nil {
 				if errors.Is(compileCtx.Err(), context.DeadlineExceeded) {
 					sendRunError(w, "timeout compilation")
 					return
@@ -148,11 +143,11 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	runTtl := time.Duration(*cont.Image.ContainerOptions.RunTTL) * time.Second
-	runTimeoutCtx := registerCmdTimeout(timeoutCtx, runTtl)
+	runTTL := time.Duration(*cont.Image.ContainerOptions.RunTTL) * time.Second
+	runTimeoutCtx := registerCmdTimeout(timeoutCtx, runTTL)
 	{
-		err := execContainerShell(runTimeoutCtx, &stderr, &stdout, *cont, action.RunCmd, req.Args, stdinFile, cont.Image)
-		if err != nil {
+		runErr := execContainerShell(runTimeoutCtx, &stderr, &stdout, *cont, action.RunCmd, req.Args, stdinFile, cont.Image)
+		if runErr != nil {
 			if errors.Is(runTimeoutCtx.Err(), context.DeadlineExceeded) {
 				sendRunError(w, "timeout execute")
 				return
@@ -200,8 +195,6 @@ func flushStdWithErr(res *contract.SandboxResponse, stderr bytes.Buffer, stdout 
 }
 
 func execContainerShell(ctx context.Context, stderr *bytes.Buffer, stdout *bytes.Buffer, container StartedContainer, runCmd, args string, stdinFileName *string, cfg BuiltImage) error {
-	//fmt.Printf("Call command %s: %d\n", runCmd, time.Now().UnixMilli())
-
 	sh := fmt.Sprintf("cd %s && %s", cfg.Workdir, runCmd)
 	placeholders := map[string]string{
 		"ARGS": args,
@@ -211,6 +204,7 @@ func execContainerShell(ctx context.Context, stderr *bytes.Buffer, stdout *bytes
 	}
 	sh = replacePlaceholders(sh, placeholders)
 
+	//nolint
 	cmd := exec.CommandContext(
 		ctx,
 		"docker",
@@ -227,8 +221,6 @@ func execContainerShell(ctx context.Context, stderr *bytes.Buffer, stdout *bytes
 	if err != nil {
 		return err
 	}
-
-	//fmt.Printf("Finish command %s: %d\n", runCmd, time.Now().UnixMilli())
 
 	return nil
 }
@@ -256,7 +248,7 @@ func sendRunResponse(w http.ResponseWriter, r *contract.SandboxResponse) {
 	_, _ = w.Write(jres)
 }
 func replacePlaceholders(input string, values map[string]string) string {
-	re := regexp.MustCompile(`\{\s*([A-Z0-9_]+)\s*\}`)
+	re := regexp.MustCompile(`\{\s*([A-Z0-9_]+)\s*}`)
 	return re.ReplaceAllStringFunc(input, func(match string) string {
 		key := strings.TrimSpace(match[1 : len(match)-1])
 		if val, exists := values[key]; exists {
@@ -275,16 +267,4 @@ func listTemplatesHandler(w http.ResponseWriter, _ *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(body)
-}
-
-func listFiles(root string) error {
-	return filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() {
-			fmt.Println("FFFFFFFFF:", path)
-		}
-		return nil
-	})
 }

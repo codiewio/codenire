@@ -36,7 +36,7 @@ const defaultMemoryLimit = 100 << 20
 
 type BuiltImage struct {
 	contract.ImageConfig
-	Id string
+	ID string
 }
 
 type StartedContainer struct {
@@ -45,17 +45,12 @@ type StartedContainer struct {
 	TmpDir string
 }
 
-type NetworkOptions struct {
-	Network   string
-	ProxyHost string
-}
-
 type ContainerManager interface {
 	Boot() error
 	ImageList() []BuiltImage
 	GetContainer(ctx context.Context, id string) (*StartedContainer, error)
 	KillAll()
-	KillContainer(cId StartedContainer) error
+	KillContainer(StartedContainer) error
 }
 
 type CodenireManager struct {
@@ -103,7 +98,6 @@ func (m *CodenireManager) Boot() (err error) {
 	for i := 0; i < len(configs); i++ {
 		i := i
 		pool.Submit(func() {
-
 			buildErr := m.buildImage(configs[i], m.dockerFilesPath)
 			if buildErr != nil {
 				log.Println("Build of Image failed", "[Image]", configs[i].Template, "[err]", buildErr)
@@ -149,7 +143,8 @@ func (m *CodenireManager) KillAll() {
 	ctx := context.Background()
 	containers, err := m.dockerClient.ContainerList(ctx, docker.ListOptions{All: true})
 	if err != nil {
-		log.Fatalf("Get Container List failed: %v", err)
+		log.Printf("Get Container List failed: %s", err)
+		return
 	}
 
 	pool := pond.NewPool(m.numSysWorkers)
@@ -165,11 +160,11 @@ func (m *CodenireManager) KillAll() {
 			fmt.Printf("Stop container %s (ID: %s)...\n", ct.Names[0], ct.ID)
 
 			timeout := 0
-			err := m.dockerClient.ContainerStop(ctx, ct.ID, docker.StopOptions{
+			err = m.dockerClient.ContainerStop(ctx, ct.ID, docker.StopOptions{
 				Timeout: &timeout,
 			})
 			if err != nil {
-				log.Printf("Stop container failed %s: %v\n", ct.ID, err)
+				log.Printf("Stop container failed %s: %s", ct.ID, err)
 				return
 			}
 
@@ -209,9 +204,11 @@ func (m *CodenireManager) buildImage(cfg contract.ImageConfig, root string) erro
 
 	buildResponse, err := m.dockerClient.ImageBuild(context.Background(), &buf, buildOptions)
 	if err != nil {
-		return fmt.Errorf("error building Image: %v", err)
+		return fmt.Errorf("error building Image: %w", err)
 	}
-	defer buildResponse.Body.Close()
+	defer func() {
+		_ = buildResponse.Body.Close()
+	}()
 
 	scanner := bufio.NewScanner(buildResponse.Body)
 	for scanner.Scan() {
@@ -222,7 +219,7 @@ func (m *CodenireManager) buildImage(cfg contract.ImageConfig, root string) erro
 
 	imageInfo, _, err := m.dockerClient.ImageInspectWithRaw(context.Background(), tag)
 	if err != nil {
-		return fmt.Errorf("error on get image info: %v", err)
+		return fmt.Errorf("error on get image info: %w", err)
 	}
 
 	if len(imageInfo.RepoTags) < 1 {
@@ -239,7 +236,7 @@ func (m *CodenireManager) buildImage(cfg contract.ImageConfig, root string) erro
 
 	builtImage := BuiltImage{
 		ImageConfig: cfg,
-		Id:          imageInfo.RepoTags[0],
+		ID:          imageInfo.RepoTags[0],
 	}
 	m.imgs = append(m.imgs, builtImage)
 
@@ -259,11 +256,11 @@ func (m *CodenireManager) runSndContainer(img BuiltImage) (cont *StartedContaine
 		},
 	}
 
-	name := stripImageName(img.Id)
+	name := stripImageName(img.ID)
 	name = fmt.Sprintf("play_run_%s_%s", name, internal.RandHex(8))
 
 	containerConfig := &docker.Config{
-		Image: img.Id,
+		Image: img.ID,
 		Cmd:   []string{"tail", "-f", "/dev/null"},
 		Env: []string{
 			fmt.Sprintf("HTTP_PROXY=%s", *isolatedGateway),
@@ -356,6 +353,7 @@ func stripImageName(imgName string) string {
 	return parts[1]
 }
 
+// nolint
 func parseConfigFiles(root string, directories []string) []contract.ImageConfig {
 	var res []contract.ImageConfig
 

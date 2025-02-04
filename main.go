@@ -95,9 +95,8 @@ func main() {
 		plugin.CleanupPlugins()
 	})
 
-	err = images.PullImageConfigList(cfg.BackendURL + "/templates/list")
-
-	if err != nil {
+	err2 := images.PullImageConfigList(cfg.BackendURL + "/templates/list")
+	if err2 != nil {
 		panic("sandbox not ready yet")
 	}
 
@@ -147,9 +146,6 @@ func waitForSandbox(maxRetries int, interval time.Duration) error {
 	for i := 0; i < maxRetries; i++ {
 		//nolint
 		resp, err := http.Get(*backendURL + "/health")
-		defer func() {
-			_ = resp.Body.Close()
-		}()
 
 		if err == nil && resp.StatusCode == http.StatusOK {
 			fmt.Println("sandbox is healthy!")
@@ -158,5 +154,6 @@ func waitForSandbox(maxRetries int, interval time.Duration) error {
 		fmt.Printf("waiting for sandbox... (%d/%d)\n", i+1, maxRetries)
 		time.Sleep(interval)
 	}
+
 	return fmt.Errorf("sandbox is not available after %d retries", maxRetries)
 }
