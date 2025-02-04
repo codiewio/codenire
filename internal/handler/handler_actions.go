@@ -1,11 +1,13 @@
 package handler
 
 import (
-	api "github.com/codiewio/codenire/api/gen"
 	"net/http"
 
+	api "github.com/codiewio/codenire/api/gen"
 	"github.com/codiewio/codenire/internal/images"
 )
+
+const defaultAction = "default"
 
 func (h *Handler) ActionsListHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
@@ -21,7 +23,6 @@ func (h *Handler) ActionsListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-	return
 }
 
 func writeData(w http.ResponseWriter) {
@@ -33,7 +34,7 @@ func writeData(w http.ResponseWriter) {
 		defaultWrote := false
 
 		for name, config := range template.Actions {
-			isDefault := name == "default" || config.IsDefault
+			isDefault := name == defaultAction || config.IsDefault
 
 			action := api.ActionItemResponse{
 				Id:               config.Id,

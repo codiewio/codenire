@@ -8,10 +8,7 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
-	"go/parser"
-	"go/token"
 	"log"
 	"os"
 	"path/filepath"
@@ -64,30 +61,6 @@ func ListDirRecursively(dirPath string, level int) error {
 			}
 		} else {
 			log.Printf("%s[Файл] %s\n", prefix, entry.Name())
-		}
-	}
-
-	return nil
-}
-
-func CopyFilesToTmpDir(tmpDir string, files map[string]string) error {
-	for f, src := range files {
-		if !strings.Contains(f, "/") {
-			fset := token.NewFileSet()
-			f, err := parser.ParseFile(fset, f, src, parser.PackageClauseOnly)
-			if err == nil && f.Name.Name != "main" {
-				return errors.New(fmt.Sprintf("package Name must be main", err.Error()))
-			}
-		}
-
-		in := filepath.Join(tmpDir, f)
-		if strings.Contains(f, "/") {
-			if err := os.MkdirAll(filepath.Dir(in), 0755); err != nil {
-				return err
-			}
-		}
-		if err := os.WriteFile(in, []byte(src), 0644); err != nil {
-			return errors.New(fmt.Sprintf("error creating temp file %q: %v", in, err))
 		}
 	}
 

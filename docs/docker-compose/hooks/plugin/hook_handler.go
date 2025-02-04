@@ -21,6 +21,7 @@ func (g *CodenireHandler) InvokeHook(req hooks.HookRequest) (res hooks.HookRespo
 
 	res.Header = make(map[string]string)
 
+	//nolint
 	if req.Type == hooks.HookPreSandboxRequest {
 		// Some handle logic (auth or transform request or separate code handle)
 	}

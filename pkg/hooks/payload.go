@@ -37,15 +37,15 @@ func (resp HookResponse) WriteTo(w http.ResponseWriter) {
 	w.WriteHeader(resp.StatusCode)
 
 	if len(resp.Body) > 0 {
-		w.Write([]byte(resp.Body))
+		_, _ = w.Write([]byte(resp.Body))
 	}
 }
 
-// MergeWith returns a copy of resp1, where non-default values from resp2 overwrite
-// values from resp1.
-func (resp1 HookResponse) MergeWith(resp2 HookResponse) HookResponse {
+// MergeWith returns a copy of resp, where non-default values from resp2 overwrite
+// values from resp.
+func (resp HookResponse) MergeWith(resp2 HookResponse) HookResponse {
 	// Clone the response 1 and use it as a basis
-	newResp := resp1
+	newResp := resp
 
 	// Take the status code and body from response 2 to
 	// overwrite values from response 1.
@@ -59,9 +59,9 @@ func (resp1 HookResponse) MergeWith(resp2 HookResponse) HookResponse {
 
 	// For the headers, me must make a new map to avoid writing
 	// into the header map from response 1.
-	newResp.Header = make(HTTPHeader, len(resp1.Header)+len(resp2.Header))
+	newResp.Header = make(HTTPHeader, len(resp.Header)+len(resp2.Header))
 
-	for key, value := range resp1.Header {
+	for key, value := range resp.Header {
 		newResp.Header[key] = value
 	}
 

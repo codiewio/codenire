@@ -3,7 +3,6 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -24,8 +23,9 @@ func copyFilesToTmpDir(tmpDir string, files map[string]string) error {
 				return err
 			}
 		}
+		//nolint
 		if err := os.WriteFile(in, []byte(src), 0644); err != nil {
-			return errors.New(fmt.Sprintf("error creating temp file %q: %v", in, err))
+			return fmt.Errorf("error creating temp file %q: %w", in, err)
 		}
 	}
 

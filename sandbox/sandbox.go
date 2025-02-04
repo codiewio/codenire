@@ -38,6 +38,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -51,7 +52,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	io.WriteString(w, "Hi from sandbox\n")
+	_, _ = io.WriteString(w, "Hi from sandbox\n")
 }
 
 func runHandler(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +89,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	//fmt.Printf("Got container %s: %d\n", cont.Image.Id, time.Now().UnixMilli())
 	defer func() {
-		err = codenireManager.KillContainer(cont.CId)
+		err = codenireManager.KillContainer(*cont)
 		if err != nil {
 			sendRunError(w, fmt.Sprintf("kill contaier err: %s", err.Error()))
 			return
@@ -176,7 +177,7 @@ func sendResponse(w http.ResponseWriter, res *contract.SandboxResponse) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Length", fmt.Sprint(len(jres)))
-	w.Write(jres)
+	_, _ = w.Write(jres)
 }
 
 func sendRunError(w http.ResponseWriter, err string) {
@@ -238,7 +239,6 @@ func registerCmdTimeout(ctx context.Context, timeout time.Duration) context.Cont
 	go func() {
 		<-ctx.Done()
 		cancel()
-		return
 	}()
 
 	return ctx
@@ -253,7 +253,7 @@ func sendRunResponse(w http.ResponseWriter, r *contract.SandboxResponse) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Length", fmt.Sprint(len(jres)))
-	w.Write(jres)
+	_, _ = w.Write(jres)
 }
 func replacePlaceholders(input string, values map[string]string) string {
 	re := regexp.MustCompile(`\{\s*([A-Z0-9_]+)\s*\}`)
@@ -274,5 +274,17 @@ func listTemplatesHandler(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(body)
+	_, _ = w.Write(body)
+}
+
+func listFiles(root string) error {
+	return filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			fmt.Println("FFFFFFFFF:", path)
+		}
+		return nil
+	})
 }

@@ -9,6 +9,7 @@ import (
 // HttpContext is wrapper around context.Context that also carries the
 // corresponding HTTP request and response writer, as well as an
 // optional body reader
+// nolint
 type HttpContext struct {
 	context.Context
 

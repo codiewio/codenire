@@ -13,7 +13,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -24,7 +23,7 @@ import (
 
 	"github.com/alitto/pond/v2"
 	"github.com/docker/docker/api/types"
-	dockercontainer "github.com/docker/docker/api/types/container"
+	docker "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 
 	contract "sandbox/api/gen"
@@ -41,8 +40,9 @@ type BuiltImage struct {
 }
 
 type StartedContainer struct {
-	CId   string
-	Image BuiltImage
+	CId    string
+	Image  BuiltImage
+	TmpDir string
 }
 
 type NetworkOptions struct {
@@ -55,7 +55,7 @@ type ContainerManager interface {
 	ImageList() []BuiltImage
 	GetContainer(ctx context.Context, id string) (*StartedContainer, error)
 	KillAll()
-	KillContainer(cId string) error
+	KillContainer(cId StartedContainer) error
 }
 
 type CodenireManager struct {
@@ -71,7 +71,6 @@ type CodenireManager struct {
 	isolated     bool
 
 	dockerFilesPath string
-	nwOpts          NetworkOptions
 }
 
 func NewCodenireManager() *CodenireManager {
@@ -142,12 +141,13 @@ func (m *CodenireManager) KillAll() {
 	m.killSignal = true
 
 	defer func() {
+		// TODO:: удалить tmp папки
 		m.imageContainers = make(map[string]chan StartedContainer)
 		m.killSignal = false
 	}()
 
 	ctx := context.Background()
-	containers, err := m.dockerClient.ContainerList(ctx, dockercontainer.ListOptions{All: true})
+	containers, err := m.dockerClient.ContainerList(ctx, docker.ListOptions{All: true})
 	if err != nil {
 		log.Fatalf("Get Container List failed: %v", err)
 	}
@@ -158,29 +158,31 @@ func (m *CodenireManager) KillAll() {
 		pool.Submit(func() {
 			ct := containers[i]
 
-			if strings.HasPrefix(ct.Image, imageTagPrefix) {
-				fmt.Printf("Stop container %s (ID: %s)...\n", ct.Names[0], ct.ID)
-
-				timeout := 0
-				err := m.dockerClient.ContainerStop(ctx, ct.ID, dockercontainer.StopOptions{
-					Timeout: &timeout,
-				})
-				if err != nil {
-					log.Printf("Stop container failed %s: %v\n", ct.ID, err)
-					return
-				}
-
-				fmt.Printf("Container removed: %s\n", ct.ID)
+			if !strings.HasPrefix(ct.Image, imageTagPrefix) {
+				return
 			}
+
+			fmt.Printf("Stop container %s (ID: %s)...\n", ct.Names[0], ct.ID)
+
+			timeout := 0
+			err := m.dockerClient.ContainerStop(ctx, ct.ID, docker.StopOptions{
+				Timeout: &timeout,
+			})
+			if err != nil {
+				log.Printf("Stop container failed %s: %v\n", ct.ID, err)
+				return
+			}
+
+			fmt.Printf("Container removed: %s\n", ct.ID)
 		})
 	}
 	pool.StopAndWait()
 	log.Println("Killed all images")
 }
 
-func (m *CodenireManager) KillContainer(cId string) (err error) {
+func (m *CodenireManager) KillContainer(c StartedContainer) (err error) {
 	timeout := 0
-	err = m.dockerClient.ContainerStop(context.Background(), cId, dockercontainer.StopOptions{
+	err = m.dockerClient.ContainerStop(context.Background(), c.CId, docker.StopOptions{
 		Timeout: &timeout,
 	})
 	if err != nil {
@@ -244,23 +246,14 @@ func (m *CodenireManager) buildImage(cfg contract.ImageConfig, root string) erro
 	return nil
 }
 
-func (m *CodenireManager) runSndContainer(img BuiltImage) (string, error) {
+func (m *CodenireManager) runSndContainer(img BuiltImage) (cont *StartedContainer, err error) {
 	ctx := context.Background()
 
-	containerConfig := &dockercontainer.Config{
-		Image: img.Id,
-		Cmd:   []string{"tail", "-f", "/dev/null"},
-		Env: []string{
-			fmt.Sprintf("HTTP_PROXY=%s", *isolatedGateway),
-			fmt.Sprintf("HTTPS_PROXY=%s", *isolatedGateway),
-		},
-	}
-
-	hostConfig := &dockercontainer.HostConfig{
+	hostConfig := &docker.HostConfig{
 		Runtime:     m.runtime(),
 		AutoRemove:  true,
-		NetworkMode: dockercontainer.NetworkMode(*isolatedNetwork),
-		Resources: dockercontainer.Resources{
+		NetworkMode: docker.NetworkMode(*isolatedNetwork),
+		Resources: docker.Resources{
 			Memory:     int64(*img.ContainerOptions.MemoryLimit),
 			MemorySwap: 0,
 		},
@@ -268,6 +261,15 @@ func (m *CodenireManager) runSndContainer(img BuiltImage) (string, error) {
 
 	name := stripImageName(img.Id)
 	name = fmt.Sprintf("play_run_%s_%s", name, internal.RandHex(8))
+
+	containerConfig := &docker.Config{
+		Image: img.Id,
+		Cmd:   []string{"tail", "-f", "/dev/null"},
+		Env: []string{
+			fmt.Sprintf("HTTP_PROXY=%s", *isolatedGateway),
+			fmt.Sprintf("HTTPS_PROXY=%s", *isolatedGateway),
+		},
+	}
 
 	containerResp, err := m.dockerClient.ContainerCreate(
 		ctx,
@@ -278,15 +280,18 @@ func (m *CodenireManager) runSndContainer(img BuiltImage) (string, error) {
 		name,
 	)
 	if err != nil {
-		return "", fmt.Errorf("create container failed: %w", err)
+		return nil, fmt.Errorf("create container failed: %w", err)
 	}
 
-	err = m.dockerClient.ContainerStart(ctx, containerResp.ID, dockercontainer.StartOptions{})
+	err = m.dockerClient.ContainerStart(ctx, containerResp.ID, docker.StartOptions{})
 	if err != nil {
-		return "", fmt.Errorf("create container failed: %w", err)
+		return nil, fmt.Errorf("create container failed: %w", err)
 	}
 
-	return containerResp.ID, nil
+	return &StartedContainer{
+		CId:   containerResp.ID,
+		Image: img,
+	}, nil
 }
 
 func (m *CodenireManager) startContainers() {
@@ -310,10 +315,7 @@ func (m *CodenireManager) startContainers() {
 						continue
 					}
 
-					m.getContainer(img.Template) <- StartedContainer{
-						CId:   c,
-						Image: img,
-					}
+					m.getContainer(img.Template) <- *c
 				}
 			}()
 		}
@@ -375,7 +377,7 @@ func parseConfigFiles(root string, directories []string) []contract.ImageConfig 
 			continue
 		}
 
-		content, err := ioutil.ReadFile(configPath)
+		content, err := os.ReadFile(configPath)
 		if err != nil {
 			log.Printf("Parse config err 2: %s", err.Error())
 			continue
@@ -447,20 +449,6 @@ func removeAfterColon(input string) string {
 		return input[:idx]
 	}
 	return input // Вернем оригинал, если ":" нет
-}
-
-func uniq(slice []string) []string {
-	seen := make(map[string]struct{})
-	var result []string
-
-	for _, value := range slice {
-		if _, exists := seen[value]; !exists {
-			seen[value] = struct{}{}
-			result = append(result, value)
-		}
-	}
-
-	return result
 }
 
 func duplicates(items []contract.ImageConfig) []string {

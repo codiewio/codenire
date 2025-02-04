@@ -144,6 +144,7 @@ func decode(kind string, output []byte) ([]event, error) {
 			return nil, errors.New("short header")
 		}
 		header := output[i : i+headerLen]
+		//nolint
 		nanos := int64(binary.BigEndian.Uint64(header[0:]))
 		t := time.Unix(0, nanos)
 		if t.Before(last) {

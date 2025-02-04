@@ -42,6 +42,8 @@ const (
 	HookPreSandboxRequest HookType = "pre-sandbox-request"
 )
 
+// TODO:: pass in start
+// nolint
 var AvailableHooks []HookType = []HookType{HookPreSandboxRequest}
 
 func PreSandboxRequestCallback(event CodeHookEvent, hookHandler HookHandler) (HookResponse, error) {

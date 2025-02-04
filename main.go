@@ -31,12 +31,12 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	api "github.com/codiewio/codenire/api/gen"
 	"log"
 	"net/http"
 	"strings"
 	"time"
 
+	api "github.com/codiewio/codenire/api/gen"
 	"github.com/codiewio/codenire/internal/handler"
 	"github.com/codiewio/codenire/internal/images"
 	"github.com/codiewio/codenire/pkg/hooks"
@@ -45,7 +45,7 @@ import (
 )
 
 var (
-	BackendURL        = flag.String("backend-url", "http://sandbox_dev", "URL for sandbox backend that runs Go binaries.")
+	backendURL        = flag.String("backend-url", "http://sandbox_dev", "URL for sandbox backend that runs Go binaries.")
 	Port              = flag.String("port", "8081", "URL for sandbox backend that runs Go binaries.")
 	PluginHookPath    = flag.String("hooks-plugins", "", "URL for sandbox backend that runs Go binaries.")
 	FileHooksDir      = flag.String("hooks-dir", "", "Directory to search for available hooks scripts")
@@ -54,7 +54,7 @@ var (
 
 func main() {
 	flag.Parse()
-	log.Printf("Use backend URL on :%s ...", *BackendURL)
+	log.Printf("Use backend URL on :%s ...", *backendURL)
 
 	if err := waitForSandbox(10, 3*time.Second); err != nil {
 		log.Println(err)
@@ -62,7 +62,7 @@ func main() {
 	}
 
 	cfg := handler.Config{
-		BackendURL:                       *BackendURL,
+		BackendURL:                       *backendURL,
 		Port:                             *Port,
 		PluginHookPath:                   *PluginHookPath,
 		FileHooksDir:                     *FileHooksDir,
@@ -102,6 +102,7 @@ func main() {
 	}
 
 	log.Printf("listening on :%v ...", port)
+	//nolint
 	err = http.ListenAndServe(":"+port, s)
 
 	log.Printf("playground is running, port %s", port)
@@ -144,7 +145,12 @@ func getHookHandler(config *handler.Config) hooks.HookHandler {
 
 func waitForSandbox(maxRetries int, interval time.Duration) error {
 	for i := 0; i < maxRetries; i++ {
-		resp, err := http.Get(*BackendURL + "/health")
+		//nolint
+		resp, err := http.Get(*backendURL + "/health")
+		defer func() {
+			_ = resp.Body.Close()
+		}()
+
 		if err == nil && resp.StatusCode == http.StatusOK {
 			fmt.Println("sandbox is healthy!")
 			return nil

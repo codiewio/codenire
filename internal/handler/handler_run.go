@@ -59,10 +59,9 @@ func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
 	req.Files = addDefaultFiles(req.Files, action.DefaultFiles)
 
 	if h.Config.PreRequestCallback != nil {
-		resp2, err := h.Config.PreRequestCallback(hooks.NewCodeHookEvent(c, req))
-		if err != nil {
-			err = fmt.Errorf("pre-SubmissionRequest callback failed: %w", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+		resp2, err2 := h.Config.PreRequestCallback(hooks.NewCodeHookEvent(c, req))
+		if err2 != nil {
+			http.Error(w, fmt.Errorf("pre-SubmissionRequest callback failed: %w", err2).Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -133,10 +132,9 @@ func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
 	req.Files = addDefaultFiles(req.Files, action.DefaultFiles)
 
 	if h.Config.PreRequestCallback != nil {
-		resp2, err := h.Config.PreRequestCallback(hooks.NewCodeHookEvent(c, req))
-		if err != nil {
-			err = fmt.Errorf("pre-SubmissionRequest callback failed: %w", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+		resp2, err2 := h.Config.PreRequestCallback(hooks.NewCodeHookEvent(c, req))
+		if err2 != nil {
+			http.Error(w, fmt.Errorf("pre-SubmissionRequest callback failed: %w", err2).Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -159,7 +157,7 @@ func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSONResponse(w, apiRes, http.StatusOK)
 }
 
-func runCode(ctx context.Context, req api.SubmissionRequest, backendUrl string) (*api.SubmissionResponse, error) {
+func runCode(ctx context.Context, req api.SubmissionRequest, backendURL string) (*api.SubmissionResponse, error) {
 	tmpDir, err := os.MkdirTemp("", "box")
 	if err != nil {
 		return nil, fmt.Errorf("create tmp dir error: %w", err)
@@ -195,12 +193,12 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendUrl string) 
 
 	sreq, err := http.NewRequestWithContext(
 		ctx,
-		"POST",
-		backendUrl,
+		http.MethodPost,
+		backendURL,
 		bytes.NewBuffer(jsonData),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("request marshal error: " + err.Error())
+		return nil, fmt.Errorf("request marshal error: %w", err)
 	}
 
 	sreq.Header.Add("Idempotency-Key", "1")
@@ -210,7 +208,9 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendUrl string) 
 	if err != nil {
 		return nil, fmt.Errorf("sandbox client request error: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	// TODO:: [HOOK] post-response hook
 
@@ -224,8 +224,8 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendUrl string) 
 	}
 
 	rec := new(Recorder)
-	rec.Stdout().Write(execRes.Stdout)
-	rec.Stderr().Write(execRes.Stderr)
+	_, _ = rec.Stdout().Write(execRes.Stdout)
+	_, _ = rec.Stderr().Write(execRes.Stderr)
 	events, err := rec.Events()
 	if err != nil {
 		return nil, fmt.Errorf("error decoding events: %w", err)
@@ -241,12 +241,12 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendUrl string) 
 }
 
 func getAction(reqAction *string, cfg *api.ImageConfig) (*api.ImageActionConfig, error) {
-	actionId := "default"
+	actionID := "default"
 	if reqAction != nil {
-		actionId = *reqAction
+		actionID = *reqAction
 	}
 
-	action, ok := cfg.Actions[actionId]
+	action, ok := cfg.Actions[actionID]
 	if !ok {
 		return nil, fmt.Errorf("action `%s` not found", *reqAction)
 	}

@@ -5,28 +5,20 @@
 package handler
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 var log = newStdLogger()
 
 type Server struct {
-	mux   *http.ServeMux
-	log   logger
-	gotip bool // if set, server is using gotip
-
-	// When the executable was last modified. Used for caching headers of compiled assets.
-	modtime time.Time
-
+	mux     *http.ServeMux
+	log     logger
 	handler Handler
 }
 
@@ -55,13 +47,17 @@ func NewServer(config *Config, options ...func(s *Server) error) (*Server, error
 			return
 		}
 
-		io.WriteString(w, "Hi from playground\n")
+		_, _ = io.WriteString(w, "Hi from playground\n")
 	})
 
 	s.mux.HandleFunc("/run", s.handler.RunFilesHandler)
 	s.mux.HandleFunc("/run-script", s.handler.RunScriptHandler)
 
 	s.mux.HandleFunc("/action/list", s.handler.ActionsListHandler)
+	s.mux.HandleFunc("/action/add", s.handler.ActionsListHandler)
+
+	s.mux.HandleFunc("/template/list", s.handler.ActionsListHandler)
+	s.mux.HandleFunc("/template/add", s.handler.ActionsListHandler)
 
 	return s, nil
 }
@@ -77,21 +73,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Strict-Transport-Security", "max-age=31536000; preload")
 	}
 	s.mux.ServeHTTP(w, r)
-}
-
-func (s *Server) writeJSONResponse(w http.ResponseWriter, resp interface{}, status int) {
-	w.Header().Set("Content-Type", "application/json")
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(resp); err != nil {
-		s.log.Errorf("error encoding response: %v", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(status)
-	if _, err := io.Copy(w, &buf); err != nil {
-		s.log.Errorf("io.Copy(w, &buf): %v", err)
-		return
-	}
 }
 
 func (s *Server) SetupSignalHandler(options ...func()) <-chan struct{} {

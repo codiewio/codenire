@@ -17,7 +17,7 @@ var ImageTemplateList *[]api.ImageConfig
 func PullImageConfigList(url string) error {
 	req, err := http.NewRequestWithContext(
 		context.Background(),
-		"GET",
+		http.MethodGet,
 		url,
 		nil,
 	)
@@ -45,10 +45,10 @@ func PullImageConfigList(url string) error {
 	return nil
 }
 
-func GetImageConfig(templateId string) *api.ImageConfig {
+func GetImageConfig(templateID string) *api.ImageConfig {
 	configs := *ImageTemplateList
 	for _, config := range configs {
-		if config.Template == templateId {
+		if config.Template == templateID {
 			return &config
 		}
 	}

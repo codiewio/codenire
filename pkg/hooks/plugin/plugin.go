@@ -29,9 +29,10 @@ func (h *PluginHook) Setup() error {
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: handshakeConfig,
 		Plugins:         pluginMap,
-		Cmd:             exec.Command(h.Path),
-		SyncStdout:      os.Stdout,
-		SyncStderr:      os.Stderr,
+		//nolint
+		Cmd:        exec.Command(h.Path),
+		SyncStdout: os.Stdout,
+		SyncStderr: os.Stderr,
 		// We use a managed client, so we can use plugin.CleanupClients() to shut it down.
 		Managed: true,
 		Logger: hclog.New(&hclog.LoggerOptions{
@@ -41,7 +42,8 @@ func (h *PluginHook) Setup() error {
 			TimeFormat: "2006/01/02 03:04:05.000000",
 		}),
 	})
-	//defer client.Kill()
+
+	// defer client.Kill()
 
 	// Connect via RPC
 	rpcClient, err := client.Client()
@@ -57,8 +59,10 @@ func (h *PluginHook) Setup() error {
 
 	// We should have a HookHandler now! This feels like a normal interface
 	// implementation but is in fact over an RPC connection.
+	//nolint
 	h.handlerImpl = raw.(hooks.HookHandler)
 
+	//nolint
 	return h.handlerImpl.Setup()
 }
 
@@ -95,14 +99,14 @@ func (g *HookHandlerRPC) Setup() error {
 	return err
 }
 
-func (g *HookHandlerRPC) InvokeHook(req hooks.HookRequest) (res hooks.HookResponse, err error) {
+func (g *HookHandlerRPC) InvokeHook(req hooks.HookRequest) (response hooks.HookResponse, err error) {
 	// Empty the context field because it is no usable in the plugin and
 	// we would get runtime errors like:
 	//  gob: type not registered for interface: context.cancelCtx
 	req.Event.Context = nil
 
-	err = g.client.Call("Plugin.InvokeHook", req, &res)
-	return res, err
+	err = g.client.Call("Plugin.InvokeHook", req, &response)
+	return response, err
 }
 
 // Here is the RPC server that HookHandlerRPC talks to, conforming to
@@ -112,6 +116,7 @@ type HookHandlerRPCServer struct {
 	Impl hooks.HookHandler
 }
 
+// nolint
 func (s *HookHandlerRPCServer) Setup(args interface{}, resp *interface{}) error {
 	return s.Impl.Setup()
 }
