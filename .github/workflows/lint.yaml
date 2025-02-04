@@ -1,0 +1,26 @@
+name: Golang CI Linter
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-docker:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_USERNAME: codiew
+      IMAGE_NAME: codiew/codenire-playground
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
+
