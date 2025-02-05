@@ -20,7 +20,7 @@ jobs:
     env:
       IMAGE_USERNAME: codiew
       IMAGE_NAME: codiew/codenire-deproxy
-      WORKDIR: ./sandbox
+      WORKDIR: ./deproxy
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
