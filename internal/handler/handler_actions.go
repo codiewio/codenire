@@ -28,8 +28,6 @@ func (h *Handler) ActionListHandler(w http.ResponseWriter, r *http.Request) {
 func writeData(w http.ResponseWriter) {
 	list := images.ImageTemplateList
 
-	log.Printf("list", list)
-
 	var res api.ActionListResponse
 	for _, template := range *list {
 		var defaultCfg *api.ActionItemResponse
