@@ -104,7 +104,6 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		sendRunError(w, fmt.Sprintf("action %s not found with template %s", req.Action, req.SandId))
 	}
 
-	// TODO:: Make Timeout?
 	//nolint
 	out, err := exec.Command(
 		"docker",
@@ -164,15 +163,15 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func sendResponse(w http.ResponseWriter, res *contract.SandboxResponse) {
-	jres, err := json.MarshalIndent(res, "", "  ")
+	body, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
 		http.Error(w, "error encoding JSON", http.StatusInternalServerError)
 		log.Printf("json marshal: %v", err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Content-Length", fmt.Sprint(len(jres)))
-	_, _ = w.Write(jres)
+	w.Header().Set("Content-Length", fmt.Sprint(len(body)))
+	_, _ = w.Write(body)
 }
 
 func sendRunError(w http.ResponseWriter, err string) {
@@ -237,15 +236,15 @@ func registerCmdTimeout(ctx context.Context, timeout time.Duration) context.Cont
 }
 
 func sendRunResponse(w http.ResponseWriter, r *contract.SandboxResponse) {
-	jres, err := json.MarshalIndent(r, "", "  ")
+	body, err := json.MarshalIndent(r, "", "  ")
 	if err != nil {
 		http.Error(w, "error encoding JSON", http.StatusInternalServerError)
 		log.Printf("json marshal: %v", err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Content-Length", fmt.Sprint(len(jres)))
-	_, _ = w.Write(jres)
+	w.Header().Set("Content-Length", fmt.Sprint(len(body)))
+	_, _ = w.Write(body)
 }
 func replacePlaceholders(input string, values map[string]string) string {
 	re := regexp.MustCompile(`\{\s*([A-Z0-9_]+)\s*}`)
