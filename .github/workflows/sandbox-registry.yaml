@@ -10,15 +10,20 @@ on:
 
 jobs:
   linter:
-    - uses: actions/setup-go@v5
-      with:
-        go-version: stable
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: golangci-lint
-      uses: golangci/golangci-lint-action@v6
-      with:
-        version: v1.60
-        working-directory: sandbox
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
+          working-directory: sandbox
 
   build-docker:
     needs: linter

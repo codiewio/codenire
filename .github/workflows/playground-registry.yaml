@@ -14,17 +14,20 @@ on:
 
 jobs:
   linter:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - uses: actions/setup-go@v5
-      with:
-        go-version: stable
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
 
-    - name: golangci-lint
-      uses: golangci/golangci-lint-action@v6
-      with:
-        version: v1.60
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
+
 
   build-docker:
     needs: linter
