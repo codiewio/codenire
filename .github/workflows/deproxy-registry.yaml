@@ -1,4 +1,4 @@
-name: Build Playground Docker Image
+name: Build Deproxy Docker Image
 
 on:
   push:
