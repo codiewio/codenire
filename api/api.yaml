@@ -1,8 +1,11 @@
 openapi: 3.0.0
+
 info:
   title: Submission API
   version: "1.0.0"
   description: API for managing code submissions
+servers:
+  - url: https://codenire.com
 
 paths:
   /run:
@@ -72,8 +75,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ActionListResponse'
-
-
     post:
       summary: Get Actual Action List
       operationId: getActionList
@@ -86,6 +87,29 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ActionListResponse'
+
+
+#  /action:
+#    post:
+#      summary: Add new action
+#      operationId: addAction
+#      requestBody:
+#        description: Add new action
+#        required: true
+#        content:
+#          application/json:
+#            schema:
+#              $ref: '#/components/schemas/SubmissionScriptRequest'
+#      responses:
+#        "200":
+#          description: Added new action
+#          content:
+#            application/json:
+#              schema:
+#                type: array
+#                items:
+#                  $ref: '#/components/schemas/ActionListResponse'
+
 
 components:
   schemas:

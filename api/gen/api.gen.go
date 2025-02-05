@@ -14,7 +14,7 @@ type ActionItemResponse struct {
 	ContainerOptions ContainerOptions         `json:"ContainerOptions"`
 	DefaultFiles     map[string]string        `json:"DefaultFiles"`
 	Groups           []string                 `json:"Groups"`
-	Id               string                   `json:"ID"`
+	Id               string                   `json:"Id"`
 	IsDefault        bool                     `json:"IsDefault"`
 	Name             string                   `json:"Name"`
 	Provider         string                   `json:"Provider"`
@@ -39,7 +39,7 @@ type ContainerOptions struct {
 type ImageActionConfig struct {
 	CompileCmd    string                   `json:"CompileCmd"`
 	DefaultFiles  map[string]string        `json:"DefaultFiles"`
-	Id            string                   `json:"ID"`
+	Id            string                   `json:"Id"`
 	IsDefault     bool                     `json:"IsDefault"`
 	Name          string                   `json:"Name"`
 	RunCmd        string                   `json:"RunCmd"`
