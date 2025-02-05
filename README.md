@@ -81,6 +81,10 @@ Content-Type: application/json
 }
 ```
 
+# API Docs
+
+Full API spec available here: https://codiewio.github.io/codenire/api/
+
 # Run/Set Up
 You can Run Playground local (or on MacOS/Ubuntu) via Docker Compose.
 

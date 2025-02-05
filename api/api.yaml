@@ -12,12 +12,15 @@ paths:
     post:
       summary: Run Multi Files Submission
       operationId: runFilesSubmission
+      tags:
+        - Submission
       requestBody:
         description: Run Files Submission
         required: true
         content:
           application/json:
             schema:
+              example:
               $ref: '#/components/schemas/SubmissionRequest'
       responses:
         "200":
@@ -31,6 +34,8 @@ paths:
     post:
       summary: Run Script Submission
       operationId: runScriptSubmission
+      tags:
+        - Submission
       requestBody:
         description: Run Script Submission
         required: true
@@ -52,6 +57,8 @@ paths:
     get:
       summary: Get Template List
       operationId: getTemplateList
+      tags:
+        - Action
       responses:
         "200":
           description: Get Template List
@@ -66,6 +73,8 @@ paths:
     get:
       summary: Get with refresh Action List
       operationId: refreshActionList
+      tags:
+        - Action
       responses:
         "200":
           description: Get with refresh Action List
@@ -78,6 +87,8 @@ paths:
     post:
       summary: Get Actual Action List
       operationId: getActionList
+      tags:
+        - Action
       responses:
         "200":
           description: Get with refresh Action List
@@ -113,7 +124,6 @@ paths:
 
 components:
   schemas:
-
     SubmissionRequest:
       type: object
       properties:
@@ -123,6 +133,11 @@ components:
           type: string
         Files:
           type: object
+          example:
+            index.js: "...some content"
+            src/script.js: "...some content"
+            foo/bar/script.js: "...some content"
+            package.json: "...some content"
           additionalProperties:
             type: string
         Stdin:
@@ -299,6 +314,11 @@ components:
           $ref: '#/components/schemas/ImageConfigScriptOptions'
         DefaultFiles:
           type: object
+          example:
+            index.js: "...some content"
+            src/script.js: "...some content"
+            foo/bar/script.js: "...some content"
+            package.json: "...some content"
           additionalProperties:
             type: string
       required:
