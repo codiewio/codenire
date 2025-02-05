@@ -41,16 +41,14 @@ func newContext(w http.ResponseWriter, r *http.Request, graceTimeout time.Durati
 	// some more time to finish their buisness.
 	delayedCtx := newDelayedContext(cancellableCtx, graceTimeout)
 
+	controller := http.NewResponseController(w)
 	ctx := &HttpContext{
 		Context: delayedCtx,
 		res:     w,
-		resC:    http.NewResponseController(w),
+		resC:    controller,
 		req:     r,
 		cancel:  cancelHandling,
 	}
-	defer func() {
-		_ = r.Body.Close()
-	}()
 
 	go func() {
 		<-cancellableCtx.Done()
