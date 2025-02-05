@@ -1,6 +1,6 @@
 {
-  "Template": "golang_1_23",
-  "Groups": ["go"],
+  "Template": "rust_1.84",
+  "Groups": ["rust"],
   "Workdir": "/app",
   "ContainerOptions": {
     "CompileTTL": 30,
@@ -9,16 +9,17 @@
   },
 
   "Actions": {
-    "default": {
-      "Id": "golang1.23",
-      "Name": "Golang 1.23",
-      "CompileCmd": "go build -o main .",
+    "snippet": {
+      "Id": "rust",
+      "Name": "Rust 1.84",
+      "CompileCmd": "cargo -v",
       "RunCmd": "./main {ARGS} < {STDIN}",
       "ScriptOptions": {
-        "SourceFile": "main.go"
+        "Enable": true,
+        "SourceFile": "main.rs"
       },
       "DefaultFiles": {
-        "go.mod": "module play\n"
+
       }
     }
   }

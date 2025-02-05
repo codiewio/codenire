@@ -12,7 +12,7 @@
       "Id": "default",
       "IsDefault": true,
       "Name": "PHP 8.3",
-      "CompileCmd": "curl -I https://pypi.org",
+      "CompileCmd": "",
       "RunCmd": "php index.php < {STDIN}",
       "ScriptOptions": {
         "Enable": true,
