@@ -18,8 +18,7 @@ docker run -d \
   --restart always \
   --network isolated_net \
   -p 3128:3128 \
-  -v /tmp/squid.conf:/etc/squid/squid.conf \
-  ubuntu/squid
+  codiew/codenire-deproxy
 
 # Start app
 docker run -d --name sandbox_dev \

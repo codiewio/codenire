@@ -25,11 +25,6 @@ resource "null_resource" "run_sandbox" {
   }
 
   provisioner "file" {
-    source      = "squid.conf"
-    destination = "/tmp/squid.conf"
-  }
-
-  provisioner "file" {
     source      = "sandbox.sh"
     destination = "/tmp/script.sh"
   }
