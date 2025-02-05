@@ -48,6 +48,9 @@ func newContext(w http.ResponseWriter, r *http.Request, graceTimeout time.Durati
 		req:     r,
 		cancel:  cancelHandling,
 	}
+	defer func() {
+		_ = r.Body.Close()
+	}()
 
 	go func() {
 		<-cancellableCtx.Done()
