@@ -41,7 +41,9 @@ func newContext(w http.ResponseWriter, r *http.Request, graceTimeout time.Durati
 	// some more time to finish their buisness.
 	delayedCtx := newDelayedContext(cancellableCtx, graceTimeout)
 
+	//nolint:bodyclose
 	controller := http.NewResponseController(w)
+
 	ctx := &HttpContext{
 		Context: delayedCtx,
 		res:     w,

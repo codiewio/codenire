@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '.github'
+      - 'LICENSE.MD'
+      - 'README.md'
+      - 'docs/**'
+      - 'infra/**'
   pull_request:
 
 jobs:
