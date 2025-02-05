@@ -38,12 +38,12 @@ Special thanks to:
 
 # 🐙Infrastructure Schema
 
-![Image alt](docs/docs/general_schema.png)
+![Image alt](docs/images/general_schema.png)
 
 
 # Sandbox Provision Templates Schema
 
-![Image alt](docs/docs/sandbox_schema.png)
+![Image alt](docs/images/sandbox_schema.png)
 
 **[!] The ability to register Docker images via API is not yet implemented and will be available in the near future!**
 
@@ -142,7 +142,7 @@ networks:
 # Deploy
 
 - Docker compose (see [/docs/docker-compose](https://github.com/codiewio/codenire/tree/main/docs/docker-compose) dir — without external gVisor Runtime)
-- [Digital Ocean Terraform](docs/digitalocean/README.md) with load balancing and multi-sandbox cluster
+- [Digital Ocean Terraform](infra/digitalocean/README.md) with load balancing and multi-sandbox cluster
 
 
 # Lifecycle Request Hooks

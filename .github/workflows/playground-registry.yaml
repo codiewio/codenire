@@ -8,6 +8,7 @@ on:
       - 'LICENSE.MD'
       - 'README.md'
       - 'docs/**'
+      - 'infra/**'
     tags:
       - 'v*.*.*'
 
