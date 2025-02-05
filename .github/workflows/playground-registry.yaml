@@ -13,7 +13,21 @@ on:
       - 'v*.*.*'
 
 jobs:
+  linter:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - uses: actions/setup-go@v5
+      with:
+        go-version: stable
+
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v6
+      with:
+        version: v1.60
+
   build-docker:
+    needs: linter
     runs-on: ubuntu-latest
     env:
       IMAGE_USERNAME: codiew
@@ -21,14 +35,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: stable
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: v1.60
 
       - name: Docker meta
         id: docker_meta
