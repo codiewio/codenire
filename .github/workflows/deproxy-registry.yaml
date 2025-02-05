@@ -2,13 +2,9 @@ name: Build Deproxy Docker Image
 
 on:
   push:
-    paths-ignore:
-      - 'sandbox/**'
-      - '.github/workflows/sandbox-registry.yaml'
-      - 'LICENSE.MD'
-      - 'README.md'
-      - 'docs/**'
-      - 'infra/**'
+    paths:
+      - 'deproxy/**'
+      - '.github/workflows/sandbox-deproxy.yaml'
     tags:
       - 'v*.*.*'
 

@@ -18,7 +18,7 @@ docker run -d \
   --restart always \
   --network isolated_net \
   -p 3128:3128 \
-  codiew/codenire-deproxy
+  codiew/codenire-deproxy:latest
 
 # Start app
 docker run -d --name sandbox_dev \
