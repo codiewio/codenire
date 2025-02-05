@@ -20,6 +20,7 @@ jobs:
     env:
       IMAGE_USERNAME: codiew
       IMAGE_NAME: codiew/codenire-deproxy
+      WORKDIR: ./sandbox
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -53,6 +54,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
+          context: ${{ env.WORKDIR}}
           push: true
           builder: ${{ steps.buildx.outputs.name }}
           tags: ${{ steps.docker_meta.outputs.tags }}
