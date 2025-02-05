@@ -119,9 +119,22 @@ func main() {
 func parseExternalTemplates() {
 	templates := strings.Split(*ExternalTemplates, ",")
 	for _, t := range templates {
+		// Fake config
 		images.ExtendedTemplates = append(images.ExtendedTemplates, api.ImageConfig{
 			Template: t,
 			Provider: "external",
+			Actions: map[string]api.ImageActionConfig{
+				"default": {
+					CompileCmd:   "",
+					DefaultFiles: nil,
+					Id:           "1",
+					// Very important
+					IsDefault:     true,
+					Name:          "",
+					RunCmd:        "",
+					ScriptOptions: api.ImageConfigScriptOptions{},
+				},
+			},
 		})
 	}
 }
