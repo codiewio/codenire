@@ -5,8 +5,8 @@ on:
     paths:
       - 'deproxy/**'
       - '.github/workflows/sandbox-deproxy.yaml'
-    tags:
-      - 'v*.*.*'
+    branches:
+      - main
 
   workflow_dispatch:
 
