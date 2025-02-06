@@ -10,6 +10,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -34,20 +35,25 @@ const imageTagPrefix = "codenire_play/"
 const codenireConfigName = "config.json"
 const defaultMemoryLimit = 100 << 20
 
-type BuiltImage struct {
-	contract.ImageConfig
-	ID string
-}
-
 type StartedContainer struct {
 	CId    string
 	Image  BuiltImage
 	TmpDir string
 }
 
+type BuiltImage struct {
+	contract.ImageConfig
+
+	imageID *string
+	tag     string
+
+	buf bytes.Buffer
+}
+
 type ContainerManager interface {
+	Prepare() error
 	Boot() error
-	ImageList() []BuiltImage
+	GetTemplates() []BuiltImage
 	GetContainer(ctx context.Context, id string) (*StartedContainer, error)
 	KillAll()
 	KillContainer(StartedContainer) error
@@ -84,23 +90,27 @@ func NewCodenireManager() *CodenireManager {
 	}
 }
 
-func (m *CodenireManager) Run() error {
+func (m *CodenireManager) Prepare() error {
+	templates := parseConfigFiles(m.dockerFilesPath)
+
+	for _, t := range templates {
+		err := m.prebuildImages(t, m.dockerFilesPath)
+		if err != nil {
+			log.Println("Build of template failed", "[Template]", t.Template, "[err]", err)
+			continue
+		}
+	}
+
 	return nil
 }
 
 func (m *CodenireManager) Boot() (err error) {
-	configs := parseConfigFiles(
-		m.dockerFilesPath,
-		internal.ListDirectories(m.dockerFilesPath),
-	)
-
 	pool := pond.NewPool(m.numSysWorkers)
-	for i := 0; i < len(configs); i++ {
-		i := i
+	for idx, img := range m.imgs {
 		pool.Submit(func() {
-			buildErr := m.buildImage(configs[i], m.dockerFilesPath)
+			buildErr := m.buildImage(img, idx)
 			if buildErr != nil {
-				log.Println("Build of Image failed", "[Image]", configs[i].Template, "[err]", buildErr)
+				log.Println("Build of Image failed", "[Image]", img.ImageConfig.Template, "[err]", buildErr)
 				return
 			}
 		})
@@ -108,14 +118,12 @@ func (m *CodenireManager) Boot() (err error) {
 
 	pool.StopAndWait()
 
-	// TODO:: чекнуть, что все Image поднялись
-
 	m.startContainers()
 
 	return nil
 }
 
-func (m *CodenireManager) ImageList() []BuiltImage {
+func (m *CodenireManager) GetTemplates() []BuiltImage {
 	return m.imgs
 }
 
@@ -157,7 +165,7 @@ func (m *CodenireManager) KillAll() {
 				return
 			}
 
-			fmt.Printf("Stop container %s (ID: %s)...\n", ct.Names[0], ct.ID)
+			fmt.Printf("Stop container %s (imageID: %s)...\n", ct.Names[0], ct.ID)
 
 			timeout := 0
 			err = m.dockerClient.ContainerStop(ctx, ct.ID, docker.StopOptions{
@@ -187,7 +195,7 @@ func (m *CodenireManager) KillContainer(c StartedContainer) (err error) {
 	return nil
 }
 
-func (m *CodenireManager) buildImage(cfg contract.ImageConfig, root string) error {
+func (m *CodenireManager) prebuildImages(cfg contract.ImageConfig, root string) error {
 	tag := fmt.Sprintf("%s%s", imageTagPrefix, cfg.Template)
 
 	buf, err := internal.DirToTar(filepath.Join(root, cfg.Template))
@@ -195,14 +203,30 @@ func (m *CodenireManager) buildImage(cfg contract.ImageConfig, root string) erro
 		return err
 	}
 
+	wd := "/app_tmp"
+	if cfg.Workdir == "" {
+		cfg.Workdir = wd
+	}
+
+	m.imgs = append(m.imgs, BuiltImage{
+		ImageConfig: cfg,
+		imageID:     nil,
+		buf:         buf,
+		tag:         tag,
+	})
+
+	return nil
+}
+
+func (m *CodenireManager) buildImage(i BuiltImage, idx int) error {
 	buildOptions := types.ImageBuildOptions{
 		Dockerfile:     "Dockerfile",
-		Tags:           []string{tag},
+		Tags:           []string{i.tag},
 		Labels:         map[string]string{},
 		SuppressOutput: !*dev,
 	}
 
-	buildResponse, err := m.dockerClient.ImageBuild(context.Background(), &buf, buildOptions)
+	buildResponse, err := m.dockerClient.ImageBuild(context.Background(), &i.buf, buildOptions)
 	if err != nil {
 		return fmt.Errorf("error building Image: %w", err)
 	}
@@ -217,28 +241,15 @@ func (m *CodenireManager) buildImage(cfg contract.ImageConfig, root string) erro
 		}
 	}
 
-	imageInfo, _, err := m.dockerClient.ImageInspectWithRaw(context.Background(), tag)
+	imageInfo, _, err := m.dockerClient.ImageInspectWithRaw(context.Background(), i.tag)
 	if err != nil {
 		return fmt.Errorf("error on get image info: %w", err)
 	}
-
 	if len(imageInfo.RepoTags) < 1 {
-		return fmt.Errorf("tags not found for %s", cfg.Template)
+		return fmt.Errorf("tags not found for %s", i.Template)
 	}
 
-	wd := imageInfo.Config.WorkingDir
-	if wd == "/" || wd == "" {
-		wd = "/app_tmp"
-	}
-	if cfg.Workdir == "" {
-		cfg.Workdir = wd
-	}
-
-	builtImage := BuiltImage{
-		ImageConfig: cfg,
-		ID:          imageInfo.RepoTags[0],
-	}
-	m.imgs = append(m.imgs, builtImage)
+	m.imgs[idx].imageID = &imageInfo.RepoTags[0]
 
 	return nil
 }
@@ -256,11 +267,11 @@ func (m *CodenireManager) runSndContainer(img BuiltImage) (cont *StartedContaine
 		},
 	}
 
-	name := stripImageName(img.ID)
+	name := stripImageName(*img.imageID)
 	name = fmt.Sprintf("play_run_%s_%s", name, internal.RandHex(8))
 
 	containerConfig := &docker.Config{
-		Image: img.ID,
+		Image: *img.imageID,
 		Cmd:   []string{"tail", "-f", "/dev/null"},
 		Env: []string{
 			fmt.Sprintf("HTTP_PROXY=%s", *isolatedGateway),
@@ -296,7 +307,7 @@ func (m *CodenireManager) startContainers() {
 	for _, img := range m.imgs {
 		ii = append(ii, img.Template)
 	}
-	log.Printf("To start: %s", strings.Join(ii, ","))
+	log.Printf("Starting images: %s", strings.Join(ii, ","))
 
 	for _, img := range m.imgs {
 		for i := 0; i < m.idleContainersCount; i++ {
@@ -317,12 +328,6 @@ func (m *CodenireManager) startContainers() {
 			}()
 		}
 	}
-
-	var cc []string
-	for c := range m.imageContainers {
-		cc = append(cc, c)
-	}
-	log.Printf("Run images %s", strings.Join(cc, ","))
 }
 
 func (m *CodenireManager) getContainer(template string) chan StartedContainer {
@@ -332,6 +337,7 @@ func (m *CodenireManager) getContainer(template string) chan StartedContainer {
 	if _, exists := m.imageContainers[template]; !exists {
 		m.imageContainers[template] = make(chan StartedContainer)
 	}
+
 	return m.imageContainers[template]
 }
 
@@ -354,7 +360,9 @@ func stripImageName(imgName string) string {
 }
 
 // nolint
-func parseConfigFiles(root string, directories []string) []contract.ImageConfig {
+func parseConfigFiles(root string) []contract.ImageConfig {
+	directories := internal.ListDirectories(root)
+
 	var res []contract.ImageConfig
 
 	for _, d := range directories {
@@ -362,10 +370,12 @@ func parseConfigFiles(root string, directories []string) []contract.ImageConfig 
 
 		info, err := os.Stat(dir)
 		if err != nil {
+			log.Printf("err1", err)
 			continue
 		}
 
 		if !info.IsDir() {
+			log.Printf("not dir", err)
 			continue
 		}
 
@@ -451,7 +461,7 @@ func removeAfterColon(input string) string {
 
 func duplicates(items []contract.ImageConfig) []string {
 	nameCount := make(map[string]int)
-	var duplicates []string
+	var dd []string
 
 	for _, item := range items {
 		nameCount[item.Template]++
@@ -459,9 +469,9 @@ func duplicates(items []contract.ImageConfig) []string {
 
 	for name, count := range nameCount {
 		if count > 1 {
-			duplicates = append(duplicates, name)
+			dd = append(dd, name)
 		}
 	}
 
-	return duplicates
+	return dd
 }

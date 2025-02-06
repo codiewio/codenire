@@ -28,7 +28,7 @@ Special thanks to:
 
 # 🌟Features
 
-- Multi-Language Support: Run Python, Go, and Node.js code in isolated Docker containers.
+- Multi-Language Support: Run Python, Go, PHP and Node.js or your built code with others configurations and versions what you can think, in isolated Docker containers.
 - Multi-Files Support: Run code that consists of multiple files
 - Easy extensible: You can create your own build to run code via API or by loading a folder with configurations at startup.
 - (in working) Dependency Management: Automatic handling of project dependencies (pip, go mod, npm)
@@ -37,6 +37,24 @@ Special thanks to:
 
 
 # 🐙Infrastructure Schema
+
+   <details><summary>Why need isolation</summary>
+    <p>
+    It might be convenient to keep your Firecracker-related GCP resources in
+    a separate project, so that you can keep track of resources more easily
+    and remove everything easily once your are done.
+
+For convenience, give the project a unique name (e.g.,
+your_name-firecracker), so that GCP does not need to create a project id
+different than project name (by appending randomized numbers to the name you
+provide).
+
+   ```console
+   $ gcloud projects create ${FC_PROJECT} --enable-cloud-apis --set-as-default
+   ```
+
+   </p>
+    </details>
 
 ![Image alt](docs/images/general_schema.png)
 

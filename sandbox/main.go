@@ -32,6 +32,7 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -45,6 +46,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.opencensus.io/plugin/ochttp"
+
+	"sandbox/internal"
 )
 
 var httpServer *http.Server
@@ -55,13 +58,17 @@ var (
 	dev                 = flag.Bool("dev", false, "run in dev mode")
 	numWorkers          = flag.Int("workers", runtime.NumCPU(), "number of parallel gvisor containers to pre-spin up & let run concurrently")
 	replicaContainerCnt = flag.Int("replicaContainerCnt", 1, "number of parallel containers for every uniq image")
-	dockerFilesPath     = flag.String("dockerFilesPath", "", "configs paths")
+	dockerFilesPath     = flag.String("dockerFilesPath", "", "directory path with templates")
 	isolated            = flag.Bool("isolated", false, "use gVisor isolation for compile code")
 	isolatedNetwork     = flag.String("isolatedNetwork", "none", "isolated network")
 	isolatedGateway     = flag.String("isolatedGateway", "http://package_dev:3128", "proxy which pass traffik from internal newtwork")
 
+	s3DockerfilesEndpoint = flag.String("s3DockerfilesEndpoint", "", "s3 endpoint with templates")
+	s3DockerfilesBucket   = flag.String("s3DockerfilesBucket", "", "s3 bucket with templates")
+	s3DockerfilesPrefix   = flag.String("s3DockerfilesPrefix", "", "prefix aka directory with templates")
+
 	runSem       chan struct{}
-	graceTimeout = 5 * time.Second
+	graceTimeout = 15 * time.Second
 
 	gvisorRuntime = "runsc"
 )
@@ -71,12 +78,20 @@ func main() {
 
 	checkIsolation()
 
-	out, err := exec.Command("docker", "version").CombinedOutput()
+	templatePath, err := templatesDataPrepare()
+	if templatePath != nil {
+		defer os.RemoveAll(*templatePath)
+	}
 	if err != nil {
-		log.Fatalf("failed to connect to docker: %v, %s", err, out)
+		panic(fmt.Errorf("failed handle templates dir: %w", err))
 	}
 
-	log.Printf("Go playground sandbox starting.")
+	out, err := exec.Command("docker", "version").CombinedOutput()
+	if err != nil {
+		panic(fmt.Errorf("failed to connect to docker: %s, err: %w", out, err))
+	}
+
+	log.Printf("Go playground sandbox starting...")
 
 	codenireManager = NewCodenireManager()
 	codenireManager.KillAll()
@@ -89,12 +104,6 @@ func main() {
 
 	log.Printf("Started boot")
 
-	err = codenireManager.Boot()
-	if err != nil {
-		codenireManager.KillAll()
-		panic("Can't boot server")
-	}
-
 	h := chi.NewRouter()
 	h.Use(middleware.Recoverer)
 
@@ -102,7 +111,7 @@ func main() {
 	h.Get("/health", healthHandler)
 
 	h.Post("/run", runHandler)
-	h.Get("/templates/list", listTemplatesHandler)
+	h.Get("/templates", listTemplatesHandler)
 
 	httpServer = &http.Server{
 		Addr:              ":" + *listenAddr,
@@ -110,15 +119,64 @@ func main() {
 		Handler:           &ochttp.Handler{Handler: h},
 	}
 
+	err = codenireManager.Prepare()
+	if err != nil {
+		log.Printf("failed to prepare templates: %v", err)
+		done <- struct{}{}
+	}
+
 	go func() {
-		if err2 := httpServer.ListenAndServe(); err2 != nil && !errors.Is(err2, http.ErrServerClosed) {
-			log.Fatalf("server failed: %v", err2)
+		err = codenireManager.Boot()
+		if err != nil {
+			log.Printf("failed to boot codenire manager: %v", err)
+			done <- struct{}{}
+		}
+	}()
+
+	go func() {
+		if sErr := httpServer.ListenAndServe(); sErr != nil && !errors.Is(sErr, http.ErrServerClosed) {
+			panic(fmt.Errorf("server failed: %w", sErr))
 		}
 	}()
 
 	log.Printf("sandbox is running, port %s", *listenAddr)
 	<-done
 	log.Println("shutdown complete.")
+}
+
+func templatesDataPrepare() (*string, error) {
+	if s3DockerfilesBucket != nil && *s3DockerfilesBucket != "" {
+		if s3DockerfilesEndpoint == nil || s3DockerfilesPrefix == nil {
+			return nil, errors.New("s3 endpoint and prefix are required")
+		}
+
+		region := os.Getenv("AWS_REGION")
+		if region == "" {
+			return nil, errors.New("AWS_REGION environment variable not set")
+		}
+
+		tmpDir, err := os.MkdirTemp("", "box")
+		if err != nil {
+			log.Println("Err", err)
+			return nil, err
+		}
+
+		path, err := internal.DownloadTemplates(
+			tmpDir,
+			*s3DockerfilesEndpoint,
+			*s3DockerfilesBucket,
+			*s3DockerfilesPrefix,
+			region,
+		)
+		if err != nil {
+			log.Println("Err", err)
+			return &tmpDir, err
+		}
+
+		dockerFilesPath = path
+	}
+
+	return dockerFilesPath, nil
 }
 
 func checkIsolation() {
@@ -157,8 +215,10 @@ func checkIsolation() {
 		}
 	}
 
-	log.Println("runsc runtime not available in the system.")
-	log.Printf("Isolated Network: %s", *isolatedNetwork)
+	log.Println("\n\n-----------------------------------------")
+	log.Println("! runsc runtime not available in the system.")
+	log.Println("\n\n-----------------------------------------")
+
 	os.Exit(1)
 }
 
@@ -180,7 +240,6 @@ func gracefulShutdown(done chan struct{}) {
 
 	go func() {
 		defer close(done)
-
 		codenireManager.KillAll()
 	}()
 

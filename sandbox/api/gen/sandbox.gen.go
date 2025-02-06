@@ -10,23 +10,39 @@ import (
 
 // ActionItemResponse defines model for ActionItemResponse.
 type ActionItemResponse struct {
-	CompileCmd       string                   `json:"CompileCmd"`
-	ContainerOptions ContainerOptions         `json:"ContainerOptions"`
-	DefaultFiles     map[string]string        `json:"DefaultFiles"`
-	Groups           []string                 `json:"Groups"`
-	Id               string                   `json:"Id"`
-	IsDefault        bool                     `json:"IsDefault"`
-	Name             string                   `json:"Name"`
-	Provider         string                   `json:"Provider"`
-	RunCmd           string                   `json:"RunCmd"`
-	ScriptOptions    ImageConfigScriptOptions `json:"ScriptOptions"`
-	Template         string                   `json:"Template"`
-	Version          string                   `json:"Version"`
-	Workdir          string                   `json:"Workdir"`
+	CompileCmd       string            `json:"CompileCmd"`
+	ContainerOptions ContainerOptions  `json:"ContainerOptions"`
+	DefaultFiles     map[string]string `json:"DefaultFiles"`
+
+	// EnableExternalCommands It allows overriding CompileCmd and RunCmd in each request.
+	EnableExternalCommands bool                     `json:"EnableExternalCommands"`
+	Groups                 []string                 `json:"Groups"`
+	Id                     string                   `json:"Id"`
+	IsDefault              bool                     `json:"IsDefault"`
+	Name                   string                   `json:"Name"`
+	Provider               string                   `json:"Provider"`
+	RunCmd                 string                   `json:"RunCmd"`
+	ScriptOptions          ImageConfigScriptOptions `json:"ScriptOptions"`
+	Template               string                   `json:"Template"`
+	Version                string                   `json:"Version"`
+	Workdir                string                   `json:"Workdir"`
 }
 
 // ActionListResponse defines model for ActionListResponse.
 type ActionListResponse = []ActionItemResponse
+
+// CommonSubmissionRequest defines model for CommonSubmissionRequest.
+type CommonSubmissionRequest struct {
+	ActionId *string `json:"ActionId,omitempty"`
+	Args     string  `json:"Args"`
+
+	// ExternalOptions external options like CompileCmd or RunCmd
+	ExternalOptions *map[string]string `json:"ExternalOptions,omitempty"`
+
+	// Stdin data which will available via stdin reader
+	Stdin      string `json:"Stdin"`
+	TemplateId string `json:"TemplateId"`
+}
 
 // ContainerOptions defines model for ContainerOptions.
 type ContainerOptions struct {
@@ -37,13 +53,16 @@ type ContainerOptions struct {
 
 // ImageActionConfig defines model for ImageActionConfig.
 type ImageActionConfig struct {
-	CompileCmd    string                   `json:"CompileCmd"`
-	DefaultFiles  map[string]string        `json:"DefaultFiles"`
-	Id            string                   `json:"Id"`
-	IsDefault     bool                     `json:"IsDefault"`
-	Name          string                   `json:"Name"`
-	RunCmd        string                   `json:"RunCmd"`
-	ScriptOptions ImageConfigScriptOptions `json:"ScriptOptions"`
+	CompileCmd   string            `json:"CompileCmd"`
+	DefaultFiles map[string]string `json:"DefaultFiles"`
+
+	// EnableExternalCommands It allows overriding CompileCmd and RunCmd in each request.
+	EnableExternalCommands bool                     `json:"EnableExternalCommands"`
+	Id                     string                   `json:"Id"`
+	IsDefault              bool                     `json:"IsDefault"`
+	Name                   string                   `json:"Name"`
+	RunCmd                 string                   `json:"RunCmd"`
+	ScriptOptions          ImageConfigScriptOptions `json:"ScriptOptions"`
 }
 
 // ImageConfig defines model for ImageConfig.
@@ -96,9 +115,12 @@ type SandboxResponse struct {
 
 // SubmissionRequest defines model for SubmissionRequest.
 type SubmissionRequest struct {
-	ActionId *string           `json:"ActionId,omitempty"`
-	Args     string            `json:"Args"`
-	Files    map[string]string `json:"Files"`
+	ActionId *string `json:"ActionId,omitempty"`
+	Args     string  `json:"Args"`
+
+	// ExternalOptions external options like CompileCmd or RunCmd
+	ExternalOptions *map[string]string `json:"ExternalOptions,omitempty"`
+	Files           map[string]string  `json:"Files"`
 
 	// Stdin data which will available via stdin reader
 	Stdin      string `json:"Stdin"`
@@ -130,6 +152,9 @@ type SubmissionScriptRequest struct {
 	ActionId *string `json:"ActionId,omitempty"`
 	Args     string  `json:"Args"`
 	Code     string  `json:"Code"`
+
+	// ExternalOptions external options like CompileCmd or RunCmd
+	ExternalOptions *map[string]string `json:"ExternalOptions,omitempty"`
 
 	// Stdin data which will available via stdin reader
 	Stdin      string `json:"Stdin"`

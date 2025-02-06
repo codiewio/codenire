@@ -9,24 +9,12 @@ import (
 
 const defaultAction = "default"
 
-func (h *Handler) ActionListHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
-		writeData(w)
+func (h *Handler) ActionListHandler(w http.ResponseWriter, _ *http.Request) {
+	list, err := images.PullImageConfigList(h.Config.BackendURL)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-
-	if r.Method == http.MethodPost {
-		// TODO:: handle errors
-		_ = images.PullImageConfigList(h.Config.BackendURL + "/action/list")
-		writeData(w)
-		return
-	}
-
-	http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-}
-
-func writeData(w http.ResponseWriter) {
-	list := images.ImageTemplateList
 
 	var res api.ActionListResponse
 	for _, template := range *list {

@@ -46,6 +46,11 @@ import (
 	"sandbox/internal"
 )
 
+const (
+	CompileCmd = "CompileCmd"
+	RunCmd     = "RunCmd"
+)
+
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
@@ -70,7 +75,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	stdinFile, err := internal.Base64ToTar(req.Binary, tmpDir, req.Stdin)
+	stdinFile, err := internal.SaveRequestFiles(req, tmpDir)
 	if err != nil {
 		sendRunError(w, "encode  files failed")
 		return
@@ -119,16 +124,25 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	totalTimeout := time.Duration(*cont.Image.ContainerOptions.CompileTTL+*cont.Image.ContainerOptions.RunTTL) * time.Second
-
 	timeoutCtx := registerCmdTimeout(r.Context(), totalTimeout)
-	res := &contract.SandboxResponse{}
 
+	res := &contract.SandboxResponse{}
 	var stdout, stderr bytes.Buffer
 
-	if action.CompileCmd != "" {
+	compileCmd := getCommand(action.CompileCmd, CompileCmd, req.ExtendedOptions, action)
+	if compileCmd != "" {
 		compileCtx := registerCmdTimeout(r.Context(), totalTimeout)
 		{
-			runErr := execContainerShell(compileCtx, &stderr, &stdout, *cont, action.CompileCmd, req.Args, nil, cont.Image)
+			runErr := execContainerShell(
+				compileCtx,
+				&stderr,
+				&stdout,
+				*cont,
+				compileCmd,
+				req.Args,
+				nil,
+				cont.Image,
+			)
 			if runErr != nil {
 				if errors.Is(compileCtx.Err(), context.DeadlineExceeded) {
 					sendRunError(w, "timeout compilation")
@@ -144,8 +158,18 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	runTTL := time.Duration(*cont.Image.ContainerOptions.RunTTL) * time.Second
 	runTimeoutCtx := registerCmdTimeout(timeoutCtx, runTTL)
+	runCmd := getCommand(action.RunCmd, RunCmd, req.ExtendedOptions, action)
 	{
-		runErr := execContainerShell(runTimeoutCtx, &stderr, &stdout, *cont, action.RunCmd, req.Args, stdinFile, cont.Image)
+		runErr := execContainerShell(
+			runTimeoutCtx,
+			&stderr,
+			&stdout,
+			*cont,
+			runCmd,
+			req.Args,
+			stdinFile,
+			cont.Image,
+		)
 		if runErr != nil {
 			if errors.Is(runTimeoutCtx.Err(), context.DeadlineExceeded) {
 				sendRunError(w, "timeout execute")
@@ -160,6 +184,20 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	flushStd(res, stderr, stdout)
 	sendResponse(w, res)
+}
+
+func getCommand(cmd string, key string, externalData *map[string]string, action contract.ImageActionConfig) string {
+	if !action.EnableExternalCommands {
+		return cmd
+	}
+
+	if value, ok := (*externalData)[key]; ok {
+		if value != "" {
+			return value
+		}
+	}
+
+	return cmd
 }
 
 func sendResponse(w http.ResponseWriter, res *contract.SandboxResponse) {
@@ -258,7 +296,7 @@ func replacePlaceholders(input string, values map[string]string) string {
 }
 
 func listTemplatesHandler(w http.ResponseWriter, _ *http.Request) {
-	body, err := json.MarshalIndent(codenireManager.ImageList(), "", "  ")
+	body, err := json.MarshalIndent(codenireManager.GetTemplates(), "", "  ")
 	if err != nil {
 		http.Error(w, "error encoding JSON", http.StatusInternalServerError)
 		log.Printf("json marshal: %v", err)

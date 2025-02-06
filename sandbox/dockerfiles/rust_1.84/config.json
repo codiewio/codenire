@@ -13,9 +13,8 @@
       "Id": "rust",
       "Name": "Rust 1.84",
       "CompileCmd": "cargo -v",
-      "RunCmd": "./main {ARGS} < {STDIN}",
+      "RunCmd": "cargo run {ARGS} < {STDIN}",
       "ScriptOptions": {
-        "Enable": true,
         "SourceFile": "main.rs"
       },
       "DefaultFiles": {

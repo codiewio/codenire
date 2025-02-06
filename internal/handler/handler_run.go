@@ -121,10 +121,11 @@ func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req := api.SubmissionRequest{
-		TemplateId: preReq.TemplateId,
-		Args:       preReq.Args,
-		Files:      make(map[string]string),
-		ActionId:   preReq.ActionId,
+		TemplateId:      preReq.TemplateId,
+		Args:            preReq.Args,
+		Files:           make(map[string]string),
+		ActionId:        preReq.ActionId,
+		ExternalOptions: preReq.ExternalOptions,
 	}
 
 	sourceFile := action.ScriptOptions.SourceFile
@@ -180,11 +181,12 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendURL string) 
 	}
 	jsonData, err := json.Marshal(
 		api.SandboxRequest{
-			Args:   req.Args,
-			SandId: req.TemplateId,
-			Binary: b,
-			Stdin:  req.Stdin,
-			Action: action,
+			Args:            req.Args,
+			SandId:          req.TemplateId,
+			Binary:          b,
+			Stdin:           req.Stdin,
+			Action:          action,
+			ExtendedOptions: req.ExternalOptions,
 		},
 	)
 	if err != nil {

@@ -15,7 +15,6 @@
       "CompileCmd": "",
       "RunCmd": "php index.php < {STDIN}",
       "ScriptOptions": {
-        "Enable": true,
         "SourceFile": "index.php"
       }
     }

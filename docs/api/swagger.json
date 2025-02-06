@@ -24,7 +24,6 @@
           "content": {
             "application/json": {
               "schema": {
-                "example": null,
                 "$ref": "#/components/schemas/SubmissionRequest"
               }
             }
@@ -149,7 +148,7 @@
   },
   "components": {
     "schemas": {
-      "SubmissionRequest": {
+      "CommonSubmissionRequest": {
         "type": "object",
         "properties": {
           "TemplateId": {
@@ -158,18 +157,6 @@
           "Args": {
             "type": "string"
           },
-          "Files": {
-            "type": "object",
-            "example": {
-              "index.js": "...some content",
-              "src/script.js": "...some content",
-              "foo/bar/script.js": "...some content",
-              "package.json": "...some content"
-            },
-            "additionalProperties": {
-              "type": "string"
-            }
-          },
           "Stdin": {
             "description": "data which will available via stdin reader",
             "type": "string"
@@ -177,41 +164,66 @@
           "ActionId": {
             "type": "string",
             "default": "default"
+          },
+          "ExternalOptions": {
+            "type": "object",
+            "description": "external options like CompileCmd or RunCmd",
+            "additionalProperties": {
+              "type": "string"
+            }
           }
         },
         "required": [
           "TemplateId",
           "Args",
-          "Files",
           "Stdin"
+        ]
+      },
+      "SubmissionRequest": {
+        "type": "object",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "Files": {
+                "type": "object",
+                "example": {
+                  "index.js": "...some content",
+                  "src/script.js": "...some content",
+                  "foo/bar/script.js": "...some content",
+                  "package.json": "...some content"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "Files"
+            ]
+          },
+          {
+            "$ref": "#/components/schemas/CommonSubmissionRequest"
+          }
         ]
       },
       "SubmissionScriptRequest": {
         "type": "object",
-        "properties": {
-          "Args": {
-            "type": "string"
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "Code": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "Code"
+            ]
           },
-          "TemplateId": {
-            "type": "string"
-          },
-          "Code": {
-            "type": "string"
-          },
-          "ActionId": {
-            "type": "string",
-            "default": "default"
-          },
-          "Stdin": {
-            "description": "data which will available via stdin reader",
-            "type": "string"
+          {
+            "$ref": "#/components/schemas/CommonSubmissionRequest"
           }
-        },
-        "required": [
-          "Code",
-          "TemplateId",
-          "Args",
-          "Stdin"
         ]
       },
       "SubmissionResponse": {
@@ -415,6 +427,11 @@
             "additionalProperties": {
               "type": "string"
             }
+          },
+          "EnableExternalCommands": {
+            "type": "boolean",
+            "description": "It allows overriding CompileCmd and RunCmd in each request.",
+            "default": false
           }
         },
         "required": [
@@ -424,7 +441,8 @@
           "RunCmd",
           "ScriptOptions",
           "DefaultFiles",
-          "IsDefault"
+          "IsDefault",
+          "EnableExternalCommands"
         ]
       },
       "ImageConfig": {

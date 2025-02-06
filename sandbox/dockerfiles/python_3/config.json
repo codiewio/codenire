@@ -16,7 +16,6 @@
       "CompileCmd": "",
       "RunCmd": "python main.py < {STDIN}",
       "ScriptOptions": {
-        "Enable": true,
         "SourceFile": "main.py"
       }
     }

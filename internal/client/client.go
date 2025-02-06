@@ -3,6 +3,7 @@ package client
 import (
 	"net/http"
 	"sync"
+	"time"
 )
 
 var sandboxBackendOnce struct {
@@ -12,7 +13,9 @@ var sandboxBackendOnce struct {
 
 func SandboxBackendClient() *http.Client {
 	sandboxBackendOnce.Do(func() {
-		sandboxBackendOnce.c = http.DefaultClient
+		sandboxBackendOnce.c = &http.Client{
+			Timeout: time.Second * 60,
+		}
 	})
 
 	return sandboxBackendOnce.c

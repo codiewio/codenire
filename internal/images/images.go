@@ -14,35 +14,36 @@ import (
 var ExtendedTemplates []api.ImageConfig
 var ImageTemplateList *[]api.ImageConfig
 
-func PullImageConfigList(url string) error {
+const templatesPath = "templates"
+
+func PullImageConfigList(url string) (res *[]api.ImageConfig, err error) {
 	req, err := http.NewRequestWithContext(
 		context.Background(),
 		http.MethodGet,
-		url,
+		url+"/"+templatesPath,
 		nil,
 	)
 
 	if err != nil {
-		return fmt.Errorf("sandbox client request error: %w", err)
+		return nil, fmt.Errorf("sandbox client request error: %w", err)
 	}
 
 	resp, err := client.SandboxBackendClient().Do(req)
 	if err != nil {
-		return fmt.Errorf("sandbox client request error: %w", err)
+		return nil, fmt.Errorf("sandbox client request error: %w", err)
 	}
 	defer resp.Body.Close()
 
+	log.Printf("response status: %v", resp)
+
 	var execRes []api.ImageConfig
 	if err = json.NewDecoder(resp.Body).Decode(&execRes); err != nil {
-		return err
+		return nil, err
 	}
 
 	execRes = append(execRes, ExtendedTemplates...)
-	ImageTemplateList = &execRes
 
-	log.Printf("images config list data refreshed")
-
-	return nil
+	return &execRes, nil
 }
 
 func GetImageConfig(templateID string) *api.ImageConfig {

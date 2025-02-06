@@ -15,7 +15,6 @@
       "CompileCmd": "tsc -p tsconfig.json",
       "RunCmd": "node ./dist/index.js {ARGS} < {STDIN}",
       "ScriptOptions": {
-        "Enable": true,
         "SourceFile": "index.ts"
       },
       "DefaultFiles": {

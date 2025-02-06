@@ -16,6 +16,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	contract "sandbox/api/gen"
 	"strings"
 )
 
@@ -73,13 +74,15 @@ func DirToTar(sourceDir string) (bytes.Buffer, error) {
 }
 
 // nolint:gocognit
-func Base64ToTar(base64Data, destDir string, stdin string) (stdinFile *string, err error) {
-	tarData, err := base64.StdEncoding.DecodeString(base64Data)
+func SaveRequestFiles(req contract.SandboxRequest, destDir string) (stdinFile *string, err error) {
+	tarData, err := base64.StdEncoding.DecodeString(req.Binary)
 	if err != nil {
 		return nil, fmt.Errorf("base64 decode error: %w", err)
 	}
 
 	tarReader := tar.NewReader(bytes.NewReader(tarData))
+
+	// STDIN
 	{
 		inputName := fmt.Sprintf("input_%s.txt", RandHex(8))
 		inputFilePath := filepath.Join(destDir, inputName)
@@ -91,7 +94,7 @@ func Base64ToTar(base64Data, destDir string, stdin string) (stdinFile *string, e
 			_ = file.Close()
 		}()
 
-		_, err = file.WriteString(stdin)
+		_, err = file.WriteString(req.Stdin)
 		if err != nil {
 			return nil, fmt.Errorf("error writing to %s: %w", inputName, err)
 		}

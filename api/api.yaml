@@ -20,7 +20,6 @@ paths:
         content:
           application/json:
             schema:
-              example:
               $ref: '#/components/schemas/SubmissionRequest'
       responses:
         "200":
@@ -124,54 +123,58 @@ paths:
 
 components:
   schemas:
-    SubmissionRequest:
+    CommonSubmissionRequest:
       type: object
       properties:
         TemplateId:
           type: string
         Args:
           type: string
-        Files:
-          type: object
-          example:
-            index.js: "...some content"
-            src/script.js: "...some content"
-            foo/bar/script.js: "...some content"
-            package.json: "...some content"
-          additionalProperties:
-            type: string
         Stdin:
           description: data which will available via stdin reader
           type: string
         ActionId:
           type: string
           default: "default"
+        ExternalOptions:
+          type: object
+          description: external options like CompileCmd or RunCmd
+          additionalProperties:
+            type: string
       required:
         - TemplateId
         - Args
-        - Files
         - Stdin
+
+    SubmissionRequest:
+      type: object
+      allOf:
+        - type: object
+          properties:
+            Files:
+              type: object
+              example:
+                index.js: "...some content"
+                src/script.js: "...some content"
+                foo/bar/script.js: "...some content"
+                package.json: "...some content"
+              additionalProperties:
+                type: string
+          required:
+            - Files
+        - $ref: '#/components/schemas/CommonSubmissionRequest'
+
 
     SubmissionScriptRequest:
       type: object
-      properties:
-        Args:
-          type: string
-        TemplateId:
-          type: string
-        Code:
-          type: string
-        ActionId:
-          type: string
-          default: "default"
-        Stdin:
-          description: data which will available via stdin reader
-          type: string
-      required:
-        - Code
-        - TemplateId
-        - Args
-        - Stdin
+      allOf:
+        - type: object
+          properties:
+            Code:
+              type: string
+          required:
+            - Code
+        - $ref: '#/components/schemas/CommonSubmissionRequest'
 
     SubmissionResponse:
       type: object
@@ -321,6 +324,10 @@ components:
             package.json: "...some content"
           additionalProperties:
             type: string
+        EnableExternalCommands:
+          type: boolean
+          description: It allows overriding CompileCmd and RunCmd in each request.
+          default: false
       required:
         - Id
         - Name
@@ -329,6 +336,7 @@ components:
         - ScriptOptions
         - DefaultFiles
         - IsDefault
+        - EnableExternalCommands
 
     ImageConfig:
       type: object

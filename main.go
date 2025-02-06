@@ -89,22 +89,24 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error creating server: %v", err)
 	}
-	port := cfg.Port
 
 	shutdownComplete := s.SetupSignalHandler(func() {
 		plugin.CleanupPlugins()
 	})
 
-	err2 := images.PullImageConfigList(cfg.BackendURL + "/templates/list")
-	if err2 != nil {
-		panic("sandbox not ready yet")
+	{
+		res, err2 := images.PullImageConfigList(cfg.BackendURL)
+		if err2 != nil {
+			panic("sandbox not ready yet")
+		}
+		images.ImageTemplateList = res
 	}
 
-	log.Printf("listening on :%v ...", port)
+	log.Printf("listening on :%v ...", cfg.Port)
 	//nolint
-	err = http.ListenAndServe(":"+port, s)
+	err = http.ListenAndServe(":"+cfg.Port, s)
 
-	log.Printf("playground is running, port %s", port)
+	log.Printf("playground is running, port %s", cfg.Port)
 
 	if errors.Is(err, http.ErrServerClosed) {
 		// ErrServerClosed means that http.Server.Shutdown was called due to an interruption signal.

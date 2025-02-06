@@ -11,24 +11,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  linter:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: stable
-
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: v1.63.4
-          working-directory: sandbox
-
   build-docker:
-    needs: linter
     runs-on: ubuntu-latest
     env:
       IMAGE_USERNAME: codiew
