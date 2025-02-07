@@ -1,57 +1,40 @@
 services:
-  network_proxy:
-    container_name: package_dev
-    image: ubuntu/squid
-    restart: always
-    ports:
-      - "3128:3128"
-    volumes:
-      - ./squid.conf:/etc/squid/squid.conf
-      - squid_cache:/var/spool/squid
-    networks:
-      - isolated_net
-
   playground:
-    image: codiew/codenire-playground:latest
+    container_name: play_dev
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8081:8081"
-    stdin_open: true
-    tty: true
     restart: always
     networks:
       - sandnet
-      - isolated_net
     entrypoint: [
       "/playground",
-      "--backend-url", "http://sandbox_dev/run",
+      "--backend-url", "http://sandbox_dev",
       "--port", "8081",
     ]
 
   sandbox:
     container_name: sandbox_dev
-    image: codiew/codenire-sandbox:latest
+    build:
+      context: ./sandbox
+      dockerfile: Dockerfile
+    ports:
+      - "8082:80"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./dockerfiles:/dockerfiles
     networks:
       - sandnet
-    stdin_open: true
-    tty: true
     restart: always
-
     entrypoint: [
       "/usr/local/bin/sandbox",
-      "--dockerFilesPath", "/dockerfiles",
       "--replicaContainerCnt", "1",
       "--port", "80",
+      "--dev",
+      "--dockerFilesPath", "/dockerfiles",
     ]
 
 networks:
   sandnet:
     name: codenire
-  isolated_net:
-    driver: bridge
-
-volumes:
-  squid_cache:
-  squid_logs:

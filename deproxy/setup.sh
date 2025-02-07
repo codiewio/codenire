@@ -12,6 +12,14 @@ CONFIG_FILE="/etc/squid/squid.conf"
 
 sed -i "/acl allowed_sites dstdomain/ s/\(acl allowed_sites dstdomain\)/\1 $ALLOWED_DOMAINS/" "$CONFIG_FILE"
 
+
+
+ALLOW_ALL=${ALLOW_ALL:-false}
+if [[ "$ALLOW_ALL" == "true" ]]; then
+    sed -i '/^acl allowed_sites dstdomain /c\acl allowed_sites dstdom_regex .' "$CONFIG_FILE"
+fi
+
+
 # default behaviour is to launch squid
 if [[ -z ${1} ]]; then
   if [[ ! -d ${SQUID_CACHE_DIR}/00 ]]; then
