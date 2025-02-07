@@ -24,6 +24,8 @@ docker run -d \
 docker run -d --name sandbox_dev \
   --network=isolated_net \
   -p 80:8081 \
+  -e HTTP_PROXY=http://isolated_gateway:3128 \
+  -e HTTPS_PROXY= http://isolated_gateway:3128 \
   -v /var/run/docker.sock:/var/run/docker.sock \
   --restart=always \
   --entrypoint "/usr/local/bin/sandbox" \
