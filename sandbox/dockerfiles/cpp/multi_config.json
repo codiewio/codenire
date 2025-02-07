@@ -1,0 +1,43 @@
+{
+  "Template": "cpp",
+  "Labels": [
+    "cpp"
+  ],
+  "ContainerOptions": {
+    "CompileTTL": 30,
+    "RunTTL": 5,
+    "MemoryLimit": 524288000
+  },
+  "Workdir": "/app",
+
+  "Actions": {
+    "8.3": {
+      "Id": "8.3",
+      "Name": "C++ (GCC 8.3.0)",
+      "CompileCmd": "",
+      "RunCmd": "",
+      "ScriptOptions": {
+        "SourceFile": "main.cpp"
+      }
+    },
+
+    "7.4": {
+      "Id": "7.4",
+      "Name": "C++ (GCC 7.4.0)",
+      "CompileCmd": "",
+      "RunCmd": "",
+      "ScriptOptions": {
+        "SourceFile": "main.cpp"
+      }
+    }
+  },
+
+  "Name": "C++ multi",
+  "CompileCmd": "gcc-7 main.cpp -o main",
+  "RunCmd": "./main",
+  "ScriptOptions": {
+    "Enable": true,
+    "SourceFile": "main.cpp"
+  }
+}
+

@@ -75,7 +75,7 @@ type CodenireManager struct {
 }
 
 func NewCodenireManager() *CodenireManager {
-	c, err := client.NewClientWithOpts(client.FromEnv)
+	c, err := client.NewClientWithOpts(client.WithVersion("1.41"))
 	if err != nil {
 		panic("fail on create docker client")
 	}
