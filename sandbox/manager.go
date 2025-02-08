@@ -80,6 +80,8 @@ func NewCodenireManager() *CodenireManager {
 		panic("fail on create docker client")
 	}
 
+	log.Printf("using Docker client version: %s", c.ClientVersion())
+
 	return &CodenireManager{
 		dockerClient:        c,
 		imageContainers:     make(map[string]chan StartedContainer),
