@@ -17,13 +17,7 @@ Inspired by:
 </a>
 
 
-*Playground demonstration in the [codiew.io](https://codiew.io) service.*
-
-Special thanks to:
-
-<a href="https://codiew.io" target="_blank">
-<img width="130" alt="Screenshot 2025-01-30 at 17 19 20" src="https://github.com/user-attachments/assets/db4350d0-31a2-46cf-9e69-ef24b0075650" />
-</a>
+*Playground demonstration in the [codiew.io](https://codiew.io) service — soon will be available for you.*
 
 
 # 🌟Features
