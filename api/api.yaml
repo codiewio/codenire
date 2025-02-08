@@ -325,9 +325,10 @@ components:
           additionalProperties:
             type: string
         EnableExternalCommands:
-          type: boolean
+          type: string
           description: It allows overriding CompileCmd and RunCmd in each request.
-          default: false
+          enum: ['none', 'run', 'compile', 'all']
+          default: all
       required:
         - Id
         - Name

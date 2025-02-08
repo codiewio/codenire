@@ -8,6 +8,22 @@ import (
 	"fmt"
 )
 
+// Defines values for ActionItemResponseEnableExternalCommands.
+const (
+	ActionItemResponseEnableExternalCommandsAll     ActionItemResponseEnableExternalCommands = "all"
+	ActionItemResponseEnableExternalCommandsCompile ActionItemResponseEnableExternalCommands = "compile"
+	ActionItemResponseEnableExternalCommandsNone    ActionItemResponseEnableExternalCommands = "none"
+	ActionItemResponseEnableExternalCommandsRun     ActionItemResponseEnableExternalCommands = "run"
+)
+
+// Defines values for ImageActionConfigEnableExternalCommands.
+const (
+	ImageActionConfigEnableExternalCommandsAll     ImageActionConfigEnableExternalCommands = "all"
+	ImageActionConfigEnableExternalCommandsCompile ImageActionConfigEnableExternalCommands = "compile"
+	ImageActionConfigEnableExternalCommandsNone    ImageActionConfigEnableExternalCommands = "none"
+	ImageActionConfigEnableExternalCommandsRun     ImageActionConfigEnableExternalCommands = "run"
+)
+
 // ActionItemResponse defines model for ActionItemResponse.
 type ActionItemResponse struct {
 	CompileCmd       string            `json:"CompileCmd"`
@@ -15,18 +31,21 @@ type ActionItemResponse struct {
 	DefaultFiles     map[string]string `json:"DefaultFiles"`
 
 	// EnableExternalCommands It allows overriding CompileCmd and RunCmd in each request.
-	EnableExternalCommands bool                     `json:"EnableExternalCommands"`
-	Groups                 []string                 `json:"Groups"`
-	Id                     string                   `json:"Id"`
-	IsDefault              bool                     `json:"IsDefault"`
-	Name                   string                   `json:"Name"`
-	Provider               string                   `json:"Provider"`
-	RunCmd                 string                   `json:"RunCmd"`
-	ScriptOptions          ImageConfigScriptOptions `json:"ScriptOptions"`
-	Template               string                   `json:"Template"`
-	Version                string                   `json:"Version"`
-	Workdir                string                   `json:"Workdir"`
+	EnableExternalCommands ActionItemResponseEnableExternalCommands `json:"EnableExternalCommands"`
+	Groups                 []string                                 `json:"Groups"`
+	Id                     string                                   `json:"Id"`
+	IsDefault              bool                                     `json:"IsDefault"`
+	Name                   string                                   `json:"Name"`
+	Provider               string                                   `json:"Provider"`
+	RunCmd                 string                                   `json:"RunCmd"`
+	ScriptOptions          ImageConfigScriptOptions                 `json:"ScriptOptions"`
+	Template               string                                   `json:"Template"`
+	Version                string                                   `json:"Version"`
+	Workdir                string                                   `json:"Workdir"`
 }
+
+// ActionItemResponseEnableExternalCommands It allows overriding CompileCmd and RunCmd in each request.
+type ActionItemResponseEnableExternalCommands string
 
 // ActionListResponse defines model for ActionListResponse.
 type ActionListResponse = []ActionItemResponse
@@ -57,13 +76,16 @@ type ImageActionConfig struct {
 	DefaultFiles map[string]string `json:"DefaultFiles"`
 
 	// EnableExternalCommands It allows overriding CompileCmd and RunCmd in each request.
-	EnableExternalCommands bool                     `json:"EnableExternalCommands"`
-	Id                     string                   `json:"Id"`
-	IsDefault              bool                     `json:"IsDefault"`
-	Name                   string                   `json:"Name"`
-	RunCmd                 string                   `json:"RunCmd"`
-	ScriptOptions          ImageConfigScriptOptions `json:"ScriptOptions"`
+	EnableExternalCommands ImageActionConfigEnableExternalCommands `json:"EnableExternalCommands"`
+	Id                     string                                  `json:"Id"`
+	IsDefault              bool                                    `json:"IsDefault"`
+	Name                   string                                  `json:"Name"`
+	RunCmd                 string                                  `json:"RunCmd"`
+	ScriptOptions          ImageConfigScriptOptions                `json:"ScriptOptions"`
 }
+
+// ImageActionConfigEnableExternalCommands It allows overriding CompileCmd and RunCmd in each request.
+type ImageActionConfigEnableExternalCommands string
 
 // ImageConfig defines model for ImageConfig.
 type ImageConfig struct {

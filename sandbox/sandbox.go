@@ -187,7 +187,9 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCommand(cmd string, key string, externalData *map[string]string, action contract.ImageActionConfig) string {
-	if !action.EnableExternalCommands {
+	if action.EnableExternalCommands == "none" ||
+		(action.EnableExternalCommands == "compile" && key == RunCmd) ||
+		(action.EnableExternalCommands == "run" && key == CompileCmd) {
 		return cmd
 	}
 

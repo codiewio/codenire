@@ -1,6 +1,5 @@
-###
-
-POST https://codenire.com/run
+### typescript 5.7
+POST {{url}}/run
 Content-Type: application/json
 Authorization: Bearer {{SupabaseJwtSecret}}
 

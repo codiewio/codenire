@@ -34,11 +34,12 @@ func (h *Handler) ActionListHandler(w http.ResponseWriter, _ *http.Request) {
 				Groups:           template.Groups,
 				Provider:         template.Provider,
 
-				CompileCmd:    config.CompileCmd,
-				DefaultFiles:  config.DefaultFiles,
-				IsDefault:     isDefault,
-				RunCmd:        config.RunCmd,
-				ScriptOptions: config.ScriptOptions,
+				CompileCmd:             config.CompileCmd,
+				DefaultFiles:           config.DefaultFiles,
+				IsDefault:              isDefault,
+				RunCmd:                 config.RunCmd,
+				ScriptOptions:          config.ScriptOptions,
+				EnableExternalCommands: api.ActionItemResponseEnableExternalCommands(config.EnableExternalCommands),
 			}
 
 			if isDefault {

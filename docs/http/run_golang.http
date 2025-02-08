@@ -1,0 +1,13 @@
+### Golang 1.23
+POST {{url}}/run
+Content-Type: application/json
+Authorization: Bearer {{SupabaseJwtSecret}}
+
+{
+  "templateId": "golang_1_23",
+  "files": {
+    "main.go": "package main\n\nimport (\n\t\"flag\"\n\t\"fmt\"\n)\n\nfunc main() {\n\t// Process command-line arguments\n\tname := flag.String(\"name\", \"default\", \"User name\")\n\tflag.Parse()\n\n\t// Read data from stdin\n\tvar input string\n\t_, err := fmt.Scan(&input)\n\tif err != nil {\n\t\tfmt.Println(\"Error reading from stdin:\", err)\n\t\treturn\n\t}\n\n\t// Print arguments and stdin data\n\tfmt.Printf(\"Hello, %s!\\n\", *name)\n\tfmt.Printf(\"Stdin data: %s\\n\", input)\n}\n"
+  },
+  "args": "--name Mark",
+  "stdin": "100.00"
+}

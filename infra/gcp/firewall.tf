@@ -18,7 +18,5 @@ resource "google_compute_firewall" "codenire_firewall" {
   }
 
   source_ranges = ["0.0.0.0/0"]
-  target_tags = concat(
-    google_compute_instance.sandbox_vm.tags
-  )
+  target_tags = google_compute_instance.sandbox_vm.tags
 }
