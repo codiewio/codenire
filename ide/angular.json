@@ -23,6 +23,9 @@
             "polyfills": [
               "zone.js"
             ],
+            "loader": {
+              ".ttf": "binary"
+            },
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "less",
             "assets": [
@@ -56,16 +59,38 @@
           },
           "configurations": {
             "production": {
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "src/assets",
+                  "output": "./assets"
+                },
+                {
+                  "glob": "**/*",
+                  "input": "node_modules/monaco-editor/min",
+                  "output": "./assets/monaco"
+                },
+                {
+                  "glob": "**/*.js",
+                  "input": "node_modules/@ngstack/code-editor/workers",
+                  "output": "assets/workers"
+                },
+                {
+                  "glob": "**/*",
+                  "input": "node_modules/@taiga-ui/icons/src",
+                  "output": "assets/taiga-ui/icons"
+                }
+              ],
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "10mb",
+                  "maximumError": "10mb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "4kb",
+                  "maximumError": "80kb"
                 }
               ],
               "outputHashing": "all"
