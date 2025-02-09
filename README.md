@@ -67,7 +67,7 @@ Dockerfiles and configurations for various languages can be found in /sandbox/do
 ```
 # Input request result:
 
-POST https://codenire.com/run
+POST https://codenire.io/run
 Content-Type: application/json
 
 {
