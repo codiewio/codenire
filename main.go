@@ -28,12 +28,16 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	api "github.com/codiewio/codenire/api/gen"
@@ -90,23 +94,21 @@ func main() {
 		log.Fatalf("Error creating server: %v", err)
 	}
 
-	shutdownComplete := s.SetupSignalHandler(func() {
+	shutdownComplete := setupSignalHandler(cfg.ShutdownTimeout, func() {
 		plugin.CleanupPlugins()
 	})
 
 	{
-		res, err2 := images.PullImageConfigList(cfg.BackendURL)
-		if err2 != nil {
+		res, terr := images.PullImageConfigList(cfg.BackendURL)
+		if terr != nil {
 			panic("sandbox not ready yet")
 		}
 		images.ImageTemplateList = res
 	}
 
-	log.Printf("listening on :%v ...", cfg.Port)
-	//nolint
-	err = http.ListenAndServe(":"+cfg.Port, s)
-
 	log.Printf("playground is running, port %s", cfg.Port)
+
+	err = s.ListenAndServe()
 
 	if errors.Is(err, http.ErrServerClosed) {
 		// ErrServerClosed means that http.Server.Shutdown was called due to an interruption signal.
@@ -171,4 +173,39 @@ func waitForSandbox(maxRetries int, interval time.Duration) error {
 	}
 
 	return fmt.Errorf("sandbox is not available after %d retries", maxRetries)
+}
+
+func setupSignalHandler(shutdownTimeout time.Duration, options ...func()) <-chan struct{} {
+	shutdownComplete := make(chan struct{})
+
+	// We read up to two signals, so use a capacity of 2 here to not miss any signal
+	c := make(chan os.Signal, 2)
+
+	// os.Interrupt is mapped to SIGINT on Unix and to the termination instructions on Windows.
+	// On Unix we also listen to SIGTERM.
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		// First interrupt signal
+		<-c
+		log.Printf("Received interrupt signal. Shutting down codenire...")
+
+		// Wait for second interrupt signal, while also shutting down the existing server
+		go func() {
+			<-c
+			log.Printf("Received second interrupt signal. Exiting immediately!")
+			os.Exit(1)
+		}()
+
+		_, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		defer cancel()
+
+		for _, o := range options {
+			o()
+		}
+
+		close(shutdownComplete)
+	}()
+
+	return shutdownComplete
 }

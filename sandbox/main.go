@@ -50,7 +50,6 @@ import (
 	"sandbox/internal"
 )
 
-var httpServer *http.Server
 var codenireManager ContainerManager
 
 var (
@@ -113,7 +112,7 @@ func main() {
 	h.Post("/run", runHandler)
 	h.Get("/templates", listTemplatesHandler)
 
-	httpServer = &http.Server{
+	httpServer := &http.Server{
 		Addr:              ":" + *listenAddr,
 		ReadHeaderTimeout: 5 * time.Second,
 		Handler:           &ochttp.Handler{Handler: h},

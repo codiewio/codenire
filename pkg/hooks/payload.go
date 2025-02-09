@@ -12,6 +12,7 @@ type HTTPRequest struct {
 	URI        string
 	RemoteAddr string
 	Header     http.Header
+	Host       string
 }
 
 type HTTPHeader map[string]string
