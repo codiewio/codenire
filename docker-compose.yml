@@ -1,3 +1,8 @@
+#-----------------------------------------------------
+#
+# See full example in /docs/docker-compose/
+#
+#-----------------------------------------------------
 services:
   playground:
     container_name: play_dev

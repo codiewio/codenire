@@ -25,17 +25,18 @@ func NewServer(config *Config) (*http.Server, error) {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.Throttle(15))
 
-	filesDir := http.Dir("/static")
-	FileServer(router, "/", filesDir)
+	router.Get("/run", handler.RunFilesHandler) // To avoid file-server handling
+	router.Post("/run", handler.RunFilesHandler)
 
-	router.Group(func(r chi.Router) {
-		r.Post("/run", handler.RunFilesHandler)
-		r.Post("/run-script", handler.RunScriptHandler)
-	})
+	router.Get("/run-script", handler.RunScriptHandler) // To avoid file-server handling
+	router.Post("/run-script", handler.RunScriptHandler)
 
 	router.Group(func(r chi.Router) {
 		r.Get("/actions", handler.ActionListHandler)
 	})
+
+	filesDir := http.Dir("/static")
+	FileServer(router, "/", filesDir)
 
 	return &http.Server{
 		Addr:              ":" + config.Port,
@@ -45,14 +46,11 @@ func NewServer(config *Config) (*http.Server, error) {
 }
 
 func FileServer(r chi.Router, path string, root http.FileSystem) {
-	if strings.ContainsAny(path, "{}*") {
-		panic("FileServer does not permit any URL parameters.")
-	}
-
 	if path != "/" && path[len(path)-1] != '/' {
 		r.Get(path, http.RedirectHandler(path+"/", http.StatusMovedPermanently).ServeHTTP)
 		path += "/"
 	}
+
 	path += "*"
 
 	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
