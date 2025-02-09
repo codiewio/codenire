@@ -1,0 +1,75 @@
+<tui-root tuiTheme="dark">
+  <div class="app" tuiTheme="dark">
+    <div class="header">
+      <h3>Codenire</h3>
+    </div>
+
+    <div class="wrapper">
+      <div class="editor">
+        <tui-tabs-with-more
+          size="m"
+          [itemsLimit]="6"
+          [(activeItemIndex)]="activeItemIndex"
+        >
+          <ng-container *ngFor="let item of items">
+            <button
+              *tuiItem
+              tuiTab
+              type="button"
+              (keydown.delete)="remove(item)"
+            >
+              {{ item }}
+              <tui-icon
+                icon="@tui.x"
+                class="tui-space_left-2"
+                [style.font-size.rem]="1"
+                (click.stop)="remove(item)"
+              />
+            </button>
+          </ng-container>
+        </tui-tabs-with-more>
+
+        <ngs-code-editor
+          [theme]="theme"
+          [codeModel]="model"
+          [options]="options"
+          (valueChanged)="onCodeChanged($event)"
+          style="    height: 100%;
+    display: flex
+;
+    min-height: 100vh;"
+        ></ngs-code-editor>
+
+        <p>{{ items[activeItemIndex] }}</p>
+
+      </div>
+
+
+      <aside>
+        <ul>
+        </ul>
+      </aside>
+
+    </div>
+  </div>
+
+
+  <!--
+     If you need, you can add something between Taiga portal layers:
+    -->
+  <ng-container ngProjectAs="tuiOverContent">
+    <!-- Content over app content -->
+  </ng-container>
+  <ng-container ngProjectAs="tuiOverDialogs">
+    <!-- Content over dialogs -->
+  </ng-container>
+  <ng-container ngProjectAs="tuiOverAlerts">
+    <!-- Content over alerts -->
+  </ng-container>
+  <ng-container ngProjectAs="tuiOverDropdowns">
+    <!-- Content over dropdowns -->
+  </ng-container>
+  <ng-container ngProjectAs="tuiOverHints">
+    <!-- Content over hints -->
+  </ng-container>
+</tui-root>
