@@ -32,6 +32,7 @@ func NewCodeHookEvent(c *HttpContext, sr api.SubmissionRequest) CodeHookEvent {
 			URI:        c.req.RequestURI,
 			RemoteAddr: c.req.RemoteAddr,
 			Header:     c.req.Header,
+			Host:       c.req.Host,
 		},
 	}
 }
