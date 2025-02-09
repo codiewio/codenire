@@ -193,6 +193,10 @@ func getCommand(cmd string, key string, externalData *map[string]string, action 
 		return cmd
 	}
 
+	if externalData == nil {
+		return cmd
+	}
+
 	if value, ok := (*externalData)[key]; ok {
 		if value != "" {
 			return value

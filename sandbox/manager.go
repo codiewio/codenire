@@ -448,8 +448,6 @@ func parseConfigFiles(root string) []contract.ImageConfig {
 				if actionConfig.EnableExternalCommands == "" {
 					actionConfig.EnableExternalCommands = "all"
 					config.Actions[n] = actionConfig
-
-					log.Printf("HFGDHFDHHDFHFD", actionConfig)
 				}
 			}
 		}
