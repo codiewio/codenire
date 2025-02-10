@@ -5,6 +5,7 @@
 package handler
 
 import (
+	"github.com/go-chi/httprate"
 	"net/http"
 	"strings"
 	"time"
@@ -24,12 +25,12 @@ func NewServer(config *Config) (*http.Server, error) {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
+	router.Use(httprate.LimitByRealIP(1, 5*time.Second))
 	router.Use(middleware.ThrottleBacklog(
 		config.ThrottleLimit,
 		config.ThrottleLimit+config.ThrottleLimit,
 		time.Second*60,
-	),
-	)
+	))
 
 	router.Get("/run", handler.RunFilesHandler) // To avoid file-server handling
 	router.Post("/run", handler.RunFilesHandler)
