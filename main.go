@@ -54,6 +54,7 @@ var (
 	PluginHookPath    = flag.String("hooks-plugins", "", "URL for sandbox backend that runs Go binaries.")
 	FileHooksDir      = flag.String("hooks-dir", "", "Directory to search for available hooks scripts")
 	ExternalTemplates = flag.String("external-templates", "", "Comma separated list of templates which will handled externally (plugin for example)")
+	ThrottleLimit     = flag.Int("throttle-limit", 15, "currently processed requests at a time across all users")
 )
 
 func main() {
@@ -72,6 +73,7 @@ func main() {
 		FileHooksDir:                     *FileHooksDir,
 		GracefulRequestCompletionTimeout: 10 * time.Second,
 		ShutdownTimeout:                  10 * time.Second,
+		ThrottleLimit:                    *ThrottleLimit,
 	}
 
 	hookHandler := getHookHandler(&cfg)

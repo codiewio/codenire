@@ -15,4 +15,5 @@ type Config struct {
 	PreRequestCallback               func(hook hooks.CodeHookEvent) (hooks.HookResponse, error)
 	GracefulRequestCompletionTimeout time.Duration
 	ShutdownTimeout                  time.Duration
+	ThrottleLimit                    int
 }
