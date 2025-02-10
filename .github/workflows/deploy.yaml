@@ -1,0 +1,88 @@
+name: Deploy Services in Google Cloud Platform
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Enter the version you want to deploy (e.g., v1.0.0 or latest)'
+        required: true
+        default: 'latest'
+
+jobs:
+  terraform-deploy:
+    runs-on: ubuntu-latest
+    env:
+      CONFIGS_DIR_PATH: infra/deploy
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check versions
+        run: |
+          IMAGES=(
+            "codiew/codenire-sandbox:${{ github.event.inputs.version }}" 
+            "codiew/codenire-playground:${{ github.event.inputs.version }}" 
+            "codiew/codenire-deproxy:${{ github.event.inputs.version }}"
+          )
+          
+          for IMAGE in "${IMAGES[@]}"; do
+            if docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
+              echo "✅ Image $IMAGE found in Docker Hub."
+            else
+              echo "❌ Image $IMAGE NOT found in Docker Hub!"
+              exit 1
+            fi
+          done
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Set Terraform Environment Variables
+        working-directory: ${{ env.CONFIGS_DIR_PATH }}
+        run: |
+          echo "TF_TOKEN_app_terraform_io=${{ secrets.TERRAFROM_TOKEN }}" >> $GITHUB_ENV
+
+      - name: Terraform Init
+        working-directory: ${{ env.CONFIGS_DIR_PATH }}
+        run: terraform init
+
+      - name: Terraform Validate
+        working-directory: ${{ env.CONFIGS_DIR_PATH }}
+        run: terraform validate
+
+      - name: Terraform Apply
+        working-directory: ${{ env.CONFIGS_DIR_PATH }}
+        if: github.ref == 'refs/heads/main'
+        run: |
+          terraform apply -auto-approve \
+            -var="app_version=${{ github.event.inputs.version }}" \
+            -var="playground_domain=codenire.io"
+
+      - name: Extract data
+        working-directory: ${{ env.CONFIGS_DIR_PATH }}
+        run: |
+          echo "SSH_USER=$(terraform output -raw sandbox_user)" >> $GITHUB_ENV
+          echo "SANDBOX_HOST=$(terraform output -raw sandbox_ip)" >> $GITHUB_ENV
+          echo "SANDBOX_SSH_PRIVATE=$(terraform output -raw ssh_private_key" >> $GITHUB_ENV
+          
+          terraform output -raw install-service-script > start-service.sh
+          chmod +x start-service.sh
+
+      - name: Connect
+        working-directory: ${{ env.CONFIGS_DIR_PATH }}
+        run: |    
+          mkdir -p ~/.ssh
+          echo -e "$SANDBOX_SSH_PRIVATE" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "$SANDBOX_HOST" >> ~/.ssh/known_hosts
+
+      - name: Upload shell
+        working-directory: ${{ env.CONFIGS_DIR_PATH }}
+        run: |
+          scp start-service.sh "$SSH_USER"@"$SANDBOX_HOST":/home/"$SSH_USER"/start-service.sh
+          ssh "$SSH_USER"@"$SANDBOX_HOST" "chmod +x /home/"$SSH_USER"/start-service.sh"
+
+      - name: Run deploy
+        working-directory: ${{ env.CONFIGS_DIR_PATH }}
+        run: |
+          ssh "$SSH_USER"@"$SANDBOX_HOST" source "/home/"$SSH_USER"/start-service.sh"

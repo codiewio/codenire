@@ -1,0 +1,35 @@
+name: Create VM instance in Google Cloud Platform
+
+on:
+  workflow_dispatch:
+
+jobs:
+  terraform-deploy:
+    runs-on: ubuntu-latest
+    env:
+      CONFIGS_DIR_PATH: infra/gcp
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Set Terraform Environment Variables
+        working-directory: ${{ env.CONFIGS_DIR_PATH }}
+        run: |
+          echo "TF_TOKEN_app_terraform_io=${{ secrets.TERRAFROM_TOKEN }}" >> $GITHUB_ENV
+
+      - name: Terraform Init
+        working-directory: ${{ env.CONFIGS_DIR_PATH }}
+        run: terraform init
+
+      - name: Terraform Validate
+        working-directory: ${{ env.CONFIGS_DIR_PATH }}
+        run: terraform validate
+
+      - name: Terraform Apply
+        working-directory: ${{ env.CONFIGS_DIR_PATH }}
+        if: github.ref == 'refs/heads/main'
+        run: |
+          terraform apply -auto-approve
