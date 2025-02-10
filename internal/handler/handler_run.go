@@ -129,6 +129,7 @@ func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sourceFile := action.ScriptOptions.SourceFile
+	// TODO:: check if ""
 	req.Files[sourceFile] = preReq.Code
 	req.Files = addDefaultFiles(req.Files, action.DefaultFiles)
 

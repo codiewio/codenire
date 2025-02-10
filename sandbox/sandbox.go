@@ -189,13 +189,13 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCommand(cmd string, key string, externalData *map[string]string, action contract.ImageActionConfig) string {
-	if action.EnableExternalCommands == "none" ||
-		(action.EnableExternalCommands == "compile" && key == RunCmd) ||
-		(action.EnableExternalCommands == "run" && key == CompileCmd) {
+	if externalData == nil {
 		return cmd
 	}
 
-	if externalData == nil {
+	if action.EnableExternalCommands == ExternalCommandsModeNode ||
+		(action.EnableExternalCommands == ExternalCommandsModeCompile && key == RunCmd) ||
+		(action.EnableExternalCommands == ExternalCommandsModeRun && key == CompileCmd) {
 		return cmd
 	}
 

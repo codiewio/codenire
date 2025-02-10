@@ -454,7 +454,7 @@ func parseConfigFiles(root string) []contract.ImageConfig {
 		{
 			for n, actionConfig := range config.Actions {
 				if actionConfig.EnableExternalCommands == "" {
-					actionConfig.EnableExternalCommands = ExternalCommandsModeNode
+					actionConfig.EnableExternalCommands = ExternalCommandsModeAll
 					config.Actions[n] = actionConfig
 				}
 			}

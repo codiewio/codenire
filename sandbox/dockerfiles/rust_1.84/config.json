@@ -4,9 +4,9 @@
   "Workdir": "/app",
   "ContainerOptions": {
     "CompileTTL": 30,
-    "RunTTL": 5,
-    "MemoryLimit": 524288000
+    "RunTTL": 5
   },
+  "IsSupportPackage": true,
 
   "Actions": {
     "snippet": {
@@ -17,9 +17,7 @@
       "ScriptOptions": {
         "SourceFile": "main.rs"
       },
-      "DefaultFiles": {
-
-      }
+      "DefaultFiles": {}
     }
   }
 }

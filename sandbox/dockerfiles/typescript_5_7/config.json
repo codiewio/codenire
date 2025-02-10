@@ -5,7 +5,7 @@
     "CompileTTL": 30,
     "RunTTL": 5
   },
-
+  "IsSupportPackage": true,
 
   "Actions": {
     "default": {

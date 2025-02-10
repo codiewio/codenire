@@ -1,0 +1,66 @@
+{
+  "Template": "cpp",
+  "Groups": ["cpp"],
+  "ContainerOptions": {
+    "CompileTTL": 30,
+    "RunTTL": 5
+  },
+  "IsSupportPackage": true,
+
+  "Actions": {
+    "c++23": {
+      "Id": "default",
+      "IsDefault": true,
+      "Name": "C++23",
+      "CompileCmd": "g++ -std=c++23 $(find . -name '*.cpp') -o main ",
+      "RunCmd": "./main {ARGS} < {STDIN}",
+      "ScriptOptions": {
+        "SourceFile": "main.cpp"
+      }
+    },
+
+    "c++20": {
+      "Id": "c++20",
+      "IsDefault": true,
+      "Name": "C++20",
+      "CompileCmd": "g++ -std=c++20 $(find . -name '*.cpp') -o main ",
+      "RunCmd": "./main {ARGS} < {STDIN}",
+      "ScriptOptions": {
+        "SourceFile": "main.cpp"
+      }
+    },
+
+    "c++17": {
+      "Id": "c++17",
+      "IsDefault": true,
+      "Name": "C++17",
+      "CompileCmd": "g++ -std=c++17 $(find . -name '*.cpp') -o main ",
+      "RunCmd": "./main {ARGS} < {STDIN}",
+      "ScriptOptions": {
+        "SourceFile": "main.cpp"
+      }
+    },
+
+    "c++14": {
+      "Id": "default",
+      "IsDefault": true,
+      "Name": "C++14",
+      "CompileCmd": "g++ -std=c++14 $(find . -name '*.cpp') -o main ",
+      "RunCmd": "./main {ARGS} < {STDIN}",
+      "ScriptOptions": {
+        "SourceFile": "main.cpp"
+      }
+    },
+
+    "c++11": {
+      "Id": "c++11",
+      "IsDefault": true,
+      "Name": "C++11",
+      "CompileCmd": "g++ -std=c++11 $(find . -name '*.cpp') -o main ",
+      "RunCmd": "./main {ARGS} < {STDIN}",
+      "ScriptOptions": {
+        "SourceFile": "main.cpp"
+      }
+    }
+  }
+}

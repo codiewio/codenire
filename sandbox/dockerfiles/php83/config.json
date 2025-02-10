@@ -5,7 +5,7 @@
     "CompileTTL": 30,
     "RunTTL": 5
   },
-
+  "IsSupportPackage": true,
   "Actions": {
     "default": {
       "Id": "default",
@@ -15,8 +15,7 @@
       "RunCmd": "php index.php < {STDIN}",
       "ScriptOptions": {
         "SourceFile": "index.php"
-      },
-      "EnableExternalCommands": false
+      }
     }
   }
 }
