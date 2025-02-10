@@ -1,8 +1,6 @@
 ### PHP 8.3
 POST {{url}}/run
 Content-Type: application/json
-Authorization: Bearer {{SupabaseJwtSecret}}
-Content-Type: application/json
 
 {
   "templateId": "php83",

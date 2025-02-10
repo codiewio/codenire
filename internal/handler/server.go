@@ -5,13 +5,13 @@
 package handler
 
 import (
-	"github.com/go-chi/httprate"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httprate"
 	"go.opencensus.io/plugin/ochttp"
 )
 
@@ -25,21 +25,24 @@ func NewServer(config *Config) (*http.Server, error) {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
-	router.Use(httprate.LimitByRealIP(1, 5*time.Second))
-	router.Use(middleware.ThrottleBacklog(
-		config.ThrottleLimit,
-		config.ThrottleLimit+config.ThrottleLimit,
-		time.Second*60,
-	))
-
-	router.Get("/run", handler.RunFilesHandler) // To avoid file-server handling
-	router.Post("/run", handler.RunFilesHandler)
-
-	router.Get("/run-script", handler.RunScriptHandler) // To avoid file-server handling
-	router.Post("/run-script", handler.RunScriptHandler)
 
 	router.Group(func(r chi.Router) {
-		r.Get("/actions", handler.ActionListHandler)
+		r.Use(httprate.LimitByRealIP(1, 3*time.Second))
+		r.Use(middleware.ThrottleBacklog(
+			config.ThrottleLimit,
+			config.ThrottleLimit+config.ThrottleLimit,
+			time.Second*60,
+		))
+
+		r.Get("/run", handler.RunFilesHandler) // To avoid file-server handling
+		r.Post("/run", handler.RunFilesHandler)
+
+		r.Get("/run-script", handler.RunScriptHandler) // To avoid file-server handling
+		r.Post("/run-script", handler.RunScriptHandler)
+
+		r.Group(func(r chi.Router) {
+			r.Get("/actions", handler.ActionListHandler)
+		})
 	})
 
 	filesDir := http.Dir("/static")
