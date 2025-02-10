@@ -9,6 +9,7 @@ require (
 	github.com/docker/docker v27.3.1+incompatible
 	github.com/go-chi/chi/v5 v5.1.0
 	go.opencensus.io v0.24.0
+	go.uber.org/automaxprocs v1.6.0
 )
 
 require (

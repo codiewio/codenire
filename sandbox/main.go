@@ -46,6 +46,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.opencensus.io/plugin/ochttp"
+	_ "go.uber.org/automaxprocs"
 
 	"sandbox/internal"
 )
