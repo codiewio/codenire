@@ -1,6 +1,11 @@
 name: Deploy Services in Google Cloud Platform
 
 on:
+  workflow_run:
+    workflows: [ "Create VM instance in Google Cloud Platform" ]
+    types:
+      - completed
+
   workflow_dispatch:
     inputs:
       version:
