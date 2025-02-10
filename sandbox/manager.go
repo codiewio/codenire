@@ -14,6 +14,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/docker/docker/api/types/network"
 	"log"
 	"os"
 	"path/filepath"
@@ -259,27 +260,34 @@ func (m *CodenireManager) buildImage(i BuiltImage, idx int) error {
 func (m *CodenireManager) runSndContainer(img BuiltImage) (cont *StartedContainer, err error) {
 	ctx := context.Background()
 
+	networkMode := network.NetworkNone
+	var networkEnvs []string
+
+	if img.IsSupportPackage {
+		networkMode = *isolatedNetwork
+		networkEnvs = []string{
+			fmt.Sprintf("HTTP_PROXY=%s", *isolatedGateway),
+			fmt.Sprintf("HTTPS_PROXY=%s", *isolatedGateway),
+		}
+	}
+
 	hostConfig := &docker.HostConfig{
 		Runtime:     m.runtime(),
 		AutoRemove:  true,
-		NetworkMode: docker.NetworkMode(*isolatedNetwork),
+		NetworkMode: docker.NetworkMode(networkMode),
 		Resources: docker.Resources{
 			Memory:     int64(*img.ContainerOptions.MemoryLimit),
 			MemorySwap: 0,
 		},
 	}
-
-	name := stripImageName(*img.imageID)
-	name = fmt.Sprintf("play_run_%s_%s", name, internal.RandHex(8))
-
 	containerConfig := &docker.Config{
 		Image: *img.imageID,
 		Cmd:   []string{"tail", "-f", "/dev/null"},
-		Env: []string{
-			fmt.Sprintf("HTTP_PROXY=%s", *isolatedGateway),
-			fmt.Sprintf("HTTPS_PROXY=%s", *isolatedGateway),
-		},
+		Env:   networkEnvs,
 	}
+
+	name := stripImageName(*img.imageID)
+	name = fmt.Sprintf("play_run_%s_%s", name, internal.RandHex(8))
 
 	containerResp, err := m.dockerClient.ContainerCreate(
 		ctx,
@@ -467,7 +475,7 @@ func removeAfterColon(input string) string {
 	if idx := strings.Index(input, ":"); idx != -1 {
 		return input[:idx]
 	}
-	return input // Вернем оригинал, если ":" нет
+	return input
 }
 
 func duplicates(items []contract.ImageConfig) []string {

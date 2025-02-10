@@ -35,6 +35,7 @@ type ActionItemResponse struct {
 	Groups                 []string                                 `json:"Groups"`
 	Id                     string                                   `json:"Id"`
 	IsDefault              bool                                     `json:"IsDefault"`
+	IsSupportPackage       bool                                     `json:"IsSupportPackage"`
 	Name                   string                                   `json:"Name"`
 	Provider               string                                   `json:"Provider"`
 	RunCmd                 string                                   `json:"RunCmd"`
@@ -92,6 +93,7 @@ type ImageConfig struct {
 	Actions          map[string]ImageActionConfig `json:"Actions"`
 	ContainerOptions ContainerOptions             `json:"ContainerOptions"`
 	Groups           []string                     `json:"Groups"`
+	IsSupportPackage bool                         `json:"IsSupportPackage"`
 	Provider         string                       `json:"Provider"`
 	Template         string                       `json:"Template"`
 	Version          string                       `json:"Version"`
@@ -107,6 +109,7 @@ type ImageConfigScriptOptions struct {
 type ImageTemplateConfig struct {
 	ContainerOptions ContainerOptions `json:"ContainerOptions"`
 	Groups           []string         `json:"Groups"`
+	IsSupportPackage bool             `json:"IsSupportPackage"`
 	Provider         string           `json:"Provider"`
 	Template         string           `json:"Template"`
 	Version          string           `json:"Version"`

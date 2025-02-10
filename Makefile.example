@@ -42,3 +42,23 @@ lint-sand:
 lint:
 	make lint-play
 	make lint-sand
+
+VERSION := $(shell git tag --sort=-v:refname | head -n1)
+NEW_TAG_FIX := $(shell echo $(VERSION) | awk -F. '{print $$1"."$$2"."$$3+1}')
+NEW_TAG_MINOR := $(shell echo $(VERSION) | awk -F. '{print $$1"."$$2+1"."0}')
+
+.PHONY: tag-fix
+tag-fix:
+	echo  $(NEW_TAG_FIX)
+	git checkout main
+	git pull origin main
+	git tag $(NEW_TAG_FIX)
+	git push origin $(NEW_TAG_FIX)
+
+.PHONY: tag-minor
+tag-minor:
+	echo $(NEW_TAG_MINOR)
+	git checkout main
+	git pull origin main
+	git tag $(NEW_TAG_MINOR)
+	git push origin $(NEW_TAG_MINOR)
