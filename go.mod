@@ -4,12 +4,14 @@ go 1.23.3
 
 require (
 	github.com/go-chi/chi/v5 v5.2.1
+	github.com/go-chi/httprate v0.14.1
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.6.3
 	go.opencensus.io v0.24.0
 )
 
 require (
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.3 // indirect

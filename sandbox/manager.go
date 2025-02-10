@@ -424,7 +424,7 @@ func parseConfigFiles(root string) []contract.ImageConfig {
 		}
 
 		{
-			_, defaultExists := config.Actions["default"]
+			_, defaultExists := config.Actions[DefaultActionName]
 			var first *contract.ImageActionConfig
 
 			for _, actionConfig := range config.Actions {
@@ -435,13 +435,13 @@ func parseConfigFiles(root string) []contract.ImageConfig {
 				if actionConfig.IsDefault && !defaultExists {
 					defaultExists = true
 					actionConfig.IsDefault = true
-					config.Actions["default"] = actionConfig
+					config.Actions[DefaultActionName] = actionConfig
 					continue
 				}
 			}
 
 			if first != nil && !defaultExists && first.Name != "" {
-				config.Actions["default"] = *first
+				config.Actions[DefaultActionName] = *first
 				defaultExists = true
 			}
 
@@ -454,7 +454,7 @@ func parseConfigFiles(root string) []contract.ImageConfig {
 		{
 			for n, actionConfig := range config.Actions {
 				if actionConfig.EnableExternalCommands == "" {
-					actionConfig.EnableExternalCommands = "all"
+					actionConfig.EnableExternalCommands = ExternalCommandsModeNode
 					config.Actions[n] = actionConfig
 				}
 			}
