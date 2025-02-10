@@ -156,6 +156,8 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// TODO:: disconnect?
+
 	runTTL := time.Duration(*cont.Image.ContainerOptions.RunTTL) * time.Second
 	runTimeoutCtx := registerCmdTimeout(timeoutCtx, runTTL)
 	runCmd := getCommand(action.RunCmd, RunCmd, req.ExtendedOptions, action)

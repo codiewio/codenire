@@ -291,6 +291,9 @@ components:
         # Configuration provider (built-in, api, external)
         Provider:
           type: string
+        IsSupportPackage:
+          type: boolean
+          default: false
       required:
         - Template
         - Groups
@@ -298,6 +301,7 @@ components:
         - Version
         - Workdir
         - Provider
+        - IsSupportPackage
 
     ImageActionConfig:
       type: object
