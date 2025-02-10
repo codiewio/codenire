@@ -5,6 +5,7 @@
 package handler
 
 import (
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -26,6 +27,8 @@ func NewServer(config *Config) (*http.Server, error) {
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 
+	router.Get("/", rootHandler)
+
 	router.Group(func(r chi.Router) {
 		r.Use(httprate.LimitByRealIP(1, 3*time.Second))
 		r.Use(middleware.ThrottleBacklog(
@@ -46,7 +49,8 @@ func NewServer(config *Config) (*http.Server, error) {
 	})
 
 	filesDir := http.Dir("/static")
-	FileServer(router, "/", filesDir)
+	//FileServer(router, "/", filesDir)
+	FileServer(router, "/blbllblblb", filesDir)
 
 	return &http.Server{
 		Addr:              ":" + config.Port,
@@ -69,4 +73,12 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
 		fs.ServeHTTP(w, r)
 	})
+}
+
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+	_, _ = io.WriteString(w, "Hi from playground\n")
 }
