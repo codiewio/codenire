@@ -61,7 +61,10 @@ jobs:
         run: |
           terraform apply -auto-approve \
             -var="app_version=${{ github.event.inputs.version }}" \
-            -var="playground_domain=codenire.io"
+            -var="playground_domain=codenire.io" \
+            > /dev/null 2>&1
+        env:
+          TF_LOG: "ERROR"
 
       - name: Extract data
         working-directory: ${{ env.CONFIGS_DIR_PATH }}

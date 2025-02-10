@@ -32,4 +32,6 @@ jobs:
         working-directory: ${{ env.CONFIGS_DIR_PATH }}
         if: github.ref == 'refs/heads/main'
         run: |
-          terraform apply -auto-approve
+          run: terraform apply -auto-approve > /dev/null 2>&1
+        env:
+          TF_LOG: "ERROR"

@@ -30,7 +30,7 @@ resource "google_compute_instance" "test_vm" {
 
   tags = [
     "codenire-tag",
-    "codenire-tag-time-${timestamp()}",
+    "codenire-tag-time-${replace(timestamp(), ":", "-")}",
   ]
 }
 
