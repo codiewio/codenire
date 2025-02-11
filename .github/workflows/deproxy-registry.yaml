@@ -1,10 +1,10 @@
 name: Build Deproxy Docker Image
 
 on:
+  release:
+    types:
+      - released
   push:
-    paths:
-      - 'deproxy/**'
-      - '.github/workflows/sandbox-deproxy.yaml'
     branches:
       - main
     tags:

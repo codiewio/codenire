@@ -1,10 +1,10 @@
 name: Build Sandbox Docker Image
 
 on:
+  release:
+    types:
+      - released
   push:
-    paths:
-      - 'sandbox/**'
-      - '.github/workflows/sandbox-registry.yaml'
     tags:
       - 'v*.*.*'
 
