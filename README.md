@@ -34,19 +34,7 @@ Inspired by:
 
    <details><summary>Why need isolation</summary>
     <p>
-    It might be convenient to keep your Firecracker-related GCP resources in
-    a separate project, so that you can keep track of resources more easily
-    and remove everything easily once your are done.
-
-For convenience, give the project a unique name (e.g.,
-your_name-firecracker), so that GCP does not need to create a project id
-different than project name (by appending randomized numbers to the name you
-provide).
-
-   ```console
-   $ gcloud projects create ${FC_PROJECT} --enable-cloud-apis --set-as-default
-   ```
-
+    // TODO::
    </p>
     </details>
 
