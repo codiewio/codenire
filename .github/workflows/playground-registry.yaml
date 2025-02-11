@@ -12,8 +12,6 @@ on:
     tags:
       - 'v*.*.*'
 
-  workflow_dispatch:
-
 jobs:
   build-docker:
     runs-on: ubuntu-latest
