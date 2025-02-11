@@ -30,7 +30,7 @@ But created for more extensible
 - (in working) Dependency Management: Automatic handling of project dependencies (pip, go mod, npm).
 - Flexible Execution: Custom entrypoints for both single-file code and full projects.
 - Scalable System: Expandable via a load balancer between a playground and a sandbox.
-- JWTSecret supports of extend system (Supabase for example)
+- Security: You can accept JWTS signed external system (Supabase JWT Secret Token for example)
 
 
 # 🐙Infrastructure Schema
