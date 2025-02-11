@@ -16,4 +16,6 @@ type Config struct {
 	GracefulRequestCompletionTimeout time.Duration
 	ShutdownTimeout                  time.Duration
 	ThrottleLimit                    int
+	JWTSecretKey                     string
+	Dev                              bool
 }

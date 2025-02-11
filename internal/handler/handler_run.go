@@ -209,7 +209,10 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendURL string) 
 	sreq.GetBody = func() (io.ReadCloser, error) { return io.NopCloser(bytes.NewBuffer(jsonData)), nil }
 	resp, err := client.SandboxBackendClient().Do(sreq)
 	if err != nil {
-		return nil, fmt.Errorf("sandbox client request error: %w", err)
+		sandboxErr := fmt.Errorf("sandbox client request error: %w", err)
+		log.Printf("got error from sandbox: %s", sandboxErr.Error())
+
+		return nil, sandboxErr
 	}
 	defer func() {
 		_ = resp.Body.Close()

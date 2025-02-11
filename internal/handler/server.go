@@ -5,6 +5,7 @@
 package handler
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -13,15 +14,20 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httprate"
+	"github.com/go-chi/jwtauth/v5"
 	"go.opencensus.io/plugin/ochttp"
 )
 
 var log = newStdLogger()
 
+var JWTAuth *jwtauth.JWTAuth
+
 func NewServer(config *Config) (*http.Server, error) {
 	handler := Handler{
 		Config: config,
 	}
+
+	JWTAuth = jwtauth.New("HS256", []byte(config.JWTSecretKey), nil)
 
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
@@ -37,11 +43,28 @@ func NewServer(config *Config) (*http.Server, error) {
 			time.Second*60,
 		))
 
-		r.Get("/run", handler.RunFilesHandler) // To avoid file-server handling
-		r.Post("/run", handler.RunFilesHandler)
+		r.Group(func(in chi.Router) {
+			if config.JWTSecretKey != "" {
 
-		r.Get("/run-script", handler.RunScriptHandler) // To avoid file-server handling
-		r.Post("/run-script", handler.RunScriptHandler)
+				// For debugging/example purposes, we generate and print in `--dev` mode
+				// a sample jwt token with claims `user_id:123` here:
+				if config.Dev {
+					_, tokenString, _ := JWTAuth.Encode(map[string]interface{}{"user_id": 123})
+					fmt.Printf("DEBUG: a sample jwt is %s\n\n", tokenString)
+				}
+
+				in.Use(jwtauth.Verifier(JWTAuth))
+				in.Use(jwtauth.Authenticator(JWTAuth))
+
+				log.Printf("Enabled JWT handling")
+			}
+
+			in.Get("/run", handler.RunFilesHandler) // To avoid file-server handling
+			in.Post("/run", handler.RunFilesHandler)
+
+			in.Get("/run-script", handler.RunScriptHandler) // To avoid file-server handling
+			in.Post("/run-script", handler.RunScriptHandler)
+		})
 
 		r.Group(func(r chi.Router) {
 			r.Get("/actions", handler.ActionListHandler)
