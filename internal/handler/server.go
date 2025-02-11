@@ -45,7 +45,6 @@ func NewServer(config *Config) (*http.Server, error) {
 
 		r.Group(func(in chi.Router) {
 			if config.JWTSecretKey != "" {
-
 				// For debugging/example purposes, we generate and print in `--dev` mode
 				// a sample jwt token with claims `user_id:123` here:
 				if config.Dev {
