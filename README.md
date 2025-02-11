@@ -32,6 +32,23 @@ But created for more extensible
 - Scalable System: Expandable via a load balancer between a playground and a sandbox.
 - Security: You can accept JWTS signed external system (Supabase JWT Secret Token for example)
 
+<details><summary>Languages</summary>
+<div>
+  <p>PHP 8.3</p>
+  <p>PHP 8.4</p>
+  <p>Python 3.12</p>
+  <p>Python 2.7</p>
+  <p>C++23</p>
+  <p>C++20</p>
+  <p>C++17</p>
+  <p>C++14</p>
+  <p>C++11</p>
+  <p>Golang 1.23.6</p>
+  <p>Rust 1.84</p>
+  <p>Rust 1.84 (with Cargo)</p>
+  <p>Typescript 5.7 (with built-in tsconfig.json if you not provide)</p>
+</div>
+</details>
 
 # 🐙Infrastructure Schema
 
