@@ -29,6 +29,23 @@ Inspired by:
 - Flexible Execution: Custom entrypoints for both single-file code and full projects
 - Scalable System: Expandable via a load balancer between a playground and a sandbox.
 
+<details><summary>Languages</summary>
+<div>
+  <p>PHP 8.3</p>
+  <p>PHP 8.4</p>
+  <p>Python 3.12</p>
+  <p>Python 2.7</p>
+  <p>C++23</p>
+  <p>C++20</p>
+  <p>C++17</p>
+  <p>C++14</p>
+  <p>C++11</p>
+  <p>Golang 1.23.6</p>
+  <p>Rust 1.84</p>
+  <p>Rust 1.84 (with Cargo)</p>
+  <p>Typescript 5.7 (with built-in tsconfig.json if you not provide)</p>
+</div>
+</details>
 
 # 🐙Infrastructure Schema
 
