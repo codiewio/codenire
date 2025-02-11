@@ -10,6 +10,8 @@ Inspired by:
 - Judje0 Playground: https://github.com/judge0/judge0
 - Google Playground: https://github.com/golang/playground
 
+But created for more extensible  
+
 
 
 <a href="https://codiew.io" target="_blank">
