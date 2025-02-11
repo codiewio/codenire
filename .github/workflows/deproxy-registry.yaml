@@ -5,8 +5,6 @@ on:
     types:
       - released
   push:
-    branches:
-      - main
     tags:
       - 'v*.*.*'
 
