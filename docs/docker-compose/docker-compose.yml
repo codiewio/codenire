@@ -8,12 +8,10 @@ services:
     restart: always
     environment:
       ALLOW_HOSTS: "" # format "domain1.com,domain2.com"
-#      ALLOW_HOSTS: "__YOUR_S3_HOST_DOMAIN_PREFIX__" # .digitalocean.com for example
     ports:
       - "3128:3128"
     networks:
       - isolated_net
-
 
   playground:
     container_name: play_dev
@@ -32,7 +30,6 @@ services:
       "/playground",
       "--backend-url", "http://sandbox_dev",
       "--port", "8081",
-#      "--hooks-plugins", "/plugin", # TODO:: describe feature
       "--external-templates", "go,go-prev",
     ]
 
@@ -52,9 +49,6 @@ services:
     environment:
       HTTP_PROXY: "http://deproxy_dev:3128"
       HTTPS_PROXY: "http://deproxy_dev:3128"
-#      AWS_ACCESS_KEY_ID: "__AWS_SECRET_KEY_ID__"
-#      AWS_SECRET_ACCESS_KEY: "__AWS_SECRET_ACCESS_KEY__"
-#      AWS_REGION: "__YOUR_AWS_REGION__"
     entrypoint: [
       "/usr/local/bin/sandbox",
       "--replicaContainerCnt", "1",
@@ -63,13 +57,8 @@ services:
       "--isolatedNetwork", "codenire_isolated_net", # network name has prefix (codenire_)
       "--isolatedGateway", "http://deproxy_dev:3128",
 
-#     # First variant
+#     # Opt-in images in /sandbox/dockerfiles dir, you can mount own files, just add volume and map here
       "--dockerFilesPath", "/dockerfiles",
-
-#      # Second variant
-#      "--s3DockerfilesEndpoint", "__YOUR_S3_HOST__",
-#      "--s3DockerfilesBucket", "__YOUR_S3_BUCKET__",
-#      "--s3DockerfilesPrefix", "__YOUR_DIR_IN_S3_BUCKET__",
     ]
 
 networks:

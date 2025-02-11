@@ -14,7 +14,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/docker/docker/api/types/network"
 	"log"
 	"os"
 	"path/filepath"
@@ -26,6 +25,7 @@ import (
 	"github.com/alitto/pond/v2"
 	"github.com/docker/docker/api/types"
 	docker "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 
 	contract "sandbox/api/gen"
