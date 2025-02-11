@@ -25,11 +25,12 @@ But created for more extensible
 # 🌟Features
 
 - Multi-Language Support: Run Python, Go, PHP and Node.js or your built code with others configurations and versions what you can think, in isolated Docker containers.
-- Multi-Files Support: Run code that consists of multiple files
+- Multi-Files Support: Run code that consists of multiple files.
 - Easy extensible: You can create your own build to run code via API or by loading a folder with configurations at startup.
-- (in working) Dependency Management: Automatic handling of project dependencies (pip, go mod, npm)
-- Flexible Execution: Custom entrypoints for both single-file code and full projects
+- (in working) Dependency Management: Automatic handling of project dependencies (pip, go mod, npm).
+- Flexible Execution: Custom entrypoints for both single-file code and full projects.
 - Scalable System: Expandable via a load balancer between a playground and a sandbox.
+- JWTSecret supports of extend system (Supabase for example)
 
 
 # 🐙Infrastructure Schema
