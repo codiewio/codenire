@@ -55,6 +55,8 @@ var (
 	FileHooksDir      = flag.String("hooks-dir", "", "Directory to search for available hooks scripts")
 	ExternalTemplates = flag.String("external-templates", "", "Comma separated list of templates which will handled externally (plugin for example)")
 	ThrottleLimit     = flag.Int("throttle-limit", 15, "currently processed requests at a time across all users")
+	JWTSecretKey      = flag.String("jwt-secret-key", "", "secret key to enable authentication")
+	dev               = flag.Bool("dev", false, "run in dev mode")
 )
 
 func main() {
@@ -74,6 +76,8 @@ func main() {
 		GracefulRequestCompletionTimeout: 10 * time.Second,
 		ShutdownTimeout:                  10 * time.Second,
 		ThrottleLimit:                    *ThrottleLimit,
+		JWTSecretKey:                     *JWTSecretKey,
+		Dev:                              *dev,
 	}
 
 	hookHandler := getHookHandler(&cfg)
