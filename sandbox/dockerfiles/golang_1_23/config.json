@@ -13,7 +13,7 @@
     "default": {
       "Id": "golang1.23",
       "Name": "Golang 1.23",
-      "CompileCmd": "go build -o main .",
+      "CompileCmd": "GOROOT=/usr/local/go GOCACHE=/gocache GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GO111MODULE=on go build -o main -modcacherw -mod=mod .",
       "RunCmd": "./main {ARGS} < {STDIN}",
       "ScriptOptions": {
         "SourceFile": "main.go"
