@@ -49,7 +49,7 @@ func NewServer(config *Config) (*http.Server, error) {
 	})
 
 	filesDir := http.Dir("/static")
-	//FileServer(router, "/", filesDir)
+	// FileServer(router, "/", filesDir)
 	FileServer(router, "/blbllblblb", filesDir)
 
 	return &http.Server{
