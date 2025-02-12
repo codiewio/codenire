@@ -23,6 +23,7 @@ ARG TARGETARCH
 
 RUN set -xe \
 	&& GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 \
+    -ldflags="-X main.VersionName=${GIT_VERSION} -X main.GitCommit=${GIT_COMMIT} -X main.BuildDate=$(date --utc)" \
     go build \
     -tags prod \
     -o ./bin/playground .

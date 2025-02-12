@@ -63,6 +63,8 @@ func main() {
 	flag.Parse()
 	log.Printf("Use backend URL on :%s ...", *backendURL)
 
+	ShowVersion()
+
 	if err := waitForSandbox(10, 3*time.Second); err != nil {
 		log.Println(err)
 		return
