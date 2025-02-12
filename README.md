@@ -33,7 +33,7 @@ But created for more extensible
 - Security: You can accept JWTS signed external system (Supabase JWT Secret Token for example)
 - PostgresQL support
 
-<details><summary>Languages</summary>
+<details><summary>Languages (updating...)</summary>
 <div>
   <p>🔥🔥🔥 PostgresQL</p>
   <p>PHP 8.3</p>
