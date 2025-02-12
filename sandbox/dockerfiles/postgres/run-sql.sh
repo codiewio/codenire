@@ -2,6 +2,7 @@
 set -e
 
 for file in /app/*.sql; do
-  echo "$file"
-  psql -f "$file"
+  psql \
+    -c "\pset format wrapped" \
+    -f "$file"
 done

@@ -1,6 +1,7 @@
 {
   "Template": "postgres",
   "Groups": ["postgres"],
+  "Workdir": "/app",
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5
@@ -12,7 +13,7 @@
       "Id": "pg",
       "Name": "PostgresQL (16)",
       "CompileCmd": "",
-      "RunCmd": "/app/run-sql.sh",
+      "RunCmd": "/run/run-sql.sh",
       "ScriptOptions": {
         "SourceFile": "script.sql"
       }
