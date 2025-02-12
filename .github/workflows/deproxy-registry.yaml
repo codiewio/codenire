@@ -1,9 +1,6 @@
 name: Build Deproxy Docker Image
 
 on:
-  release:
-    types:
-      - released
   push:
     tags:
       - 'v*.*.*'

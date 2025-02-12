@@ -70,7 +70,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	tmpDir, err := os.MkdirTemp("", "tmp_sandbox")
 	if err != nil {
-		http.Error(w, "create tmp dir failed", http.StatusInternalServerError)
+		http.Error(w, "createDB tmp dir failed", http.StatusInternalServerError)
 		return
 	}
 	defer os.RemoveAll(tmpDir)

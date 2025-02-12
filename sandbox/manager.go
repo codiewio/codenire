@@ -32,6 +32,7 @@ import (
 	"sandbox/internal"
 )
 
+const postgresTemplate = "postgres"
 const imageTagPrefix = "codenire_play/"
 const codenireConfigName = "config.json"
 const defaultMemoryLimit = 100 << 20
@@ -40,6 +41,7 @@ type StartedContainer struct {
 	CId    string
 	Image  BuiltImage
 	TmpDir string
+	DBName string
 }
 
 type BuiltImage struct {
@@ -51,7 +53,7 @@ type BuiltImage struct {
 	buf bytes.Buffer
 }
 
-type ContainerManager interface {
+type ContainerOrchestrator interface {
 	Prepare() error
 	Boot() error
 	GetTemplates() []BuiltImage
@@ -60,7 +62,7 @@ type ContainerManager interface {
 	KillContainer(StartedContainer) error
 }
 
-type CodenireManager struct {
+type CodenireOrchestrator struct {
 	sync.Mutex
 	numSysWorkers int
 
@@ -75,15 +77,15 @@ type CodenireManager struct {
 	dockerFilesPath string
 }
 
-func NewCodenireManager() *CodenireManager {
+func NewCodenireOrchestrator() *CodenireOrchestrator {
 	c, err := client.NewClientWithOpts(client.WithVersion("1.41"))
 	if err != nil {
-		panic("fail on create docker client")
+		panic("fail on createDB docker client")
 	}
 
 	log.Printf("using Docker client version: %s", c.ClientVersion())
 
-	return &CodenireManager{
+	return &CodenireOrchestrator{
 		dockerClient:        c,
 		imageContainers:     make(map[string]chan StartedContainer),
 		numSysWorkers:       runtime.NumCPU(),
@@ -93,7 +95,7 @@ func NewCodenireManager() *CodenireManager {
 	}
 }
 
-func (m *CodenireManager) Prepare() error {
+func (m *CodenireOrchestrator) Prepare() error {
 	templates := parseConfigFiles(m.dockerFilesPath)
 
 	for _, t := range templates {
@@ -107,7 +109,7 @@ func (m *CodenireManager) Prepare() error {
 	return nil
 }
 
-func (m *CodenireManager) Boot() (err error) {
+func (m *CodenireOrchestrator) Boot() (err error) {
 	pool := pond.NewPool(m.numSysWorkers)
 	for idx, img := range m.imgs {
 		pool.Submit(func() {
@@ -126,11 +128,11 @@ func (m *CodenireManager) Boot() (err error) {
 	return nil
 }
 
-func (m *CodenireManager) GetTemplates() []BuiltImage {
+func (m *CodenireOrchestrator) GetTemplates() []BuiltImage {
 	return m.imgs
 }
 
-func (m *CodenireManager) GetContainer(ctx context.Context, id string) (*StartedContainer, error) {
+func (m *CodenireOrchestrator) GetContainer(ctx context.Context, id string) (*StartedContainer, error) {
 	select {
 	case c := <-m.getContainer(id):
 		return &c, nil
@@ -139,7 +141,7 @@ func (m *CodenireManager) GetContainer(ctx context.Context, id string) (*Started
 	}
 }
 
-func (m *CodenireManager) KillAll() {
+func (m *CodenireOrchestrator) KillAll() {
 	m.Lock()
 	defer m.Unlock()
 
@@ -186,7 +188,12 @@ func (m *CodenireManager) KillAll() {
 	log.Println("Killed all images")
 }
 
-func (m *CodenireManager) KillContainer(c StartedContainer) (err error) {
+func (m *CodenireOrchestrator) KillContainer(c StartedContainer) (err error) {
+	defer func() {
+		log.Printf("Kill container call")
+		m.removeSandboxDB(c.DBName)
+	}()
+
 	timeout := 0
 	err = m.dockerClient.ContainerStop(context.Background(), c.CId, docker.StopOptions{
 		Timeout: &timeout,
@@ -198,7 +205,7 @@ func (m *CodenireManager) KillContainer(c StartedContainer) (err error) {
 	return nil
 }
 
-func (m *CodenireManager) prebuildImages(cfg contract.ImageConfig, root string) error {
+func (m *CodenireOrchestrator) prebuildImages(cfg contract.ImageConfig, root string) error {
 	tag := fmt.Sprintf("%s%s", imageTagPrefix, cfg.Template)
 
 	buf, err := internal.DirToTar(filepath.Join(root, cfg.Template))
@@ -221,7 +228,7 @@ func (m *CodenireManager) prebuildImages(cfg contract.ImageConfig, root string) 
 	return nil
 }
 
-func (m *CodenireManager) buildImage(i BuiltImage, idx int) error {
+func (m *CodenireOrchestrator) buildImage(i BuiltImage, idx int) error {
 	buildOptions := types.ImageBuildOptions{
 		Dockerfile:     "Dockerfile",
 		Tags:           []string{i.tag},
@@ -257,17 +264,47 @@ func (m *CodenireManager) buildImage(i BuiltImage, idx int) error {
 	return nil
 }
 
-func (m *CodenireManager) runSndContainer(img BuiltImage) (cont *StartedContainer, err error) {
+func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedContainer, err error) {
 	ctx := context.Background()
 
 	networkMode := network.NetworkNone
 	var networkEnvs []string
-
 	if img.IsSupportPackage {
 		networkMode = *isolatedNetwork
-		networkEnvs = []string{
+		networkEnvs = append(
+			networkEnvs,
 			fmt.Sprintf("HTTP_PROXY=%s", *isolatedGateway),
 			fmt.Sprintf("HTTPS_PROXY=%s", *isolatedGateway),
+		)
+	}
+
+	dbName := ""
+	if isEnabledPostgres(img) {
+		name := fmt.Sprintf("pgdb_%s", internal.RandHex(8))
+		dbName = name
+		user := fmt.Sprintf("pguser_%s", internal.RandHex(8))
+		password := fmt.Sprintf("pgpassword_%s", internal.RandHex(8))
+
+		pgErr := createDB(*isolatedPostgresDSN, name, user, password)
+		defer func() {
+			if err != nil {
+				m.removeSandboxDB(name)
+			}
+		}()
+		if pgErr != nil {
+			return nil, pgErr
+		}
+
+		networkEnvs = append(
+			networkEnvs,
+			fmt.Sprintf("PGHOST=%s", "postgres"),
+			fmt.Sprintf("PGDATABASE=%s", name),
+			fmt.Sprintf("PGUSER=%s", user),
+			fmt.Sprintf("PGPASSWORD=%s", password),
+		)
+
+		if docker.NetworkMode(networkMode).IsNone() {
+			networkMode = *isolatedPostgresNetwork
 		}
 	}
 
@@ -306,13 +343,30 @@ func (m *CodenireManager) runSndContainer(img BuiltImage) (cont *StartedContaine
 		return nil, fmt.Errorf("create container failed: %w", err)
 	}
 
+	// External connect when networkMode already set up and networkMode not isolatedPostgresNetwork
+	if !hostConfig.NetworkMode.IsNone() &&
+		isEnabledPostgres(img) &&
+		networkMode != *isolatedPostgresNetwork {
+		err = m.dockerClient.NetworkConnect(ctx, *isolatedPostgresNetwork, containerResp.ID, &network.EndpointSettings{})
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &StartedContainer{
-		CId:   containerResp.ID,
-		Image: img,
+		CId:    containerResp.ID,
+		Image:  img,
+		DBName: dbName,
 	}, nil
 }
 
-func (m *CodenireManager) startContainers() {
+func isEnabledPostgres(img BuiltImage) bool {
+	return *isolatedPostgresDSN != "" &&
+		*isolatedPostgresNetwork != "" &&
+		img.Template == postgresTemplate
+}
+
+func (m *CodenireOrchestrator) startContainers() {
 	var ii []string
 	for _, img := range m.imgs {
 		ii = append(ii, img.Template)
@@ -329,6 +383,7 @@ func (m *CodenireManager) startContainers() {
 
 					c, err := m.runSndContainer(img)
 					if err != nil {
+						log.Printf("[DEBUG] Run container error: %s", err.Error())
 						time.Sleep(10 * time.Second)
 						continue
 					}
@@ -340,7 +395,7 @@ func (m *CodenireManager) startContainers() {
 	}
 }
 
-func (m *CodenireManager) getContainer(template string) chan StartedContainer {
+func (m *CodenireOrchestrator) getContainer(template string) chan StartedContainer {
 	m.Lock()
 	defer m.Unlock()
 
@@ -351,12 +406,19 @@ func (m *CodenireManager) getContainer(template string) chan StartedContainer {
 	return m.imageContainers[template]
 }
 
-func (m *CodenireManager) runtime() string {
+func (m *CodenireOrchestrator) runtime() string {
 	if m.isolated {
 		return "runsc"
 	}
 
 	return ""
+}
+
+func (m *CodenireOrchestrator) removeSandboxDB(dbname string) {
+	if *isolatedPostgresDSN != "" && dbname != "" {
+		// TODO:: handle it and cover by prometheus
+		_ = dropDB(*isolatedPostgresDSN, dbname)
+	}
 }
 
 func stripImageName(imgName string) string {

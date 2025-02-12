@@ -1,9 +1,6 @@
 name: Build Playground Docker Image
 
 on:
-  release:
-    types:
-      - released
   push:
     tags:
       - 'v*.*.*'
