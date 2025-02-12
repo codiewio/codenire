@@ -1,0 +1,21 @@
+{
+  "Template": "postgres",
+  "Groups": ["postgres"],
+  "ContainerOptions": {
+    "CompileTTL": 30,
+    "RunTTL": 5
+  },
+  "IsSupportPackage": false,
+
+  "Actions": {
+    "default": {
+      "Id": "pg",
+      "Name": "PostgresQL (16)",
+      "CompileCmd": "",
+      "RunCmd": "/app/run-sql.sh",
+      "ScriptOptions": {
+        "SourceFile": "script.sql"
+      }
+    }
+  }
+}
