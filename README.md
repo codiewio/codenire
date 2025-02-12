@@ -31,9 +31,11 @@ But created for more extensible
 - Flexible Execution: Custom entrypoints for both single-file code and full projects.
 - Scalable System: Expandable via a load balancer between a playground and a sandbox.
 - Security: You can accept JWTS signed external system (Supabase JWT Secret Token for example)
+- PostgresQL support
 
 <details><summary>Languages</summary>
 <div>
+  <p>🔥🔥🔥 PostgresQL</p>
   <p>PHP 8.3</p>
   <p>PHP 8.4</p>
   <p>Python 3.12</p>
