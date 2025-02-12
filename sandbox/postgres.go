@@ -11,8 +11,8 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
-func createDB(DSN string, dbName, userName, userPassword string) error {
-	conn, err := pgx.Connect(context.Background(), DSN)
+func createDB(dsn string, dbName, userName, userPassword string) error {
+	conn, err := pgx.Connect(context.Background(), dsn)
 	if err != nil {
 		return fmt.Errorf("error connecting to the database: %w", err)
 	}
@@ -37,7 +37,7 @@ func createDB(DSN string, dbName, userName, userPassword string) error {
 
 	// in new db create access
 
-	newDSN := strings.Replace(DSN, "/postgres", "/"+dbName, 1)
+	newDSN := strings.Replace(dsn, "/postgres", "/"+dbName, 1)
 
 	newConn, err := pgx.Connect(context.Background(), newDSN)
 	if err != nil {
@@ -66,8 +66,8 @@ func createDB(DSN string, dbName, userName, userPassword string) error {
 	return nil
 }
 
-func dropDB(DSN, dbName string) error {
-	conn, err := pgx.Connect(context.Background(), DSN)
+func dropDB(dsn, dbName string) error {
+	conn, err := pgx.Connect(context.Background(), dsn)
 	if err != nil {
 		return fmt.Errorf("error connecting to the database: %w", err)
 	}

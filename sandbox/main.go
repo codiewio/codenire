@@ -121,14 +121,14 @@ func main() {
 		Handler:           &ochttp.Handler{Handler: h},
 
 		// TODO:: check connections
-		//ConnState: func(_ net.Conn, cs http.ConnState) {
+		// ConnState: func(_ net.Conn, cs http.ConnState) {
 		//	switch cs {
 		//	case http.StateNew:
 		//		MetricsOpenConnections.Inc()
 		//	case http.StateClosed, http.StateHijacked:
 		//		MetricsOpenConnections.Dec()
 		//	}
-		//},
+		// },
 	}
 
 	err = codenireManager.Prepare()
