@@ -11,7 +11,7 @@ jobs:
     env:
       IMAGE_USERNAME: codiew
       IMAGE_NAME: codiew/codenire-sandbox_db
-      WORKDIR: ./sandbox_db
+      WORKDIR: ./sandbox_db/pg
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
