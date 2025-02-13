@@ -2,6 +2,8 @@
   "Template": "golang_1_23",
   "Groups": ["go"],
   "Workdir": "/app",
+  "Enabled": true,
+  "Connections": ["postgres"],
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5,

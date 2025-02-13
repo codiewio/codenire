@@ -342,6 +342,17 @@
           "Template": {
             "type": "string"
           },
+          "Enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "Connections": {
+            "type": "array",
+            "description": "Databases. Currently available only ['postgres']",
+            "items": {
+              "type": "string"
+            }
+          },
           "Groups": {
             "type": "array",
             "items": {
@@ -368,11 +379,13 @@
         "required": [
           "Template",
           "Groups",
+          "Enabled",
           "ContainerOptions",
           "Version",
           "Workdir",
           "Provider",
-          "IsSupportPackage"
+          "IsSupportPackage",
+          "Connections"
         ]
       },
       "ImageActionConfig": {

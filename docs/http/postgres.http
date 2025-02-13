@@ -1,0 +1,12 @@
+
+### PostgresQL
+POST {{url}}/run-script
+Content-Type: application/json
+
+{
+  "templateId": "postgres",
+  "code": "CREATE TABLE categories\n(\n    id   SERIAL PRIMARY KEY,\n    name TEXT NOT NULL\n);\n\nCREATE TABLE products\n(\n    id          SERIAL PRIMARY KEY,\n    price       NUMERIC(10, 2) NOT NULL,\n    category_id INT            NOT NULL REFERENCES categories (id) ON DELETE CASCADE\n);\n\nINSERT INTO categories (name)\nVALUES ('Electronics'),\n       ('Clothing'),\n       ('Books'),\n       ('Home & Kitchen'),\n       ('Toys'),\n       ('Beauty'),\n       ('Sports'),\n       ('Automotive'),\n       ('Jewelry'),\n       ('Garden');\n\nINSERT INTO products (price, category_id)\nVALUES (199.99, 1),\n       (99.99, 1),\n       (49.99, 1),  -- Electronics\n       (29.99, 2),\n       (19.99, 2),\n       (39.99, 2),  -- Clothing\n       (10.99, 3),\n       (15.99, 3),  -- Books\n       (99.99, 4),\n       (79.99, 4),\n       (69.99, 4),  -- Home & Kitchen\n       (24.99, 5),\n       (34.99, 5),  -- Toys\n       (9.99, 6),\n       (14.99, 6),  -- Beauty\n       (59.99, 7),\n       (89.99, 7),  -- Sports\n       (199.99, 8),\n       (179.99, 8), -- Automotive\n       (499.99, 9),\n       (799.99, 9), -- Jewelry\n       (49.99, 10),\n       (69.99, 10); -- Garden\n\nSELECT c.id, c.name, SUM(p.price) AS total_price\nFROM categories c\n         JOIN products p ON c.id = p.category_id\nGROUP BY c.id, c.name\nORDER BY total_price DESC\nLIMIT 1;\n\nSELECT c.id, c.name, SUM(p.price) AS total_price\nFROM categories c\n         JOIN products p ON c.id = p.category_id\nGROUP BY c.id, c.name\nORDER BY total_price DESC\nLIMIT 1;\n",
+  "stdin": "123",
+  "externalOptions": {
+  }
+}

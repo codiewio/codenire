@@ -1,6 +1,8 @@
 {
   "Template": "php83",
   "Labels": ["php"],
+  "Enabled": true,
+  "Connections": ["postgres"],
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5

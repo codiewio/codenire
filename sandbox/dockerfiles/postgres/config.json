@@ -2,6 +2,8 @@
   "Template": "postgres",
   "Groups": ["postgres"],
   "Workdir": "/app",
+  "Enabled": true,
+  "Connections": ["postgres"],
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5

@@ -32,7 +32,7 @@ import (
 	"sandbox/internal"
 )
 
-const postgresTemplate = "postgres"
+const postgresConfigConnection = "postgres"
 const imageTagPrefix = "codenire_play/"
 const codenireConfigName = "config.json"
 const defaultMemoryLimit = 100 << 20
@@ -99,7 +99,7 @@ func (m *CodenireOrchestrator) Prepare() error {
 	templates := parseConfigFiles(m.dockerFilesPath)
 
 	for _, t := range templates {
-		err := m.prebuildImages(t, m.dockerFilesPath)
+		err := m.prebuildImage(t, m.dockerFilesPath)
 		if err != nil {
 			log.Println("Build of template failed", "[Template]", t.Template, "[err]", err)
 			continue
@@ -205,7 +205,10 @@ func (m *CodenireOrchestrator) KillContainer(c StartedContainer) (err error) {
 	return nil
 }
 
-func (m *CodenireOrchestrator) prebuildImages(cfg contract.ImageConfig, root string) error {
+func (m *CodenireOrchestrator) prebuildImage(cfg contract.ImageConfig, root string) error {
+	if !cfg.Enabled {
+		return nil
+	}
 	tag := fmt.Sprintf("%s%s", imageTagPrefix, cfg.Template)
 
 	buf, err := internal.DirToTar(filepath.Join(root, cfg.Template))
@@ -279,7 +282,7 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 	}
 
 	dbName := ""
-	if isEnabledPostgres(img) {
+	if isPostgresConnected(img) {
 		name := fmt.Sprintf("pgdb_%s", internal.RandHex(8))
 		dbName = name
 		user := fmt.Sprintf("pguser_%s", internal.RandHex(8))
@@ -345,7 +348,7 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 
 	// External connect when networkMode already set up and networkMode not isolatedPostgresNetwork
 	if !hostConfig.NetworkMode.IsNone() &&
-		isEnabledPostgres(img) &&
+		isPostgresConnected(img) &&
 		networkMode != *isolatedPostgresNetwork {
 		err = m.dockerClient.NetworkConnect(ctx, *isolatedPostgresNetwork, containerResp.ID, &network.EndpointSettings{})
 		if err != nil {
@@ -360,10 +363,17 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 	}, nil
 }
 
-func isEnabledPostgres(img BuiltImage) bool {
+func isPostgresConnected(img BuiltImage) bool {
+	pgConnected := false
+	for _, c := range img.Connections {
+		if c == postgresConfigConnection {
+			pgConnected = true
+		}
+	}
+
 	return *isolatedPostgresDSN != "" &&
 		*isolatedPostgresNetwork != "" &&
-		img.Template == postgresTemplate
+		pgConnected
 }
 
 func (m *CodenireOrchestrator) startContainers() {
@@ -489,11 +499,18 @@ func parseConfigFiles(root string) []contract.ImageConfig {
 			_, defaultExists := config.Actions[DefaultActionName]
 			var first *contract.ImageActionConfig
 
-			for _, actionConfig := range config.Actions {
+			for n, actionConfig := range config.Actions {
 				if first == nil {
 					first = &actionConfig
 				}
 
+				// Handle defaults enable commands
+				if actionConfig.EnableExternalCommands == "" {
+					actionConfig.EnableExternalCommands = ExternalCommandsModeAll
+					config.Actions[n] = actionConfig
+				}
+
+				// Handle default action
 				if actionConfig.IsDefault && !defaultExists {
 					defaultExists = true
 					actionConfig.IsDefault = true
@@ -510,15 +527,6 @@ func parseConfigFiles(root string) []contract.ImageConfig {
 			if !defaultExists {
 				log.Printf("There aren't default action for %s", config.Template)
 				continue
-			}
-		}
-
-		{
-			for n, actionConfig := range config.Actions {
-				if actionConfig.EnableExternalCommands == "" {
-					actionConfig.EnableExternalCommands = ExternalCommandsModeAll
-					config.Actions[n] = actionConfig
-				}
 			}
 		}
 

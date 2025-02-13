@@ -1,6 +1,8 @@
 {
   "Template": "cpp",
   "Groups": ["cpp"],
+  "Enabled": true,
+  "Connections": ["postgres"],
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5
