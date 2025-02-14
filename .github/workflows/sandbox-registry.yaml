@@ -2,13 +2,8 @@ name: Build Sandbox Docker Image
 
 on:
   push:
-    paths:
-      - 'sandbox/**'
-      - '.github/workflows/sandbox-registry.yaml'
     tags:
       - 'v*.*.*'
-
-  workflow_dispatch:
 
 jobs:
   build-docker:

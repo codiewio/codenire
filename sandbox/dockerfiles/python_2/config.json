@@ -1,11 +1,13 @@
 {
   "Template": "python_2",
   "Groups": [],
+  "Enabled": true,
+  "Connections": ["postgres"],
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5
   },
-
+  "IsSupportPackage": true,
 
   "Actions": {
     "default": {

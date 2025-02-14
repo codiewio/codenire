@@ -278,6 +278,14 @@ components:
       properties:
         Template:
           type: string
+        Enabled:
+          type: boolean
+          default: true
+        Connections:
+          type: array
+          description: Databases. Currently available only ['postgres']
+          items:
+            type: string
         Groups:
           type: array
           items:
@@ -291,13 +299,19 @@ components:
         # Configuration provider (built-in, api, external)
         Provider:
           type: string
+        IsSupportPackage:
+          type: boolean
+          default: false
       required:
         - Template
         - Groups
+        - Enabled
         - ContainerOptions
         - Version
         - Workdir
         - Provider
+        - IsSupportPackage
+        - Connections
 
     ImageActionConfig:
       type: object

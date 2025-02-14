@@ -1,11 +1,13 @@
 {
   "Template": "typescript_5_7",
   "Groups": [],
+  "Enabled": true,
+  "Connections": ["postgres"],
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5
   },
-
+  "IsSupportPackage": true,
 
   "Actions": {
     "default": {

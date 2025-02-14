@@ -1,4 +1,4 @@
-name: Build Playground Docker Image
+name: Build Postgres Sandbox Docker Image
 
 on:
   push:
@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE_USERNAME: codiew
-      IMAGE_NAME: codiew/codenire-playground
+      IMAGE_NAME: codiew/codenire-sandbox_db
+      WORKDIR: ./sandbox_db/pg
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -44,6 +45,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
+          context: ${{ env.WORKDIR}}
           push: true
           builder: ${{ steps.buildx.outputs.name }}
           tags: ${{ steps.docker_meta.outputs.tags }}

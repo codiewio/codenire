@@ -25,6 +25,7 @@ import (
 	"github.com/alitto/pond/v2"
 	"github.com/docker/docker/api/types"
 	docker "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 
 	"errors"
@@ -32,6 +33,7 @@ import (
 	"sandbox/internal"
 )
 
+const postgresConfigConnection = "postgres"
 const imageTagPrefix = "codenire_play/"
 const codenireConfigName = "config.json"
 const defaultMemoryLimit = 100 << 20
@@ -40,6 +42,7 @@ type StartedContainer struct {
 	CId    string
 	Image  BuiltImage
 	TmpDir string
+	DBName string
 }
 
 type BuiltImage struct {
@@ -51,7 +54,7 @@ type BuiltImage struct {
 	buf bytes.Buffer
 }
 
-type ContainerManager interface {
+type ContainerOrchestrator interface {
 	Prepare() error
 	Boot() error
 	GetTemplates() []BuiltImage
@@ -67,7 +70,7 @@ type Storage interface {
 	DeleteTemplate(id string) error
 }
 
-type CodenireManager struct {
+type CodenireOrchestrator struct {
 	sync.Mutex
 	numSysWorkers int
 
@@ -83,15 +86,15 @@ type CodenireManager struct {
 	storage         Storage
 }
 
-func NewCodenireManager(storage Storage) *CodenireManager {
+func NewCodenireOrchestrator(storage Storage) *CodenireOrchestrator {
 	c, err := client.NewClientWithOpts(client.WithVersion("1.41"))
 	if err != nil {
-		panic("fail on create docker client")
+		panic("fail on createDB docker client")
 	}
 
 	log.Printf("using Docker client version: %s", c.ClientVersion())
 
-	return &CodenireManager{
+	return &CodenireOrchestrator{
 		dockerClient:        c,
 		imageContainers:     make(map[string]chan StartedContainer),
 		numSysWorkers:       runtime.NumCPU(),
@@ -102,7 +105,7 @@ func NewCodenireManager(storage Storage) *CodenireManager {
 	}
 }
 
-func (m *CodenireManager) Prepare() error {
+func (m *CodenireOrchestrator) Prepare() error {
 	loadedTemplates, err := m.storage.LoadTemplates() //loads the template from storage
 	if err == nil && len(loadedTemplates) > 0 {
 		m.imgs = loadedTemplates
@@ -111,7 +114,7 @@ func (m *CodenireManager) Prepare() error {
 	templates := parseConfigFiles(m.dockerFilesPath) //if no templates are loaded from storage, parse the config files
 
 	for _, t := range templates {
-		err := m.prebuildImages(t, m.dockerFilesPath)
+		err := m.prebuildImage(t, m.dockerFilesPath)
 		if err != nil {
 			log.Println("Build of template failed", "[Template]", t.Template, "[err]", err)
 			continue
@@ -121,7 +124,7 @@ func (m *CodenireManager) Prepare() error {
 	return nil
 }
 
-func (m *CodenireManager) Boot() (err error) {
+func (m *CodenireOrchestrator) Boot() (err error) {
 	pool := pond.NewPool(m.numSysWorkers)
 	for idx, img := range m.imgs {
 		pool.Submit(func() {
@@ -140,7 +143,7 @@ func (m *CodenireManager) Boot() (err error) {
 	return nil
 }
 
-func (m *CodenireManager) GetTemplates() []BuiltImage {
+func (m *CodenireOrchestrator) GetTemplates() []BuiltImage {
 	templates, err := m.storage.LoadTemplates()
 	if err != nil {
 		log.Println("Failed to load templates:", err)
@@ -149,7 +152,7 @@ func (m *CodenireManager) GetTemplates() []BuiltImage {
 	return templates //returns empty list on error. hence returns maximum one value ie []BuildImages
 }
 
-func (m *CodenireManager) GetTemplateByID(id string) (*BuiltImage, error) {
+func (m *CodenireOrchestrator) GetTemplateByID(id string) (*BuiltImage, error) {
 	templates, err := m.storage.LoadTemplates()
 	if err != nil {
 		return nil, err
@@ -162,11 +165,11 @@ func (m *CodenireManager) GetTemplateByID(id string) (*BuiltImage, error) {
 	}
 	return nil, errors.New("template not found")
 }
-func (m *CodenireManager) DeleteTemplate(id string) error {
+func (m *CodenireOrchestrator) DeleteTemplate(id string) error {
 	return m.storage.DeleteTemplate(id)
 }
 
-func (m *CodenireManager) GetContainer(ctx context.Context, id string) (*StartedContainer, error) {
+func (m *CodenireOrchestrator) GetContainer(ctx context.Context, id string) (*StartedContainer, error) {
 	select {
 	case c := <-m.getContainer(id):
 		return &c, nil
@@ -175,7 +178,7 @@ func (m *CodenireManager) GetContainer(ctx context.Context, id string) (*Started
 	}
 }
 
-func (m *CodenireManager) AddTemplate(cfg contract.ImageConfig) error {
+func (m *CodenireOrchestrator) AddTemplate(cfg contract.ImageConfig) error {
 	templates, err := m.storage.LoadTemplates()
 	if err != nil {
 		log.Println("Failed to load templates:", err)
@@ -194,7 +197,7 @@ func (m *CodenireManager) AddTemplate(cfg contract.ImageConfig) error {
 
 }
 
-func (m *CodenireManager) runTemplate(id string) (*StartedContainer, error) {
+func (m *CodenireOrchestrator) runTemplate(id string) (*StartedContainer, error) {
 	template, err := m.GetTemplateByID(id)
 	if err != nil {
 		return nil, err
@@ -202,7 +205,7 @@ func (m *CodenireManager) runTemplate(id string) (*StartedContainer, error) {
 	return m.runSndContainer(*template)
 }
 
-func (m *CodenireManager) updateTemplate(id string, newConfig contract.ImageConfig) error {
+func (m *CodenireOrchestrator) updateTemplate(id string, newConfig contract.ImageConfig) error {
 	template, err := m.storage.LoadTemplates()
 	if err != nil {
 		log.Println("Failed to load templates:", err)
@@ -223,7 +226,7 @@ func (m *CodenireManager) updateTemplate(id string, newConfig contract.ImageConf
 	return m.storage.SaveTemplates(template)
 }
 
-func (m *CodenireManager) KillAll() {
+func (m *CodenireOrchestrator) KillAll() {
 	m.Lock()
 	defer m.Unlock()
 
@@ -270,7 +273,12 @@ func (m *CodenireManager) KillAll() {
 	log.Println("Killed all images")
 }
 
-func (m *CodenireManager) KillContainer(c StartedContainer) (err error) {
+func (m *CodenireOrchestrator) KillContainer(c StartedContainer) (err error) {
+	defer func() {
+		log.Printf("Kill container call")
+		m.removeSandboxDB(c.DBName)
+	}()
+
 	timeout := 0
 	err = m.dockerClient.ContainerStop(context.Background(), c.CId, docker.StopOptions{
 		Timeout: &timeout,
@@ -282,7 +290,10 @@ func (m *CodenireManager) KillContainer(c StartedContainer) (err error) {
 	return nil
 }
 
-func (m *CodenireManager) prebuildImages(cfg contract.ImageConfig, root string) error {
+func (m *CodenireOrchestrator) prebuildImage(cfg contract.ImageConfig, root string) error {
+	if !cfg.Enabled {
+		return nil
+	}
 	tag := fmt.Sprintf("%s%s", imageTagPrefix, cfg.Template)
 
 	buf, err := internal.DirToTar(filepath.Join(root, cfg.Template))
@@ -305,7 +316,7 @@ func (m *CodenireManager) prebuildImages(cfg contract.ImageConfig, root string) 
 	return nil
 }
 
-func (m *CodenireManager) buildImage(i BuiltImage, idx int) error {
+func (m *CodenireOrchestrator) buildImage(i BuiltImage, idx int) error {
 	buildOptions := types.ImageBuildOptions{
 		Dockerfile:     "Dockerfile",
 		Tags:           []string{i.tag},
@@ -341,30 +352,67 @@ func (m *CodenireManager) buildImage(i BuiltImage, idx int) error {
 	return nil
 }
 
-func (m *CodenireManager) runSndContainer(img BuiltImage) (cont *StartedContainer, err error) {
+func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedContainer, err error) {
 	ctx := context.Background()
+
+	networkMode := network.NetworkNone
+	var networkEnvs []string
+	if img.IsSupportPackage {
+		networkMode = *isolatedNetwork
+		networkEnvs = append(
+			networkEnvs,
+			fmt.Sprintf("HTTP_PROXY=%s", *isolatedGateway),
+			fmt.Sprintf("HTTPS_PROXY=%s", *isolatedGateway),
+		)
+	}
+
+	dbName := ""
+	if isPostgresConnected(img) {
+		name := fmt.Sprintf("pgdb_%s", internal.RandHex(8))
+		dbName = name
+		user := fmt.Sprintf("pguser_%s", internal.RandHex(8))
+		password := fmt.Sprintf("pgpassword_%s", internal.RandHex(8))
+
+		pgErr := createDB(*isolatedPostgresDSN, name, user, password)
+		defer func() {
+			if err != nil {
+				m.removeSandboxDB(name)
+			}
+		}()
+		if pgErr != nil {
+			return nil, pgErr
+		}
+
+		networkEnvs = append(
+			networkEnvs,
+			fmt.Sprintf("PGHOST=%s", "postgres"),
+			fmt.Sprintf("PGDATABASE=%s", name),
+			fmt.Sprintf("PGUSER=%s", user),
+			fmt.Sprintf("PGPASSWORD=%s", password),
+		)
+
+		if docker.NetworkMode(networkMode).IsNone() {
+			networkMode = *isolatedPostgresNetwork
+		}
+	}
 
 	hostConfig := &docker.HostConfig{
 		Runtime:     m.runtime(),
 		AutoRemove:  true,
-		NetworkMode: docker.NetworkMode(*isolatedNetwork),
+		NetworkMode: docker.NetworkMode(networkMode),
 		Resources: docker.Resources{
 			Memory:     int64(*img.ContainerOptions.MemoryLimit),
 			MemorySwap: 0,
 		},
 	}
-
-	name := stripImageName(*img.imageID)
-	name = fmt.Sprintf("play_run_%s_%s", name, internal.RandHex(8))
-
 	containerConfig := &docker.Config{
 		Image: *img.imageID,
 		Cmd:   []string{"tail", "-f", "/dev/null"},
-		Env: []string{
-			fmt.Sprintf("HTTP_PROXY=%s", *isolatedGateway),
-			fmt.Sprintf("HTTPS_PROXY=%s", *isolatedGateway),
-		},
+		Env:   networkEnvs,
 	}
+
+	name := stripImageName(*img.imageID)
+	name = fmt.Sprintf("play_run_%s_%s", name, internal.RandHex(8))
 
 	containerResp, err := m.dockerClient.ContainerCreate(
 		ctx,
@@ -383,13 +431,37 @@ func (m *CodenireManager) runSndContainer(img BuiltImage) (cont *StartedContaine
 		return nil, fmt.Errorf("create container failed: %w", err)
 	}
 
+	// External connect when networkMode already set up and networkMode not isolatedPostgresNetwork
+	if !hostConfig.NetworkMode.IsNone() &&
+		isPostgresConnected(img) &&
+		networkMode != *isolatedPostgresNetwork {
+		err = m.dockerClient.NetworkConnect(ctx, *isolatedPostgresNetwork, containerResp.ID, &network.EndpointSettings{})
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &StartedContainer{
-		CId:   containerResp.ID,
-		Image: img,
+		CId:    containerResp.ID,
+		Image:  img,
+		DBName: dbName,
 	}, nil
 }
 
-func (m *CodenireManager) startContainers() {
+func isPostgresConnected(img BuiltImage) bool {
+	pgConnected := false
+	for _, c := range img.Connections {
+		if c == postgresConfigConnection {
+			pgConnected = true
+		}
+	}
+
+	return *isolatedPostgresDSN != "" &&
+		*isolatedPostgresNetwork != "" &&
+		pgConnected
+}
+
+func (m *CodenireOrchestrator) startContainers() {
 	var ii []string
 	for _, img := range m.imgs {
 		ii = append(ii, img.Template)
@@ -406,6 +478,7 @@ func (m *CodenireManager) startContainers() {
 
 					c, err := m.runSndContainer(img)
 					if err != nil {
+						log.Printf("[DEBUG] Run container error: %s", err.Error())
 						time.Sleep(10 * time.Second)
 						continue
 					}
@@ -417,7 +490,7 @@ func (m *CodenireManager) startContainers() {
 	}
 }
 
-func (m *CodenireManager) getContainer(template string) chan StartedContainer {
+func (m *CodenireOrchestrator) getContainer(template string) chan StartedContainer {
 	m.Lock()
 	defer m.Unlock()
 
@@ -428,12 +501,19 @@ func (m *CodenireManager) getContainer(template string) chan StartedContainer {
 	return m.imageContainers[template]
 }
 
-func (m *CodenireManager) runtime() string {
+func (m *CodenireOrchestrator) runtime() string {
 	if m.isolated {
 		return "runsc"
 	}
 
 	return ""
+}
+
+func (m *CodenireOrchestrator) removeSandboxDB(dbname string) {
+	if *isolatedPostgresDSN != "" && dbname != "" {
+		// TODO:: handle it and cover by prometheus
+		_ = dropDB(*isolatedPostgresDSN, dbname)
+	}
 }
 
 func stripImageName(imgName string) string {
@@ -501,39 +581,37 @@ func parseConfigFiles(root string) []contract.ImageConfig {
 		}
 
 		{
-			_, defaultExists := config.Actions["default"]
+			_, defaultExists := config.Actions[DefaultActionName]
 			var first *contract.ImageActionConfig
 
-			for _, actionConfig := range config.Actions {
+			for n, actionConfig := range config.Actions {
 				if first == nil {
 					first = &actionConfig
 				}
 
+				// Handle defaults enable commands
+				if actionConfig.EnableExternalCommands == "" {
+					actionConfig.EnableExternalCommands = ExternalCommandsModeAll
+					config.Actions[n] = actionConfig
+				}
+
+				// Handle default action
 				if actionConfig.IsDefault && !defaultExists {
 					defaultExists = true
 					actionConfig.IsDefault = true
-					config.Actions["default"] = actionConfig
+					config.Actions[DefaultActionName] = actionConfig
 					continue
 				}
 			}
 
 			if first != nil && !defaultExists && first.Name != "" {
-				config.Actions["default"] = *first
+				config.Actions[DefaultActionName] = *first
 				defaultExists = true
 			}
 
 			if !defaultExists {
 				log.Printf("There aren't default action for %s", config.Template)
 				continue
-			}
-		}
-
-		{
-			for n, actionConfig := range config.Actions {
-				if actionConfig.EnableExternalCommands == "" {
-					actionConfig.EnableExternalCommands = "all"
-					config.Actions[n] = actionConfig
-				}
 			}
 		}
 
@@ -552,7 +630,7 @@ func removeAfterColon(input string) string {
 	if idx := strings.Index(input, ":"); idx != -1 {
 		return input[:idx]
 	}
-	return input // Вернем оригинал, если ":" нет
+	return input
 }
 
 func duplicates(items []contract.ImageConfig) []string {

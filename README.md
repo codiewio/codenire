@@ -10,6 +10,8 @@ Inspired by:
 - Judje0 Playground: https://github.com/judge0/judge0
 - Google Playground: https://github.com/golang/playground
 
+But created for more extensible  
+
 
 
 <a href="https://codiew.io" target="_blank">
@@ -23,30 +25,38 @@ Inspired by:
 # 🌟Features
 
 - Multi-Language Support: Run Python, Go, PHP and Node.js or your built code with others configurations and versions what you can think, in isolated Docker containers.
-- Multi-Files Support: Run code that consists of multiple files
+- Multi-Files Support: Run code that consists of multiple files.
 - Easy extensible: You can create your own build to run code via API or by loading a folder with configurations at startup.
-- (in working) Dependency Management: Automatic handling of project dependencies (pip, go mod, npm)
-- Flexible Execution: Custom entrypoints for both single-file code and full projects
+- (in working) Dependency Management: Automatic handling of project dependencies (pip, go mod, npm).
+- Flexible Execution: Custom entrypoints for both single-file code and full projects.
 - Scalable System: Expandable via a load balancer between a playground and a sandbox.
+- Security: You can accept JWTS signed external system (Supabase JWT Secret Token for example)
+- PostgresQL support
 
+<details><summary>Languages (updating...)</summary>
+<div>
+  <p>🔥🔥🔥 PostgresQL</p>
+  <p>PHP 8.3</p>
+  <p>PHP 8.4</p>
+  <p>Python 3.12</p>
+  <p>Python 2.7</p>
+  <p>C++23</p>
+  <p>C++20</p>
+  <p>C++17</p>
+  <p>C++14</p>
+  <p>C++11</p>
+  <p>Golang 1.23.6</p>
+  <p>Rust 1.84</p>
+  <p>Rust 1.84 (with Cargo)</p>
+  <p>Typescript 5.7 (with built-in tsconfig.json if you not provide)</p>
+</div>
+</details>
 
 # 🐙Infrastructure Schema
 
    <details><summary>Why need isolation</summary>
     <p>
-    It might be convenient to keep your Firecracker-related GCP resources in
-    a separate project, so that you can keep track of resources more easily
-    and remove everything easily once your are done.
-
-For convenience, give the project a unique name (e.g.,
-your_name-firecracker), so that GCP does not need to create a project id
-different than project name (by appending randomized numbers to the name you
-provide).
-
-   ```console
-   $ gcloud projects create ${FC_PROJECT} --enable-cloud-apis --set-as-default
-   ```
-
+    // TODO::
    </p>
     </details>
 

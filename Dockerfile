@@ -24,6 +24,7 @@ ARG TARGETARCH
 RUN set -xe \
 	&& GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 \
     go build \
+    -ldflags="-X main.VersionName=${GIT_VERSION} -X main.GitCommit=${GIT_COMMIT} -X 'main.BuildDate=$(date --utc)'" \
     -tags prod \
     -o ./bin/playground .
 
@@ -34,7 +35,7 @@ RUN apk add --no-cache curl
 
 # and finally the binary
 COPY --from=builder /playground/bin/playground /playground
-COPY ide/dist/codenire/browser /static
+#COPY ide/dist/codenire/browser /static
 
 CMD ["/playground"]
 

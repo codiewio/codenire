@@ -51,7 +51,7 @@ import (
 	"sandbox/internal"
 )
 
-var codenireManager *CodenireManager
+var codenireManager ContainerOrchestrator
 
 var (
 	listenAddr          = flag.String("port", "80", "HTTP server listen address")
@@ -59,9 +59,13 @@ var (
 	numWorkers          = flag.Int("workers", runtime.NumCPU(), "number of parallel gvisor containers to pre-spin up & let run concurrently")
 	replicaContainerCnt = flag.Int("replicaContainerCnt", 1, "number of parallel containers for every uniq image")
 	dockerFilesPath     = flag.String("dockerFilesPath", "", "directory path with templates")
-	isolated            = flag.Bool("isolated", false, "use gVisor isolation for compile code")
-	isolatedNetwork     = flag.String("isolatedNetwork", "none", "isolated network")
-	isolatedGateway     = flag.String("isolatedGateway", "http://package_dev:3128", "proxy which pass traffik from internal newtwork")
+
+	isolated                = flag.Bool("isolated", false, "use gVisor isolation for compile code")
+	isolatedNetwork         = flag.String("isolatedNetwork", "none", "isolated network")
+	isolatedGateway         = flag.String("isolatedGateway", "http://package_dev:3128", "proxy which pass traffik from internal newtwork")
+	gvisorRuntime           = "runsc"
+	isolatedPostgresDSN     = flag.String("isolatedPostgresDSN", "", "isolated postgres DB instance")
+	isolatedPostgresNetwork = flag.String("isolatedPostgresNetwork", "", "isolated postgres network")
 
 	s3DockerfilesEndpoint = flag.String("s3DockerfilesEndpoint", "", "s3 endpoint with templates")
 	s3DockerfilesBucket   = flag.String("s3DockerfilesBucket", "", "s3 bucket with templates")
@@ -69,8 +73,6 @@ var (
 
 	runSem       chan struct{}
 	graceTimeout = 15 * time.Second
-
-	gvisorRuntime = "runsc"
 )
 
 func main() {
@@ -92,9 +94,9 @@ func main() {
 	}
 
 	log.Printf("Go playground sandbox starting...")
-
-	codenireManager = NewCodenireManager(codenireManager.storage) //wrong. As storage should be passed first and it needs the implementation of the storage interface
-	// codenireManager = NewCodenireManager(&storage{})  //will fail to compile as storage is not implemented
+	// storage := &Storage{}
+	// codenireManager = NewCodenireOrchestrator(storage)
+	//Not possible to use storage in this case as it is not implemented
 	codenireManager.KillAll()
 
 	runSem = make(chan struct{}, *numWorkers)
@@ -123,6 +125,16 @@ func main() {
 		Addr:              ":" + *listenAddr,
 		ReadHeaderTimeout: 5 * time.Second,
 		Handler:           &ochttp.Handler{Handler: h},
+
+		// TODO:: check connections
+		// ConnState: func(_ net.Conn, cs http.ConnState) {
+		//	switch cs {
+		//	case http.StateNew:
+		//		MetricsOpenConnections.Inc()
+		//	case http.StateClosed, http.StateHijacked:
+		//		MetricsOpenConnections.Dec()
+		//	}
+		// },
 	}
 
 	err = codenireManager.Prepare()

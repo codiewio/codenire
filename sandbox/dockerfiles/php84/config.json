@@ -1,11 +1,13 @@
 {
   "Template": "php84",
   "Labels": ["php"],
+  "Enabled": true,
+  "Connections": ["postgres"],
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5
   },
-
+  "IsSupportPackage": true,
 
   "Actions": {
     "default": {

@@ -2,11 +2,13 @@
   "Template": "rust_1.84",
   "Groups": ["rust"],
   "Workdir": "/app",
+  "Enabled": true,
+  "Connections": ["postgres"],
   "ContainerOptions": {
     "CompileTTL": 30,
-    "RunTTL": 5,
-    "MemoryLimit": 524288000
+    "RunTTL": 5
   },
+  "IsSupportPackage": true,
 
   "Actions": {
     "snippet": {
@@ -17,9 +19,7 @@
       "ScriptOptions": {
         "SourceFile": "main.rs"
       },
-      "DefaultFiles": {
-
-      }
+      "DefaultFiles": {}
     }
   }
 }

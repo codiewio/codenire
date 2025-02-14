@@ -26,15 +26,20 @@ const (
 
 // ActionItemResponse defines model for ActionItemResponse.
 type ActionItemResponse struct {
-	CompileCmd       string            `json:"CompileCmd"`
+	CompileCmd string `json:"CompileCmd"`
+
+	// Connections Databases. Currently available only ['postgres']
+	Connections      []string          `json:"Connections"`
 	ContainerOptions ContainerOptions  `json:"ContainerOptions"`
 	DefaultFiles     map[string]string `json:"DefaultFiles"`
 
 	// EnableExternalCommands It allows overriding CompileCmd and RunCmd in each request.
 	EnableExternalCommands ActionItemResponseEnableExternalCommands `json:"EnableExternalCommands"`
+	Enabled                bool                                     `json:"Enabled"`
 	Groups                 []string                                 `json:"Groups"`
 	Id                     string                                   `json:"Id"`
 	IsDefault              bool                                     `json:"IsDefault"`
+	IsSupportPackage       bool                                     `json:"IsSupportPackage"`
 	Name                   string                                   `json:"Name"`
 	Provider               string                                   `json:"Provider"`
 	RunCmd                 string                                   `json:"RunCmd"`
@@ -89,13 +94,18 @@ type ImageActionConfigEnableExternalCommands string
 
 // ImageConfig defines model for ImageConfig.
 type ImageConfig struct {
-	Actions          map[string]ImageActionConfig `json:"Actions"`
-	ContainerOptions ContainerOptions             `json:"ContainerOptions"`
-	Groups           []string                     `json:"Groups"`
-	Provider         string                       `json:"Provider"`
-	Template         string                       `json:"Template"`
-	Version          string                       `json:"Version"`
-	Workdir          string                       `json:"Workdir"`
+	Actions map[string]ImageActionConfig `json:"Actions"`
+
+	// Connections Databases. Currently available only ['postgres']
+	Connections      []string         `json:"Connections"`
+	ContainerOptions ContainerOptions `json:"ContainerOptions"`
+	Enabled          bool             `json:"Enabled"`
+	Groups           []string         `json:"Groups"`
+	IsSupportPackage bool             `json:"IsSupportPackage"`
+	Provider         string           `json:"Provider"`
+	Template         string           `json:"Template"`
+	Version          string           `json:"Version"`
+	Workdir          string           `json:"Workdir"`
 }
 
 // ImageConfigScriptOptions defines model for ImageConfigScriptOptions.
@@ -105,8 +115,12 @@ type ImageConfigScriptOptions struct {
 
 // ImageTemplateConfig defines model for ImageTemplateConfig.
 type ImageTemplateConfig struct {
+	// Connections Databases. Currently available only ['postgres']
+	Connections      []string         `json:"Connections"`
 	ContainerOptions ContainerOptions `json:"ContainerOptions"`
+	Enabled          bool             `json:"Enabled"`
 	Groups           []string         `json:"Groups"`
+	IsSupportPackage bool             `json:"IsSupportPackage"`
 	Provider         string           `json:"Provider"`
 	Template         string           `json:"Template"`
 	Version          string           `json:"Version"`

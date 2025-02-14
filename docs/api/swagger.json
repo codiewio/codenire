@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://codenire.com"
+      "url": "https://codenire.io"
     }
   ],
   "paths": {
@@ -75,31 +75,7 @@
         }
       }
     },
-    "/template/list": {
-      "get": {
-        "summary": "Get Template List",
-        "operationId": "getTemplateList",
-        "tags": [
-          "Action"
-        ],
-        "responses": {
-          "200": {
-            "description": "Get Template List",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TemplateItemResponse"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/action/list": {
+    "/actions": {
       "get": {
         "summary": "Get with refresh Action List",
         "operationId": "refreshActionList",
@@ -366,6 +342,17 @@
           "Template": {
             "type": "string"
           },
+          "Enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "Connections": {
+            "type": "array",
+            "description": "Databases. Currently available only ['postgres']",
+            "items": {
+              "type": "string"
+            }
+          },
           "Groups": {
             "type": "array",
             "items": {
@@ -383,15 +370,22 @@
           },
           "Provider": {
             "type": "string"
+          },
+          "IsSupportPackage": {
+            "type": "boolean",
+            "default": false
           }
         },
         "required": [
           "Template",
           "Groups",
+          "Enabled",
           "ContainerOptions",
           "Version",
           "Workdir",
-          "Provider"
+          "Provider",
+          "IsSupportPackage",
+          "Connections"
         ]
       },
       "ImageActionConfig": {

@@ -72,7 +72,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	tmpDir, err := os.MkdirTemp("", "tmp_sandbox")
 	if err != nil {
-		http.Error(w, "create tmp dir failed", http.StatusInternalServerError)
+		http.Error(w, "createDB tmp dir failed", http.StatusInternalServerError)
 		return
 	}
 	defer os.RemoveAll(tmpDir)
@@ -158,6 +158,8 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// TODO:: disconnect?
+
 	runTTL := time.Duration(*cont.Image.ContainerOptions.RunTTL) * time.Second
 	runTimeoutCtx := registerCmdTimeout(timeoutCtx, runTTL)
 	runCmd := getCommand(action.RunCmd, RunCmd, req.ExtendedOptions, action)
@@ -189,13 +191,13 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCommand(cmd string, key string, externalData *map[string]string, action contract.ImageActionConfig) string {
-	if action.EnableExternalCommands == "none" ||
-		(action.EnableExternalCommands == "compile" && key == RunCmd) ||
-		(action.EnableExternalCommands == "run" && key == CompileCmd) {
+	if externalData == nil {
 		return cmd
 	}
 
-	if externalData == nil {
+	if action.EnableExternalCommands == ExternalCommandsModeNode ||
+		(action.EnableExternalCommands == ExternalCommandsModeCompile && key == RunCmd) ||
+		(action.EnableExternalCommands == ExternalCommandsModeRun && key == CompileCmd) {
 		return cmd
 	}
 
@@ -304,7 +306,7 @@ func replacePlaceholders(input string, values map[string]string) string {
 }
 
 func listTemplatesHandler(w http.ResponseWriter, _ *http.Request) {
-	body, err := json.MarshalIndent(codenireManager.GetTemplates(), "", "  ")
+	body, err := json.MarshalIndent((*CodenireOrchestrator).GetTemplates(&CodenireOrchestrator{}), "", "  ")
 	if err != nil {
 		http.Error(w, "error encoding JSON", http.StatusInternalServerError)
 		log.Printf("json marshal: %v", err)
@@ -316,7 +318,7 @@ func listTemplatesHandler(w http.ResponseWriter, _ *http.Request) {
 func getTemplateByIDHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	template, err := codenireManager.GetTemplateByID(id)
+	template, err := (*CodenireOrchestrator).GetTemplateByID(&CodenireOrchestrator{}, id)
 	if err != nil {
 		http.Error(w, "Template not found", http.StatusNotFound)
 		return
@@ -333,7 +335,7 @@ func AddTemplateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := codenireManager.AddTemplate(template); err != nil {
+	if err := (*CodenireOrchestrator).AddTemplate(&CodenireOrchestrator{}, template); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -344,7 +346,7 @@ func AddTemplateHandler(w http.ResponseWriter, r *http.Request) {
 func runTemplateHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	container, err := codenireManager.runTemplate(id)
+	container, err := (*CodenireOrchestrator).runTemplate(&CodenireOrchestrator{}, id)
 	if err != nil {
 		http.Error(w, "Failed to run template", http.StatusInternalServerError)
 		return
@@ -357,7 +359,7 @@ func runTemplateHandler(w http.ResponseWriter, r *http.Request) {
 func deleteTemplateHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	err := codenireManager.DeleteTemplate(id)
+	err := (*CodenireOrchestrator).DeleteTemplate(&CodenireOrchestrator{}, id)
 	if err != nil {
 		http.Error(w, "Failed to delete template", http.StatusInternalServerError)
 		return
@@ -375,7 +377,7 @@ func updateTemplateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := codenireManager.updateTemplate(id, template); err != nil {
+	if err := (*CodenireOrchestrator).updateTemplate(&CodenireOrchestrator{}, id, template); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

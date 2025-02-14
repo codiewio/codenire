@@ -58,5 +58,3 @@ COPY --from=builder /app/bin/sandbox /usr/local/bin/sandbox
 ADD dockerfiles /dockerfiles
 
 ENTRYPOINT ["/usr/local/bin/sandbox"]
-
-EXPOSE 6060

@@ -2,15 +2,8 @@ name: Build Deproxy Docker Image
 
 on:
   push:
-    paths:
-      - 'deproxy/**'
-      - '.github/workflows/sandbox-deproxy.yaml'
-    branches:
-      - main
     tags:
       - 'v*.*.*'
-
-  workflow_dispatch:
 
 jobs:
   build-docker:
