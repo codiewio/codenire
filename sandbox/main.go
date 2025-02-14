@@ -51,7 +51,7 @@ import (
 	"sandbox/internal"
 )
 
-var codenireManager ContainerManager
+var codenireManager *CodenireManager
 
 var (
 	listenAddr          = flag.String("port", "80", "HTTP server listen address")
@@ -93,7 +93,8 @@ func main() {
 
 	log.Printf("Go playground sandbox starting...")
 
-	codenireManager = NewCodenireManager()
+	codenireManager = NewCodenireManager(codenireManager.storage) //wrong. As storage should be passed first and it needs the implementation of the storage interface
+	// codenireManager = NewCodenireManager(&storage{})  //will fail to compile as storage is not implemented
 	codenireManager.KillAll()
 
 	runSem = make(chan struct{}, *numWorkers)
@@ -112,6 +113,11 @@ func main() {
 
 	h.Post("/run", runHandler)
 	h.Get("/templates", listTemplatesHandler)
+	h.Get("/templates/{id}", getTemplateByIDHandler)
+	h.Post("/templates", AddTemplateHandler)
+	h.Post("/templates/{id}", runTemplateHandler)
+	h.Delete("/templates/{id}", deleteTemplateHandler)
+	h.Put("/templates/{id}", updateTemplateHandler)
 
 	httpServer := &http.Server{
 		Addr:              ":" + *listenAddr,

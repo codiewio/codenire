@@ -44,6 +44,8 @@ import (
 
 	contract "sandbox/api/gen"
 	"sandbox/internal"
+
+	chi "github.com/go-chi/chi/v5"
 )
 
 const (
@@ -310,4 +312,73 @@ func listTemplatesHandler(w http.ResponseWriter, _ *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(body)
+}
+func getTemplateByIDHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	template, err := codenireManager.GetTemplateByID(id)
+	if err != nil {
+		http.Error(w, "Template not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(template)
+}
+
+func AddTemplateHandler(w http.ResponseWriter, r *http.Request) {
+	var template contract.ImageConfig
+	if err := json.NewDecoder(r.Body).Decode(&template); err != nil {
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
+
+	if err := codenireManager.AddTemplate(template); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}
+
+func runTemplateHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	container, err := codenireManager.runTemplate(id)
+	if err != nil {
+		http.Error(w, "Failed to run template", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(container)
+}
+
+func deleteTemplateHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	err := codenireManager.DeleteTemplate(id)
+	if err != nil {
+		http.Error(w, "Failed to delete template", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func updateTemplateHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	var template contract.ImageConfig
+	if err := json.NewDecoder(r.Body).Decode(&template); err != nil {
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
+
+	if err := codenireManager.updateTemplate(id, template); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
