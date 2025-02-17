@@ -1,5 +1,5 @@
 {
-  "Template": "rust_1.84",
+  "Template": "rust_1_84",
   "Groups": ["rust"],
   "Workdir": "/app",
   "Enabled": true,
@@ -11,9 +11,9 @@
   "IsSupportPackage": true,
 
   "Actions": {
-    "snippet": {
-      "Id": "rust",
-      "Name": "Rust 1.84",
+    "cargo": {
+      "Id": "cargo",
+      "Name": "Rust 1.84 (Cargo)",
       "CompileCmd": "cargo -v",
       "RunCmd": "cargo run {ARGS} < {STDIN}",
       "ScriptOptions": {

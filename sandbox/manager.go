@@ -320,6 +320,9 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 			MemorySwap: 0,
 		},
 	}
+	if img.imageID == nil {
+		return nil, fmt.Errorf("imageId is null")
+	}
 	containerConfig := &docker.Config{
 		Image: *img.imageID,
 		Cmd:   []string{"tail", "-f", "/dev/null"},
@@ -393,7 +396,7 @@ func (m *CodenireOrchestrator) startContainers() {
 
 					c, err := m.runSndContainer(img)
 					if err != nil {
-						log.Printf("[DEBUG] Run container error: %s", err.Error())
+						log.Printf("[DEBUG] Run container error. Template: %s. Error: %s", img.Template, err.Error())
 						time.Sleep(10 * time.Second)
 						continue
 					}
