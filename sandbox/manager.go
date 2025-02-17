@@ -295,12 +295,15 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 			}
 		}()
 		if pgErr != nil {
+			log.Printf("Create PostgreSQL database failed: %s", pgErr.Error())
 			return nil, pgErr
 		}
 
+		log.Printf("Created PostgreSQL database %s", name)
+
 		networkEnvs = append(
 			networkEnvs,
-			fmt.Sprintf("PGHOST=%s", "postgres"),
+			fmt.Sprintf("PGHOST=%s", "isolated_postgres"),
 			fmt.Sprintf("PGDATABASE=%s", name),
 			fmt.Sprintf("PGUSER=%s", user),
 			fmt.Sprintf("PGPASSWORD=%s", password),
@@ -318,6 +321,9 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 		Resources: docker.Resources{
 			Memory:     int64(*img.ContainerOptions.MemoryLimit),
 			MemorySwap: 0,
+		},
+		ExtraHosts: []string{
+			//"postgres_host:172.25.0.2",
 		},
 	}
 	if img.imageID == nil {
