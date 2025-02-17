@@ -190,7 +190,6 @@ func (m *CodenireOrchestrator) KillAll() {
 
 func (m *CodenireOrchestrator) KillContainer(c StartedContainer) (err error) {
 	defer func() {
-		log.Printf("Kill container call")
 		m.removeSandboxDB(c.DBName)
 	}()
 
@@ -303,7 +302,7 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 
 		networkEnvs = append(
 			networkEnvs,
-			fmt.Sprintf("PGHOST=%s", "isolated_postgres"),
+			fmt.Sprintf("PGHOST=%s", "postgres_host"),
 			fmt.Sprintf("PGDATABASE=%s", name),
 			fmt.Sprintf("PGUSER=%s", user),
 			fmt.Sprintf("PGPASSWORD=%s", password),
@@ -323,7 +322,7 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 			MemorySwap: 0,
 		},
 		ExtraHosts: []string{
-			//"postgres_host:172.25.0.2",
+			"postgres_host:172.25.0.2",
 		},
 	}
 	if img.imageID == nil {
