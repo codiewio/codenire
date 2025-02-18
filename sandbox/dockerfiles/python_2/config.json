@@ -15,7 +15,7 @@
       "IsDefault": true,
       "Name": "Python 2.7",
       "CompileCmd": "",
-      "RunCmd": "python main.py < {STDIN}",
+      "RunCmd": "python main.py {ARGS} < {STDIN}",
       "ScriptOptions": {
         "SourceFile": "main.py"
       }

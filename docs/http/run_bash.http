@@ -1,0 +1,15 @@
+### Golang 1.23
+POST {{url}}/run
+Content-Type: application/json
+
+{
+  "templateId": "bash",
+  "files": {
+    "script.sh": "#!/bin/bash\n\necho \"PGDATABASE is: $PGDATABASE\"\n"
+  },
+  "externalOptions": {
+    "RunCmd": "chmod +x ./script.sh && ./script.sh"
+  },
+  "args": "--name Mark",
+  "stdin": "100.00"
+}

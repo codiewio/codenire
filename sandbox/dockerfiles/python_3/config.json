@@ -15,7 +15,7 @@
       "Id": "default",
       "Name": "Python 3.12",
       "CompileCmd": "",
-      "RunCmd": "python main.py < {STDIN}",
+      "RunCmd": "python main.py {ARGS} < {STDIN}",
       "ScriptOptions": {
         "SourceFile": "main.py"
       }

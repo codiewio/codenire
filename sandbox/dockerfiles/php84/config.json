@@ -15,7 +15,7 @@
       "IsDefault": true,
       "Name": "PHP 8.4",
       "CompileCmd": "",
-      "RunCmd": "php index.php < {STDIN}",
+      "RunCmd": "php index.php {ARGS} < {STDIN}",
       "ScriptOptions": {
         "SourceFile": "index.php"
       }
