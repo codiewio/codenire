@@ -37,6 +37,7 @@ But created for more extensible
 <details><summary>Languages (updating...)</summary>
 <div>
   <p>🔥🔥🔥 PostgresQL</p>
+  <p>Bash</p>
   <p>PHP 8.3</p>
   <p>PHP 8.4</p>
   <p>Python 3.12</p>
@@ -46,6 +47,9 @@ But created for more extensible
   <p>C++17</p>
   <p>C++14</p>
   <p>C++11</p>
+  <p>Ruby 2.7</p>
+  <p>Ruby 3.3</p>
+  <p>Kotlin 2.1.10</p>
   <p>Golang 1.23.6</p>
   <p>Golang 1.24.0</p>
   <p>Rust 1.84</p>

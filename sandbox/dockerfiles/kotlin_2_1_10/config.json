@@ -1,0 +1,26 @@
+{
+  "Template": "kotlin_2_1_10",
+  "Labels": ["kotlin"],
+  "Enabled": true,
+  "Connections": ["postgres"],
+  "ContainerOptions": {
+    "CompileTTL": 30,
+    "RunTTL": 5,
+    "MemoryLimit": 524288000
+  },
+  "Workdir": "/app",
+  "IsSupportPackage": true,
+
+  "Actions": {
+    "default": {
+      "Id": "default",
+      "IsDefault": true,
+      "Name": "Kotlin (2.1.10)",
+      "CompileCmd": "kotlinc *.kt -include-runtime -d app.jar",
+      "RunCmd": "java -jar app.jar {ARGS} < {STDIN}",
+      "ScriptOptions": {
+        "SourceFile": "Main.kt"
+      }
+    }
+  }
+}
