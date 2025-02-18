@@ -35,7 +35,6 @@ RUN apk add --no-cache curl
 
 # and finally the binary
 COPY --from=builder /playground/bin/playground /playground
-#COPY ide/dist/codenire/browser /static
 
 CMD ["/playground"]
 

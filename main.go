@@ -251,10 +251,8 @@ func getCorsConfig() *handler.CorsConfig {
 }
 
 func splitAndTrim(input string) []string {
-	// Разделяем строку по запятой
 	parts := strings.Split(input, ",")
 
-	// Очищаем каждый элемент от пробелов
 	for i, part := range parts {
 		parts[i] = strings.TrimSpace(part)
 	}

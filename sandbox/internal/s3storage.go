@@ -74,13 +74,11 @@ func copyFilesToTmpDir(tmpDir string, files map[string]io.ReadCloser) error {
 	for path, src := range files {
 		in := filepath.Join(tmpDir, path)
 		if strings.Contains(path, "/") {
-			// Создаем папки, если их нет
 			if err := os.MkdirAll(filepath.Dir(in), 0755); err != nil {
 				return err
 			}
 		}
 
-		// Открываем файл для записи
 		dst, err := os.Create(in)
 		if err != nil {
 			return fmt.Errorf("error creating temp file %q: %w", in, err)

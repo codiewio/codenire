@@ -148,7 +148,7 @@ func (m *CodenireOrchestrator) KillAll() {
 	m.killSignal = true
 
 	defer func() {
-		// TODO:: удалить tmp папки
+		// TODO:: remove tmp dirs
 		m.imageContainers = make(map[string]chan StartedContainer)
 		m.killSignal = false
 	}()
