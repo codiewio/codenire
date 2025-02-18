@@ -1,0 +1,28 @@
+{
+  "Template": "golang_1_24",
+  "Groups": ["go"],
+  "Workdir": "/app",
+  "Enabled": true,
+  "Connections": ["postgres"],
+  "ContainerOptions": {
+    "CompileTTL": 30,
+    "RunTTL": 5,
+    "MemoryLimit": 524288000
+  },
+  "IsSupportPackage": true,
+
+  "Actions": {
+    "default": {
+      "Id": "golang1.24",
+      "Name": "Golang 1.24",
+      "CompileCmd": "GOROOT=/usr/local/go GOCACHE=/gocache GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GO111MODULE=on go build -o main -modcacherw -mod=mod .",
+      "RunCmd": "./main {ARGS} < {STDIN}",
+      "ScriptOptions": {
+        "SourceFile": "main.go"
+      },
+      "DefaultFiles": {
+        "go.mod": "module play\n"
+      }
+    }
+  }
+}
