@@ -199,9 +199,10 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendURL string) 
 	apiRes := &api.SubmissionResponse{
 		Events: events,
 		RunEnvironment: api.RunEnvironment{
-			RunCmd:     execRes.RunEnvironment.RunCmd,
-			CompileCmd: execRes.RunEnvironment.CompileCmd,
-			RunTime:    execRes.RunEnvironment.RunTime,
+			RunCmd:      execRes.RunEnvironment.RunCmd,
+			CompileCmd:  execRes.RunEnvironment.CompileCmd,
+			RunTime:     execRes.RunEnvironment.RunTime,
+			CompileTime: execRes.RunEnvironment.CompileTime,
 		},
 	}
 
