@@ -203,19 +203,19 @@ components:
     RunEnvironment:
       type: object
       properties:
-        compileCmd:
+        CompileCmd:
           type: string
-        runCmd:
+        RunCmd:
           type: string
-        runTime:
+        RunTime:
           type: number
-        compileTime:
+        CompileTime:
           type: number
       required:
-        - compileCmd
-        - runCmd
-        - runTime
-        - compileTime
+        - CompileCmd
+        - RunCmd
+        - RunTime
+        - CompileTime
 
     SandboxResponse:
       type: object

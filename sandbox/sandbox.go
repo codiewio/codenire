@@ -134,12 +134,13 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		compileCtx := registerCmdTimeout(r.Context(), totalTimeout)
 		{
 			start := time.Now()
+			parsedCmd := replacePlaceholders(compileCmd, req.Args, nil)
 			runErr := execContainerShell(
 				compileCtx,
 				&stderr,
 				&stdout,
 				*cont,
-				replacePlaceholders(compileCmd, req.Args, nil),
+				parsedCmd,
 				cont.Image,
 			)
 
@@ -166,12 +167,13 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	runCmd := getCommand(action.RunCmd, RunCmd, req.ExtendedOptions, action)
 	{
 		start := time.Now()
+		parsedRunCmd := replacePlaceholders(runCmd, req.Args, stdinFile)
 		runErr := execContainerShell(
 			runTimeoutCtx,
 			&stderr,
 			&stdout,
 			*cont,
-			replacePlaceholders(runCmd, req.Args, stdinFile),
+			parsedRunCmd,
 			cont.Image,
 		)
 
