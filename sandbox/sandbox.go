@@ -133,16 +133,19 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	if compileCmd != "" {
 		compileCtx := registerCmdTimeout(r.Context(), totalTimeout)
 		{
+			start := time.Now()
 			runErr := execContainerShell(
 				compileCtx,
 				&stderr,
 				&stdout,
 				*cont,
-				compileCmd,
-				req.Args,
-				nil,
+				replacePlaceholders(compileCmd, req.Args, nil),
 				cont.Image,
 			)
+
+			res.RunEnvironment.CompileCmd = compileCmd
+			res.RunEnvironment.CompileTime = float32(time.Since(start).Seconds())
+
 			if runErr != nil {
 				if errors.Is(compileCtx.Err(), context.DeadlineExceeded) {
 					sendRunError(w, "timeout compilation")
@@ -162,16 +165,19 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	runTimeoutCtx := registerCmdTimeout(timeoutCtx, runTTL)
 	runCmd := getCommand(action.RunCmd, RunCmd, req.ExtendedOptions, action)
 	{
+		start := time.Now()
 		runErr := execContainerShell(
 			runTimeoutCtx,
 			&stderr,
 			&stdout,
 			*cont,
-			runCmd,
-			req.Args,
-			stdinFile,
+			replacePlaceholders(runCmd, req.Args, stdinFile),
 			cont.Image,
 		)
+
+		res.RunEnvironment.RunCmd = runCmd
+		res.RunEnvironment.RunTime = float32(time.Since(start).Seconds())
+
 		if runErr != nil {
 			if errors.Is(runTimeoutCtx.Err(), context.DeadlineExceeded) {
 				sendRunError(w, "timeout execute")
@@ -239,15 +245,8 @@ func flushStdWithErr(res *contract.SandboxResponse, stderr bytes.Buffer, stdout 
 	res.Stdout = nil
 }
 
-func execContainerShell(ctx context.Context, stderr *bytes.Buffer, stdout *bytes.Buffer, container StartedContainer, runCmd, args string, stdinFileName *string, cfg BuiltImage) error {
+func execContainerShell(ctx context.Context, stderr *bytes.Buffer, stdout *bytes.Buffer, container StartedContainer, runCmd string, cfg BuiltImage) error {
 	sh := fmt.Sprintf("cd %s && %s", cfg.Workdir, runCmd)
-	placeholders := map[string]string{
-		"ARGS": args,
-	}
-	if stdinFileName != nil {
-		placeholders["STDIN"] = *stdinFileName
-	}
-	sh = replacePlaceholders(sh, placeholders)
 
 	//nolint
 	cmd := exec.CommandContext(
@@ -292,11 +291,18 @@ func sendRunResponse(w http.ResponseWriter, r *contract.SandboxResponse) {
 	w.Header().Set("Content-Length", fmt.Sprint(len(body)))
 	_, _ = w.Write(body)
 }
-func replacePlaceholders(input string, values map[string]string) string {
+func replacePlaceholders(input string, args string, stdinFileName *string) string {
+	placeholders := map[string]string{
+		"ARGS": args,
+	}
+	if stdinFileName != nil {
+		placeholders["STDIN"] = *stdinFileName
+	}
+
 	re := regexp.MustCompile(`\{\s*([A-Z0-9_]+)\s*}`)
 	return re.ReplaceAllStringFunc(input, func(match string) string {
 		key := strings.TrimSpace(match[1 : len(match)-1])
-		if val, exists := values[key]; exists {
+		if val, exists := placeholders[key]; exists {
 			return val
 		}
 		return match

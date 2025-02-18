@@ -179,8 +179,6 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendURL string) 
 		_ = resp.Body.Close()
 	}()
 
-	// TODO:: [HOOK] post-response hook
-
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected http status from backend: %d", resp.StatusCode)
 	}
@@ -200,8 +198,11 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendURL string) 
 
 	apiRes := &api.SubmissionResponse{
 		Events: events,
-		Meta:   nil,
-		Time:   nil,
+		RunEnvironment: api.RunEnvironment{
+			RunCmd:     execRes.RunEnvironment.RunCmd,
+			CompileCmd: execRes.RunEnvironment.CompileCmd,
+			RunTime:    execRes.RunEnvironment.RunTime,
+		},
 	}
 
 	return apiRes, nil

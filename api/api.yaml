@@ -183,20 +183,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SubmissionResponseEvents'
-        Time:
-          type: string
-        Errors:
-          type: array
-          items:
-            type: string
-        Meta:
-          type: object
-          properties:
-            Version:
-              type: string
-          additionalProperties: true
+        RunEnvironment:
+          $ref: '#/components/schemas/RunEnvironment'
       required:
         - Events
+        - RunEnvironment
 
     SubmissionResponseEvents:
       type: object
@@ -208,6 +199,23 @@ components:
       required:
         - Message
         - Kind
+
+    RunEnvironment:
+      type: object
+      properties:
+        compileCmd:
+          type: string
+        runCmd:
+          type: string
+        runTime:
+          type: number
+        compileTime:
+          type: number
+      required:
+        - compileCmd
+        - runCmd
+        - runTime
+        - compileTime
 
     SandboxResponse:
       type: object
@@ -222,10 +230,13 @@ components:
         stderr:
           type: string
           format: byte
+        RunEnvironment:
+          $ref: '#/components/schemas/RunEnvironment'
       required:
         - exitCode
         - stdout
         - stderr
+        - RunEnvironment
 
     SandboxRequest:
       type: object
