@@ -40,12 +40,8 @@ import (
 	"syscall"
 	"time"
 
-	api "github.com/codiewio/codenire/api/gen"
 	"github.com/codiewio/codenire/internal/handler"
 	"github.com/codiewio/codenire/internal/images"
-	"github.com/codiewio/codenire/pkg/hooks"
-	"github.com/codiewio/codenire/pkg/hooks/file"
-	"github.com/codiewio/codenire/pkg/hooks/plugin"
 )
 
 var (
@@ -90,29 +86,12 @@ func main() {
 		Cors:                             getCorsConfig(),
 	}
 
-	hookHandler := getHookHandler(&cfg)
-	if hookHandler != nil {
-		err := hookHandler.Setup()
-
-		parseExternalTemplates()
-
-		if err != nil {
-			log.Fatalf("unable to setup hooks for handler: %s", err)
-		}
-
-		cfg.PreRequestCallback = func(ev hooks.CodeHookEvent) (hooks.HookResponse, error) {
-			return hooks.PreSandboxRequestCallback(ev, hookHandler)
-		}
-	}
-
 	s, err := handler.NewServer(&cfg)
 	if err != nil {
 		log.Fatalf("Error creating server: %v", err)
 	}
 
-	shutdownComplete := setupSignalHandler(cfg.ShutdownTimeout, func() {
-		plugin.CleanupPlugins()
-	})
+	shutdownComplete := setupSignalHandler(cfg.ShutdownTimeout)
 
 	{
 		res, terr := images.PullImageConfigList(cfg.BackendURL)
@@ -134,45 +113,6 @@ func main() {
 		// Any other error is relayed to the user.
 		log.Fatalf("unable to serve: %s", err)
 	}
-}
-
-func parseExternalTemplates() {
-	templates := strings.Split(*ExternalTemplates, ",")
-	for _, t := range templates {
-		// Fake config
-		images.ExtendedTemplates = append(images.ExtendedTemplates, api.ImageConfig{
-			Template: t,
-			Provider: "external",
-			Actions: map[string]api.ImageActionConfig{
-				"default": {
-					CompileCmd:   "",
-					DefaultFiles: nil,
-					Id:           "1",
-					// Very important
-					IsDefault:     true,
-					Name:          "",
-					RunCmd:        "",
-					ScriptOptions: api.ImageConfigScriptOptions{},
-				},
-			},
-		})
-	}
-}
-
-func getHookHandler(config *handler.Config) hooks.HookHandler {
-	if config.PluginHookPath != "" {
-		return &plugin.PluginHook{
-			Path: config.PluginHookPath,
-		}
-	}
-
-	if config.FileHooksDir != "" {
-		return &file.FileHook{
-			Directory: config.FileHooksDir,
-		}
-	}
-
-	return nil
 }
 
 func waitForSandbox(maxRetries int, interval time.Duration) error {

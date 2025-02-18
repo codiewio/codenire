@@ -47,6 +47,7 @@ But created for more extensible
   <p>C++14</p>
   <p>C++11</p>
   <p>Golang 1.23.6</p>
+  <p>Golang 1.24.0</p>
   <p>Rust 1.84</p>
   <p>Rust 1.84 (with Cargo)</p>
   <p>Typescript 5.7 (with built-in tsconfig.json if you not provide)</p>
@@ -122,11 +123,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8081:8081"
-    volumes:
-      # You can set up your path with go-plugin 
-      - ./var/plugin/plugin:/plugin
-      # You can set up your path with plugin scripts (see docs/docker-compose dir with examples)
-      - ./var/plugin/hooks-dir:hooks-dir
     restart: always
     networks:
       - "sandnet"
@@ -134,8 +130,6 @@ services:
       "/playground",
       "--backend-url", "http://sandbox_dev/run",
       "--port", "8081",
-      "--hooks-plugins", "/plugin",
-      #      "--hooks-dir", "/hooks-dir",
     ]
 
   sandbox:
@@ -171,15 +165,10 @@ networks:
 - Docker compose (see [/docs/docker-compose](https://github.com/codiewio/codenire/tree/main/docs/docker-compose) dir — without external gVisor Runtime)
 - [Digital Ocean Terraform](infra/digitalocean/README.md) with load balancing and multi-sandbox cluster
 
-
-# Lifecycle Request Hooks
-
-TODO:: add description
-
 # Roadmap
 - [x] Add MultiFiles/singe scripts
 - [x] Add gVisor Isolation
-- [x] Add Hooks to catch/override some request (for auth, for handle code in external system)
+~~- [x] Add Hooks to catch/override some request (for auth, for handle code in external system)~~
 - [x] Add Multi actions in once container (different runs in one docker img, for example multi version of c++ in cpp container)
 - [ ] Add WebUI Head with Monaco
 - [ ] Add Metrics

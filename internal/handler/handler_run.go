@@ -13,7 +13,6 @@ import (
 	api "github.com/codiewio/codenire/api/gen"
 	"github.com/codiewio/codenire/internal/client"
 	"github.com/codiewio/codenire/internal/images"
-	"github.com/codiewio/codenire/pkg/hooks"
 )
 
 var (
@@ -22,8 +21,6 @@ var (
 )
 
 func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
-	c := hooks.GetContext(w, r, h.Config.GracefulRequestCompletionTimeout)
-
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -58,23 +55,6 @@ func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
 
 	req.Files = addDefaultFiles(req.Files, action.DefaultFiles)
 
-	if h.Config.PreRequestCallback != nil {
-		resp2, err2 := h.Config.PreRequestCallback(hooks.NewCodeHookEvent(c, req))
-		if err2 != nil {
-			http.Error(w, fmt.Errorf("pre-SubmissionRequest callback failed: %w", err2).Error(), http.StatusInternalServerError)
-			return
-		}
-
-		if resp2.IsTerminated {
-			resp2.WriteTo(w)
-			return
-		}
-
-		if resp2.ChangedSubmissionRequest != nil {
-			req = *resp2.ChangedSubmissionRequest
-		}
-	}
-
 	apiRes, err := runCode(r.Context(), req, h.Config.BackendURL+"/run")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -85,8 +65,6 @@ func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
-	c := hooks.GetContext(w, r, h.Config.GracefulRequestCompletionTimeout)
-
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -132,23 +110,6 @@ func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO:: check if ""
 	req.Files[sourceFile] = preReq.Code
 	req.Files = addDefaultFiles(req.Files, action.DefaultFiles)
-
-	if h.Config.PreRequestCallback != nil {
-		resp2, err2 := h.Config.PreRequestCallback(hooks.NewCodeHookEvent(c, req))
-		if err2 != nil {
-			http.Error(w, fmt.Errorf("pre-SubmissionRequest callback failed: %w", err2).Error(), http.StatusInternalServerError)
-			return
-		}
-
-		if resp2.IsTerminated {
-			resp2.WriteTo(w)
-			return
-		}
-
-		if resp2.ChangedSubmissionRequest != nil {
-			req = *resp2.ChangedSubmissionRequest
-		}
-	}
 
 	apiRes, err := runCode(r.Context(), req, h.Config.BackendURL+"/run")
 	if err != nil {

@@ -2,8 +2,6 @@ package handler
 
 import (
 	"time"
-
-	"github.com/codiewio/codenire/pkg/hooks"
 )
 
 type CorsConfig struct {
@@ -31,7 +29,6 @@ type Config struct {
 
 	FileHooksDir                     string
 	PluginHookPath                   string
-	PreRequestCallback               func(hook hooks.CodeHookEvent) (hooks.HookResponse, error)
 	GracefulRequestCompletionTimeout time.Duration
 	ShutdownTimeout                  time.Duration
 	ThrottleLimit                    int
