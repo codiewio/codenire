@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/go-chi/httprate"
 	"github.com/go-chi/jwtauth/v5"
 	"go.opencensus.io/plugin/ochttp"
@@ -32,6 +33,14 @@ func NewServer(config *Config) (*http.Server, error) {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   config.Cors.AllowOrigins,
+		AllowedMethods:   config.Cors.AllowMethods,
+		AllowedHeaders:   config.Cors.AllowHeaders,
+		ExposedHeaders:   config.Cors.ExposeHeaders,
+		AllowCredentials: config.Cors.AllowCredentials,
+		MaxAge:           config.Cors.MaxAge,
+	}))
 
 	router.Get("/", rootHandler)
 

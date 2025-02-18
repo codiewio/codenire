@@ -57,6 +57,13 @@ var (
 	ThrottleLimit     = flag.Int("throttle-limit", 15, "currently processed requests at a time across all users")
 	JWTSecretKey      = flag.String("jwt-secret-key", "", "secret key to enable authentication")
 	dev               = flag.Bool("dev", false, "run in dev mode")
+
+	CorsAllowOrigin      = flag.String("cors-allow-origin", "*", "Regular expression used to determine if the Origin header is allowed. If not, no CORS headers will be sent. By default, all origins are allowed.")
+	CorsAllowCredentials = flag.Bool("cors-allow-credentials", false, "Allow credentials by setting Access-Control-Allow-Credentials: true")
+	CorsAllowMethods     = flag.String("cors-allow-methods", "", "Comma-separated list of request methods that are included in Access-Control-Allow-Methods in addition to the ones required by tusd")
+	CorsAllowHeaders     = flag.String("cors-allow-headers", "", "Comma-separated list of headers that are included in Access-Control-Allow-Headers in addition to the ones required by tusd")
+	CorsMaxAge           = flag.Int("cors-max-age", 86400, "Value of the Access-Control-Max-Age header to control the cache duration of CORS responses.")
+	CorsExposeHeaders    = flag.String("cors-expose-headers", "", "Comma-separated list of headers that are included in Access-Control-Expose-Headers in addition to the ones required by tusd")
 )
 
 func main() {
@@ -80,6 +87,7 @@ func main() {
 		ThrottleLimit:                    *ThrottleLimit,
 		JWTSecretKey:                     *JWTSecretKey,
 		Dev:                              *dev,
+		Cors:                             getCorsConfig(),
 	}
 
 	hookHandler := getHookHandler(&cfg)
@@ -216,4 +224,40 @@ func setupSignalHandler(shutdownTimeout time.Duration, options ...func()) <-chan
 	}()
 
 	return shutdownComplete
+}
+
+func getCorsConfig() *handler.CorsConfig {
+	config := handler.DefaultCorsConfig
+	config.AllowCredentials = *CorsAllowCredentials
+	config.MaxAge = *CorsMaxAge
+
+	if *CorsAllowOrigin != "" {
+		config.AllowOrigins = splitAndTrim(*CorsAllowOrigin)
+	}
+
+	if *CorsAllowHeaders != "" {
+		config.AllowHeaders = splitAndTrim(*CorsAllowHeaders)
+	}
+
+	if *CorsAllowMethods != "" {
+		config.AllowMethods = splitAndTrim(*CorsAllowMethods)
+	}
+
+	if *CorsExposeHeaders != "" {
+		config.ExposeHeaders = splitAndTrim(*CorsExposeHeaders)
+	}
+
+	return &config
+}
+
+func splitAndTrim(input string) []string {
+	// Разделяем строку по запятой
+	parts := strings.Split(input, ",")
+
+	// Очищаем каждый элемент от пробелов
+	for i, part := range parts {
+		parts[i] = strings.TrimSpace(part)
+	}
+
+	return parts
 }

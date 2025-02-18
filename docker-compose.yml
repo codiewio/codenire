@@ -18,6 +18,7 @@ services:
       "/playground",
       "--backend-url", "http://sandbox_dev",
       "--port", "8081",
+      "--cors-allow-origin", "*"
     ]
 
   sandbox:

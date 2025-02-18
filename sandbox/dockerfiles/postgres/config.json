@@ -12,7 +12,7 @@
 
   "Actions": {
     "default": {
-      "Id": "pg",
+      "Id": "default",
       "Name": "PostgresQL (16)",
       "CompileCmd": "",
       "RunCmd": "/run/run-sql.sh",

@@ -31,7 +31,8 @@ But created for more extensible
 - Flexible Execution: Custom entrypoints for both single-file code and full projects.
 - Scalable System: Expandable via a load balancer between a playground and a sandbox.
 - Security: You can accept JWTS signed external system (Supabase JWT Secret Token for example)
-- PostgresQL support
+- PostgresQL supported
+- CORS supported
 
 <details><summary>Languages (updating...)</summary>
 <div>
