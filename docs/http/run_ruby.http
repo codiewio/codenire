@@ -1,4 +1,4 @@
-### Golang 1.23
+### ruby3.3 in default image
 POST {{url}}/run
 Content-Type: application/json
 
@@ -11,3 +11,20 @@ Content-Type: application/json
   "args": "--name Mark",
   "stdin": "100.00"
 }
+
+### ruby2.7 in ruby image
+POST {{url}}/run
+Content-Type: application/json
+
+{
+  "templateId": "ruby_3_3",
+  "files": {
+    "main.rb": "puts \"Hello, World!\""
+  },
+  "args": "--name Mark",
+  "stdin": "100.00",
+  "externalOptions": {
+    "RunCmd": "echo $PGUSER"
+  }
+}
+

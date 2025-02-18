@@ -1,0 +1,24 @@
+{
+  "Template": "ruby_2_7",
+  "Groups": [],
+  "Enabled": true,
+  "Connections": ["postgres"],
+  "ContainerOptions": {
+    "CompileTTL": 30,
+    "RunTTL": 5
+  },
+  "IsSupportPackage": true,
+
+  "Actions": {
+    "default": {
+      "IsDefault": true,
+      "Id": "default",
+      "Name": "Ruby 2.7",
+      "CompileCmd": "",
+      "RunCmd": "ruby main.rb {ARGS} < {STDIN}",
+      "ScriptOptions": {
+        "SourceFile": "main.rb"
+      }
+    }
+  }
+}

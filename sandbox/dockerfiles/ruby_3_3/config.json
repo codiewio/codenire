@@ -1,0 +1,26 @@
+{
+  "Template": "ruby_3_3",
+  "Groups": [],
+  "Enabled": true,
+  "Connections": ["postgres"],
+  "ContainerOptions": {
+    "CompileTTL": 30,
+    "RunTTL": 5
+  },
+  "IsSupportPackage": true,
+
+  "Workdir": "/app",
+
+  "Actions": {
+    "default": {
+      "IsDefault": true,
+      "Id": "default",
+      "Name": "Ruby 3.3",
+      "CompileCmd": "",
+      "RunCmd": "ruby main.rb {ARGS} < {STDIN}",
+      "ScriptOptions": {
+        "SourceFile": "main.rb"
+      }
+    }
+  }
+}
