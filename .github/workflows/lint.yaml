@@ -28,7 +28,7 @@ jobs:
         with:
           go-version: stable
 
-      - name: golangci-lint
+      - name: Lint Playground
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.63.4
@@ -39,7 +39,7 @@ jobs:
         run: |
           cp ./.golangci.yml ./sandbox/
 
-      - name: golangci-lint sandbox
+      - name: Lint sandbox
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.63.4
