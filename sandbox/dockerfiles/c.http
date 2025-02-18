@@ -1,0 +1,11 @@
+### c
+POST {{url}}/run
+Content-Type: application/json
+
+{
+  "templateId": "c",
+  "files": {
+    "main.c": "#include <stdio.h>\n\nint main() {\n    printf(\"Hello, World!\\n\");\n    return 0;\n}"
+  },
+  "args": "--name \"Elon Mask\" -age=45"
+}

@@ -1,6 +1,6 @@
 {
-  "Template": "cpp",
-  "Groups": ["cpp"],
+  "Template": "c",
+  "Groups": ["c"],
   "Enabled": true,
   "Connections": ["postgres"],
   "ContainerOptions": {
@@ -13,33 +13,33 @@
     "default": {
       "Id": "default",
       "IsDefault": true,
-      "Name": "C++23",
-      "CompileCmd": "g++ -std=c++23 $(find . -name '*.cpp') -o main ",
+      "Name": "C23",
+      "CompileCmd": "g++ -std=c23 $(find . -name '*.c') -o main ",
       "RunCmd": "./main {ARGS} < {STDIN}",
       "ScriptOptions": {
-        "SourceFile": "main.cpp"
+        "SourceFile": "main.c"
       }
     },
 
-    "c++20": {
-      "Id": "c++20",
+    "c17": {
+      "Id": "c17",
       "IsDefault": false,
-      "Name": "C++20",
-      "CompileCmd": "g++ -std=c++20 $(find . -name '*.cpp') -o main ",
+      "Name": "C17(18)",
+      "CompileCmd": "g++ -std=c17 $(find . -name '*.c') -o main ",
       "RunCmd": "./main {ARGS} < {STDIN}",
       "ScriptOptions": {
-        "SourceFile": "main.cpp"
+        "SourceFile": "main.c"
       }
     },
 
-    "c++17": {
-      "Id": "c++17",
+    "c11": {
+      "Id": "c11",
       "IsDefault": false,
-      "Name": "C++17",
-      "CompileCmd": "g++ -std=c++17 $(find . -name '*.cpp') -o main ",
+      "Name": "C11",
+      "CompileCmd": "g++ -std=c11 $(find . -name '*.c') -o main ",
       "RunCmd": "./main {ARGS} < {STDIN}",
       "ScriptOptions": {
-        "SourceFile": "main.cpp"
+        "SourceFile": "main.c"
       }
     },
 
