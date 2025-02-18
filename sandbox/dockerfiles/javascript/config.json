@@ -1,0 +1,26 @@
+{
+  "Template": "javascript",
+  "Groups": ["javascript"],
+  "Enabled": true,
+  "Connections": ["postgres"],
+  "ContainerOptions": {
+    "CompileTTL": 30,
+    "RunTTL": 5
+  },
+  "IsSupportPackage": true,
+
+  "Actions": {
+    "default": {
+      "IsDefault": true,
+      "Id": "default",
+      "Name": "JS (Node 22)",
+      "CompileCmd": "",
+      "RunCmd": "node index.js {ARGS} < {STDIN}",
+      "ScriptOptions": {
+        "SourceFile": "index.js"
+      },
+      "DefaultFiles": {
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "Template": "typescript_5_7",
-  "Groups": [],
+  "Groups": ["typescript"],
   "Enabled": true,
   "Connections": ["postgres"],
   "ContainerOptions": {
