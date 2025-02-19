@@ -1,12 +1,30 @@
+### cpp 23
+POST {{url}}/run
+Content-Type: application/json
+
+{
+  "templateId": "cpp",
+  "actionId": "c++23",
+  "files": {
+    "extensions.h": "#include <iostream>\n\t\t\t\t#include <string>\n\t\t\t\t\n\t\t\t\tnamespace kmc \n\t\t\t\t{\n\t\t\t\t\ttemplate<typename T>\n\t\t\t\t\tvoid print(const T t)\n\t\t\t\t\t{\n\t\t\t\t\t\tstd::cout << t;\n\t\t\t\t\t}\n\t\t\t\t\n\t\t\t\t\ttemplate<typename T>\n\t\t\t\t\tvoid printLine(const T t)\n\t\t\t\t\t{\n\t\t\t\t\t\tprint(t);\n\t\t\t\t\t\tstd::cout << std::endl;\n\t\t\t\t\t}\n\t\t\t\t}",
+    "main.cpp": "#include <vector>\n\t\t\t\t\n\t\t\t\t#include \"extensions.h\"\n\t\t\t\t\n\t\t\t\tint main(int argc, char const *argv[])\n\t\t\t\t{\n\t\t\t\t  kmc::printLine(\"Hello Docker container!\");\n\t\t\t\t  \n\t\t\t\t  std::vector<std::string> names = { \"jdawg\", \"ntg\", \"seanpapa\" };\n\t\t\t\t\n\t\t\t\t  for (const std::string n : names) {\n\t\t\t\t\tkmc::printLine(n);\n\t\t\t\t  }\n\t\t\t\t\n\t\t\t\t  return 0;\n\t\t\t\t}"
+  },
+  "args": "--name \"Elon Mask\" -age=45"
+}
+
 ### cpp
 POST {{url}}/run
 Content-Type: application/json
 
 {
   "templateId": "cpp",
+  "actionId": "default",
   "files": {
     "extensions.h": "#include <iostream>\n\t\t\t\t#include <string>\n\t\t\t\t\n\t\t\t\tnamespace kmc \n\t\t\t\t{\n\t\t\t\t\ttemplate<typename T>\n\t\t\t\t\tvoid print(const T t)\n\t\t\t\t\t{\n\t\t\t\t\t\tstd::cout << t;\n\t\t\t\t\t}\n\t\t\t\t\n\t\t\t\t\ttemplate<typename T>\n\t\t\t\t\tvoid printLine(const T t)\n\t\t\t\t\t{\n\t\t\t\t\t\tprint(t);\n\t\t\t\t\t\tstd::cout << std::endl;\n\t\t\t\t\t}\n\t\t\t\t}",
     "main.cpp": "#include <vector>\n\t\t\t\t\n\t\t\t\t#include \"extensions.h\"\n\t\t\t\t\n\t\t\t\tint main(int argc, char const *argv[])\n\t\t\t\t{\n\t\t\t\t  kmc::printLine(\"Hello Docker container!\");\n\t\t\t\t  \n\t\t\t\t  std::vector<std::string> names = { \"jdawg\", \"ntg\", \"seanpapa\" };\n\t\t\t\t\n\t\t\t\t  for (const std::string n : names) {\n\t\t\t\t\tkmc::printLine(n);\n\t\t\t\t  }\n\t\t\t\t\n\t\t\t\t  return 0;\n\t\t\t\t}"
   },
-  "args": "--name \"Elon Mask\" -age=45"
+  "args": "--name \"Elon Mask\" -age=45",
+  "externalOptions": {
+    "CompileCmd": "g++ --version"
+  }
 }

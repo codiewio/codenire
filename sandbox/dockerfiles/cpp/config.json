@@ -13,6 +13,15 @@
     "default": {
       "Id": "default",
       "IsDefault": true,
+      "Name": "C++ Versions",
+      "CompileCmd": "",
+      "RunCmd": "g++ --version",
+      "ScriptOptions": {}
+    },
+
+    "c++23": {
+      "Id": "c++23",
+      "IsDefault": false,
       "Name": "C++23",
       "CompileCmd": "g++ -std=c++23 $(find . -name '*.cpp') -o main ",
       "RunCmd": "./main {ARGS} < {STDIN}",
