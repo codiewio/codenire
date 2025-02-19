@@ -114,9 +114,12 @@ func (m *CodenireOrchestrator) Boot() (err error) {
 		buildErr := m.buildImage(img, idx)
 		if buildErr != nil {
 			log.Println("Build of Image failed", "[Image]", img.ImageConfig.Template, "[err]", buildErr)
-			return
+			continue
 		}
+
+		log.Println("Build of Image success", "[Image]", img.ImageConfig.Template)
 	}
+
 	m.startContainers()
 
 	return nil
