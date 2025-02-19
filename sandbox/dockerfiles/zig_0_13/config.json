@@ -1,0 +1,26 @@
+{
+  "Template": "zig_0_13",
+  "Groups": ["zig"],
+  "Enabled": true,
+  "Connections": ["postgres"],
+  "ContainerOptions": {
+    "CompileTTL": 30,
+    "RunTTL": 5
+  },
+  "IsSupportPackage": true,
+
+  "Actions": {
+    "default": {
+      "IsDefault": true,
+      "Id": "default",
+      "Name": "Zig 0.13",
+      "CompileCmd": "zig build-exe main.zig",
+      "RunCmd": "./main {ARGS} < {STDIN}",
+      "ScriptOptions": {
+        "SourceFile": "main.zig"
+      },
+      "DefaultFiles": {
+      }
+    }
+  }
+}
