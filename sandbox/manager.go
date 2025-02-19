@@ -110,11 +110,6 @@ func (m *CodenireOrchestrator) Prepare() error {
 }
 
 func (m *CodenireOrchestrator) Boot() (err error) {
-	//err = m.dockerLogin()
-	//if err != nil {
-	//	return err
-	//}
-
 	pool := pond.NewPool(m.numSysWorkers)
 	for idx, img := range m.imgs {
 		pool.Submit(func() {
