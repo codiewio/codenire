@@ -110,19 +110,13 @@ func (m *CodenireOrchestrator) Prepare() error {
 }
 
 func (m *CodenireOrchestrator) Boot() (err error) {
-	pool := pond.NewPool(m.numSysWorkers / 2)
 	for idx, img := range m.imgs {
-		pool.Submit(func() {
-			buildErr := m.buildImage(img, idx)
-			if buildErr != nil {
-				log.Println("Build of Image failed", "[Image]", img.ImageConfig.Template, "[err]", buildErr)
-				return
-			}
-		})
+		buildErr := m.buildImage(img, idx)
+		if buildErr != nil {
+			log.Println("Build of Image failed", "[Image]", img.ImageConfig.Template, "[err]", buildErr)
+			return
+		}
 	}
-
-	pool.StopAndWait()
-
 	m.startContainers()
 
 	return nil
