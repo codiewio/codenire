@@ -16,8 +16,8 @@
       "IsDefault": true,
       "Id": "default",
       "Name": ".NET 6.0",
-      "CompileCmd": "{ dotnet new console -o ./project && cp ./*.cs ./project/ && dotnet publish -c Release -o ./publish ./project; } 1>/dev/null",
-      "RunCmd": "dotnet ./project/bin/Release/net6.0/project.dll",
+      "CompileCmd": "{ cp /app/*.cs /project/ && dotnet publish -c Release -o /publish /project; } 1>/dev/null",
+      "RunCmd": "dotnet /project/bin/Release/net6.0/project.dll",
       "ScriptOptions": {
         "SourceFile": "Program.cs"
       },
