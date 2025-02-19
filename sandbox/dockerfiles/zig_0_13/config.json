@@ -2,7 +2,7 @@
   "Template": "zig_0_13",
   "Groups": ["zig"],
   "Enabled": true,
-  "Connections": ["postgres"],
+  "Connections": [],
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5

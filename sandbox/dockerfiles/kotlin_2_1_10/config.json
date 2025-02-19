@@ -2,7 +2,7 @@
   "Template": "kotlin_2_1_10",
   "Labels": ["kotlin"],
   "Enabled": true,
-  "Connections": ["postgres"],
+  "Connections": [],
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5,

@@ -2,7 +2,7 @@
   "Template": "ruby_2_7",
   "Groups": [],
   "Enabled": true,
-  "Connections": ["postgres"],
+  "Connections": [],
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5

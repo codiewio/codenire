@@ -2,7 +2,7 @@
   "Template": "javascript",
   "Groups": ["javascript"],
   "Enabled": true,
-  "Connections": ["postgres"],
+  "Connections": [],
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5

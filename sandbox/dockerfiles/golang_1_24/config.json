@@ -3,7 +3,7 @@
   "Groups": ["go"],
   "Workdir": "/app",
   "Enabled": true,
-  "Connections": ["postgres"],
+  "Connections": [],
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5,

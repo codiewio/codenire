@@ -2,7 +2,7 @@
   "Template": "python_2",
   "Groups": [],
   "Enabled": true,
-  "Connections": ["postgres"],
+  "Connections": [],
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5

@@ -2,7 +2,7 @@
   "Template": "php84",
   "Labels": ["php"],
   "Enabled": true,
-  "Connections": ["postgres"],
+  "Connections": [],
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5

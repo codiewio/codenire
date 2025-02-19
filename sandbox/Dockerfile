@@ -54,7 +54,6 @@ RUN apt-get update && apt-get install -y docker-ce-cli
 
 COPY --from=builder /app/bin/sandbox /usr/local/bin/sandbox
 
-# TODO:: удалить и вынести на этап терраформа d /ops или volume в докер-компоуз, но оставить в репе папку
 ADD dockerfiles /dockerfiles
 
 ENTRYPOINT ["/usr/local/bin/sandbox"]

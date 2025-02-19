@@ -2,7 +2,7 @@
   "Template": "typescript_5_7",
   "Groups": ["typescript"],
   "Enabled": true,
-  "Connections": ["postgres"],
+  "Connections": [],
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5

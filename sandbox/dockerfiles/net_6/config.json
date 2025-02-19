@@ -2,7 +2,7 @@
   "Template": "net_6",
   "Groups": ["net"],
   "Enabled": true,
-  "Connections": ["postgres"],
+  "Connections": [],
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5
