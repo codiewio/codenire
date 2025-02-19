@@ -110,7 +110,7 @@ func (m *CodenireOrchestrator) Prepare() error {
 }
 
 func (m *CodenireOrchestrator) Boot() (err error) {
-	pool := pond.NewPool(m.numSysWorkers)
+	pool := pond.NewPool(m.numSysWorkers / 2)
 	for idx, img := range m.imgs {
 		pool.Submit(func() {
 			buildErr := m.buildImage(img, idx)
