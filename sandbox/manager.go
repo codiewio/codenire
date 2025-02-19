@@ -110,7 +110,7 @@ func (m *CodenireOrchestrator) Prepare() error {
 }
 
 func (m *CodenireOrchestrator) Boot() (err error) {
-	pgImage, idx := m.foundPgImage()
+	pgImage, idx := m.findPgImage()
 	if pgImage != nil {
 		fmt.Println("Postgres found:", pgImage.Template)
 		log.Println("Build of Image started", "[Image]", pgImage.ImageConfig.Template)
@@ -145,7 +145,7 @@ func (m *CodenireOrchestrator) Boot() (err error) {
 	return nil
 }
 
-func (m *CodenireOrchestrator) foundPgImage() (*BuiltImage, int) {
+func (m *CodenireOrchestrator) findPgImage() (*BuiltImage, int) {
 	var pgImage *BuiltImage
 	var idx int
 	for i := range m.imgs {
@@ -403,8 +403,9 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 }
 
 func (m *CodenireOrchestrator) isPostgresConnected(img BuiltImage) bool {
-	pgImage, _ := m.foundPgImage()
+	pgImage, _ := m.findPgImage()
 	if pgImage == nil || pgImage.imageID == nil {
+		log.Println("pg not found on container creation", "[pgImage]", pgImage)
 		return false
 	}
 
