@@ -14,12 +14,12 @@ But created for more extensible
 
 
 
-<a href="https://codiew.io" target="_blank">
+<a href="https://codiew.io/ide" target="_blank">
   <img width="1242" alt="Screenshot 2025-02-04 at 01 04 36" src="https://github.com/user-attachments/assets/dc79a2c8-b095-4987-909e-239f0d0afc74" />
 </a>
 
 
-*Playground demonstration in the [codiew.io](https://codiew.io) service — soon will be available for you.*
+*Playground demonstration in the [codiew.io/ide](https://codiew.io/ide)
 
 
 # 🌟Features
