@@ -14,12 +14,14 @@
     "cargo": {
       "Id": "cargo",
       "Name": "Rust 1.84 (Cargo)",
-      "CompileCmd": "cargo -v",
+      "CompileCmd": "",
       "RunCmd": "cargo run {ARGS} < {STDIN}",
       "ScriptOptions": {
         "SourceFile": "main.rs"
       },
-      "DefaultFiles": {}
+      "DefaultFiles": {
+        "Cargo.toml": "[package]\nname = \"super_app\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[[bin]]\nname = \"super_app\"\npath = \"main.rs\"\n"
+      }
     }
   }
 }

@@ -6,7 +6,7 @@ Content-Type: application/json
   "templateId": "default",
   "actionId": "ruby3.3",
   "files": {
-    "script.rb": "puts \"Hello, World!\""
+    "main.rb": "puts \"Hello, World!\""
   },
   "args": "--name Mark",
   "stdin": "100.00"

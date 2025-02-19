@@ -77,20 +77,20 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	stdinFile, err := internal.SaveRequestFiles(req, tmpDir)
 	if err != nil {
-		sendRunError(w, "encode  files failed")
+		sendRunError(w, "encode  files failed", nil)
 		return
 	}
 
 	cont, err := codenireManager.GetContainer(r.Context(), req.SandId)
 	if err != nil {
-		sendRunError(w, fmt.Sprintf("get container %s failed with %s", req.SandId, err.Error()))
+		sendRunError(w, fmt.Sprintf("get container %s failed with %s", req.SandId, err.Error()), nil)
 		return
 	}
 
 	defer func() {
 		err = codenireManager.KillContainer(*cont)
 		if err != nil {
-			sendRunError(w, fmt.Sprintf("kill contaier err: %s", err.Error()))
+			sendRunError(w, fmt.Sprintf("kill contaier err: %s", err.Error()), nil)
 			return
 		}
 	}()
@@ -106,7 +106,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	action, exists := cont.Image.Actions[req.Action]
 	if !exists {
-		sendRunError(w, fmt.Sprintf("action %s not found with template %s", req.Action, req.SandId))
+		sendRunError(w, fmt.Sprintf("action %s not found with template %s", req.Action, req.SandId), nil)
 	}
 
 	//nolint
@@ -119,7 +119,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("Invalid request 7")
-		sendRunError(w, fmt.Sprintf("failed to connect to docker: %v, %s", err, out))
+		sendRunError(w, fmt.Sprintf("failed to connect to docker: %v, %s", err, out), nil)
 		return
 	}
 
@@ -127,6 +127,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	timeoutCtx := registerCmdTimeout(r.Context(), totalTimeout)
 
 	res := &contract.SandboxResponse{}
+	res.RunEnvironment.ActionName = action.Name
 	var stdout, stderr bytes.Buffer
 
 	compileCmd := getCommand(action.CompileCmd, CompileCmd, req.ExtendedOptions, action)
@@ -149,7 +150,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 			if runErr != nil {
 				if errors.Is(compileCtx.Err(), context.DeadlineExceeded) {
-					sendRunError(w, "timeout compilation")
+					sendRunError(w, "timeout compilation", res)
 					return
 				}
 
@@ -182,7 +183,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 		if runErr != nil {
 			if errors.Is(runTimeoutCtx.Err(), context.DeadlineExceeded) {
-				sendRunError(w, "timeout execute")
+				sendRunError(w, "timeout execute", res)
 				return
 			}
 
@@ -228,9 +229,12 @@ func sendResponse(w http.ResponseWriter, res *contract.SandboxResponse) {
 	_, _ = w.Write(body)
 }
 
-func sendRunError(w http.ResponseWriter, err string) {
+func sendRunError(w http.ResponseWriter, err string, ctxRes *contract.SandboxResponse) {
 	res := &contract.SandboxResponse{}
 	res.Stderr = []byte(err)
+	if ctxRes != nil {
+		res.RunEnvironment = ctxRes.RunEnvironment
+	}
 
 	sendRunResponse(w, res)
 }

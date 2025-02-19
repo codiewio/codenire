@@ -249,13 +249,17 @@
           },
           "CompileTime": {
             "type": "number"
+          },
+          "ActionName": {
+            "type": "string"
           }
         },
         "required": [
           "CompileCmd",
           "RunCmd",
           "RunTime",
-          "CompileTime"
+          "CompileTime",
+          "ActionName"
         ]
       },
       "SandboxResponse": {

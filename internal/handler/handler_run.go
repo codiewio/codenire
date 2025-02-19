@@ -203,6 +203,7 @@ func runCode(ctx context.Context, req api.SubmissionRequest, backendURL string) 
 			CompileCmd:  execRes.RunEnvironment.CompileCmd,
 			RunTime:     execRes.RunEnvironment.RunTime,
 			CompileTime: execRes.RunEnvironment.CompileTime,
+			ActionName:  execRes.RunEnvironment.ActionName,
 		},
 	}
 

@@ -44,7 +44,7 @@
     },
 
     "c++14": {
-      "Id": "default",
+      "Id": "c++14",
       "IsDefault": false,
       "Name": "C++14",
       "CompileCmd": "g++ -std=c++14 $(find . -name '*.cpp') -o main ",

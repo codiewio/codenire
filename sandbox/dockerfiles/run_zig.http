@@ -1,0 +1,14 @@
+### Zig 0.13
+POST {{url}}/run
+Content-Type: application/json
+
+{
+  "templateId": "zig_0_13",
+  "files": {
+    "main.zig": "const std = @import(\"std\");\n\npub fn main() !void {\n    std.debug.print(\"Hello World!\\n\", .{});\n}"
+  },
+  "args": "",
+  "stdin": "",
+  "externalOptions": {
+  }
+}

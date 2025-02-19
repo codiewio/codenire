@@ -211,11 +211,14 @@ components:
           type: number
         CompileTime:
           type: number
+        ActionName:
+          type: string
       required:
         - CompileCmd
         - RunCmd
         - RunTime
         - CompileTime
+        - ActionName
 
     SandboxResponse:
       type: object

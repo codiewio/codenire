@@ -124,6 +124,7 @@ type ImageTemplateConfig struct {
 
 // RunEnvironment defines model for RunEnvironment.
 type RunEnvironment struct {
+	ActionName  string  `json:"ActionName"`
 	CompileCmd  string  `json:"CompileCmd"`
 	CompileTime float32 `json:"CompileTime"`
 	RunCmd      string  `json:"RunCmd"`

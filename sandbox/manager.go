@@ -110,6 +110,11 @@ func (m *CodenireOrchestrator) Prepare() error {
 }
 
 func (m *CodenireOrchestrator) Boot() (err error) {
+	//err = m.dockerLogin()
+	//if err != nil {
+	//	return err
+	//}
+
 	pool := pond.NewPool(m.numSysWorkers)
 	for idx, img := range m.imgs {
 		pool.Submit(func() {
@@ -572,3 +577,29 @@ func duplicates(items []contract.ImageConfig) []string {
 
 	return dd
 }
+
+//nolint
+//func (m *CodenireOrchestrator) dockerLogin() error {
+//	dockerUsername := os.Getenv("DOCKER_USERNAME")
+//	dockerToken := os.Getenv("DOCKER_LOGIN_TOKEN")
+//
+//	if dockerToken == "" || dockerUsername == "" {
+//		return fmt.Errorf("docker credentials not provided")
+//	}
+//
+//	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+//	defer cancel()
+//
+//	authConfig := registry.AuthConfig{
+//		Username: dockerUsername,
+//		Password: dockerToken,
+//	}
+//
+//	authResponse, err := m.dockerClient.RegistryLogin(ctx, authConfig)
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	fmt.Println("Docker  Login successful:", authResponse.Status)
+//	return nil
+//}

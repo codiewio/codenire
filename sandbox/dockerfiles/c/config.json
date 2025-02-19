@@ -41,28 +41,6 @@
       "ScriptOptions": {
         "SourceFile": "main.c"
       }
-    },
-
-    "c++14": {
-      "Id": "default",
-      "IsDefault": false,
-      "Name": "C++14",
-      "CompileCmd": "g++ -std=c++14 $(find . -name '*.cpp') -o main ",
-      "RunCmd": "./main {ARGS} < {STDIN}",
-      "ScriptOptions": {
-        "SourceFile": "main.cpp"
-      }
-    },
-
-    "c++11": {
-      "Id": "c++11",
-      "IsDefault": false,
-      "Name": "C++11",
-      "CompileCmd": "g++ -std=c++11 $(find . -name '*.cpp') -o main ",
-      "RunCmd": "./main {ARGS} < {STDIN}",
-      "ScriptOptions": {
-        "SourceFile": "main.cpp"
-      }
     }
   }
 }
