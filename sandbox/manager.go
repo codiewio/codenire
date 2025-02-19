@@ -110,7 +110,27 @@ func (m *CodenireOrchestrator) Prepare() error {
 }
 
 func (m *CodenireOrchestrator) Boot() (err error) {
+	pgImage, idx := m.foundPgImage()
+	if pgImage != nil {
+		fmt.Println("Postgres found:", pgImage.Template)
+		log.Println("Build of Image started", "[Image]", pgImage.ImageConfig.Template)
+		buildErr := m.buildImage(*pgImage, idx)
+		if buildErr != nil {
+			log.Println("Build of Image failed", "[Image]", pgImage.ImageConfig.Template, "[err]", buildErr)
+		}
+	} else {
+		fmt.Println("Not found PG Image")
+	}
+
+	// -------------------------------
+
 	for idx, img := range m.imgs {
+		log.Println("Build of Image started", "[Image]", img.ImageConfig.Template)
+
+		if img.Template == "postgres" {
+			continue
+		}
+
 		buildErr := m.buildImage(img, idx)
 		if buildErr != nil {
 			log.Println("Build of Image failed", "[Image]", img.ImageConfig.Template, "[err]", buildErr)
@@ -123,6 +143,20 @@ func (m *CodenireOrchestrator) Boot() (err error) {
 	m.startContainers()
 
 	return nil
+}
+
+func (m *CodenireOrchestrator) foundPgImage() (*BuiltImage, int) {
+	var pgImage *BuiltImage
+	var idx int
+	for i := range m.imgs {
+		if m.imgs[i].Template == "postgres" {
+			pgImage = &m.imgs[i]
+			idx = i
+			break
+		}
+	}
+
+	return pgImage, idx
 }
 
 func (m *CodenireOrchestrator) GetTemplates() []BuiltImage {
@@ -278,7 +312,7 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 	}
 
 	dbName := ""
-	if isPostgresConnected(img) {
+	if m.isPostgresConnected(img) {
 		name := fmt.Sprintf("pgdb_%s", internal.RandHex(8))
 		dbName = name
 		user := fmt.Sprintf("pguser_%s", internal.RandHex(8))
@@ -353,7 +387,7 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 
 	// External connect when networkMode already set up and networkMode not isolatedPostgresNetwork
 	if !hostConfig.NetworkMode.IsNone() &&
-		isPostgresConnected(img) &&
+		m.isPostgresConnected(img) &&
 		networkMode != *isolatedPostgresNetwork {
 		err = m.dockerClient.NetworkConnect(ctx, *isolatedPostgresNetwork, containerResp.ID, &network.EndpointSettings{})
 		if err != nil {
@@ -368,7 +402,12 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 	}, nil
 }
 
-func isPostgresConnected(img BuiltImage) bool {
+func (m *CodenireOrchestrator) isPostgresConnected(img BuiltImage) bool {
+	pgImage, _ := m.foundPgImage()
+	if pgImage == nil || pgImage.imageID == nil {
+		return false
+	}
+
 	pgConnected := false
 	for _, c := range img.Connections {
 		if c == postgresConfigConnection {
