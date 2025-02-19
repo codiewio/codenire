@@ -1,0 +1,16 @@
+### .Net 6
+POST {{url}}/run
+Content-Type: application/json
+
+{
+  "templateId": "net_6",
+  "files": {
+    "Program.cs": "using System;\n\nclass Program\n{\n    static void Main(string[] args)\n    {\n        Console.WriteLine(\"Hello from Program.cs!\");\n        Helper.Greet();\n        Class1.ShowInfo();\n    }\n}",
+    "Class1.cs": "public class Class1\n{\n    public static void ShowInfo()\n    {\n        Console.WriteLine(\"Hello from Class1!\");\n    }\n}",
+    "Helper.cs": "public static class Helper\n{\n    public static void Greet()\n    {\n        Console.WriteLine(\"Hello from Helper.cs!\");\n    }\n}"
+  },
+  "args": "",
+  "stdin": "",
+  "externalOptions": {
+  }
+}
