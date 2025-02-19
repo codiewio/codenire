@@ -110,26 +110,8 @@ func (m *CodenireOrchestrator) Prepare() error {
 }
 
 func (m *CodenireOrchestrator) Boot() (err error) {
-	pgImage, idx := m.findPgImage()
-	if pgImage != nil {
-		fmt.Println("Postgres found:", pgImage.Template)
-		log.Println("Build of Image started", "[Image]", pgImage.ImageConfig.Template)
-		buildErr := m.buildImage(*pgImage, idx)
-		if buildErr != nil {
-			log.Println("Build of Image failed", "[Image]", pgImage.ImageConfig.Template, "[err]", buildErr)
-		}
-	} else {
-		fmt.Println("Not found PG Image")
-	}
-
-	// -------------------------------
-
 	for idx, img := range m.imgs {
 		log.Println("Build of Image started", "[Image]", img.ImageConfig.Template)
-
-		if img.Template == "postgres" {
-			continue
-		}
 
 		buildErr := m.buildImage(img, idx)
 		if buildErr != nil {
