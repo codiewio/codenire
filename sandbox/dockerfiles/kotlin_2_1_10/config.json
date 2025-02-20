@@ -15,9 +15,20 @@
     "default": {
       "Id": "default",
       "IsDefault": true,
-      "Name": "Kotlin (2.1.10)",
-      "CompileCmd": "kotlinc *.kt -include-runtime -d app.jar",
-      "RunCmd": "java -jar app.jar {ARGS} < {STDIN}",
+      "Name": "Kotlin 2.1",
+      "CompileCmd": "kotlinc $(find . -name \"*.kt\") -d app.jar",
+      "RunCmd": "kotlin -classpath app.jar MainKt {ARGS} < {STDIN}",
+      "ScriptOptions": {
+        "SourceFile": "Main.kt"
+      }
+    },
+
+    "kotlin-script": {
+      "Id": "kotlin-script",
+      "IsDefault": true,
+      "Name": "Kotlin Script 2.1",
+      "CompileCmd": "",
+      "RunCmd": "kotlinc -script script.kts {ARGS} < {STDIN}",
       "ScriptOptions": {
         "SourceFile": "Main.kt"
       }

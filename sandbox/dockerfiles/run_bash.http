@@ -1,4 +1,4 @@
-### Golang 1.23
+### Bash 5.2
 POST {{url}}/run
 Content-Type: application/json
 
@@ -7,8 +7,21 @@ Content-Type: application/json
   "files": {
     "script.sh": "#!/bin/bash\n\necho \"PGDATABASE is: $PGDATABASE\"\n"
   },
-  "externalOptions": {
-  },
   "args": "--name Mark",
   "stdin": "100.00"
+}
+
+### Bash version
+POST {{url}}/run
+Content-Type: application/json
+
+{
+  "templateId": "bash",
+  "actionId": "default",
+  "files": {},
+  "args": "--name Mark",
+  "stdin": "100.00",
+  "externalOptions": {
+    "CompileCmd": "bash --version"
+  }
 }
