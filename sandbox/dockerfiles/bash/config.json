@@ -13,6 +13,13 @@
   "Actions": {
     "default": {
       "Id": "default",
+      "Name": "Version",
+      "CompileCmd": "",
+      "RunCmd": "bash -v",
+      "ScriptOptions": {}
+    },
+    "bash": {
+      "Id": "default",
       "Name": "Bash (5.2)",
       "CompileCmd": "chmod +x ./script.sh",
       "RunCmd": "./script.sh {ARGS} < {STDIN}",
