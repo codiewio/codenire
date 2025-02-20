@@ -94,8 +94,9 @@ func main() {
 	}
 
 	log.Printf("Go playground sandbox starting...")
-
-	codenireManager = NewCodenireOrchestrator()
+	// storage := &Storage{}
+	// codenireManager = NewCodenireOrchestrator(storage)
+	//Not possible to use storage in this case as it is not implemented
 	codenireManager.KillAll()
 
 	runSem = make(chan struct{}, *numWorkers)
@@ -114,6 +115,11 @@ func main() {
 
 	h.Post("/run", runHandler)
 	h.Get("/templates", listTemplatesHandler)
+	h.Get("/templates/{id}", getTemplateByIDHandler)
+	h.Post("/templates", AddTemplateHandler)
+	h.Post("/templates/{id}", runTemplateHandler)
+	h.Delete("/templates/{id}", deleteTemplateHandler)
+	h.Put("/templates/{id}", updateTemplateHandler)
 
 	httpServer := &http.Server{
 		Addr:              ":" + *listenAddr,
