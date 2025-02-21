@@ -336,6 +336,7 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 		},
 		ExtraHosts: []string{
 			"postgres_host:172.25.0.2",
+			"isolated_gateway:172.24.0.2",
 		},
 	}
 	if img.imageID == nil {
