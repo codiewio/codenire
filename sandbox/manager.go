@@ -334,10 +334,7 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 			Memory:     int64(*img.ContainerOptions.MemoryLimit),
 			MemorySwap: 0,
 		},
-		ExtraHosts: []string{
-			"postgres_host:172.25.0.2",
-			"isolated_gateway:172.24.0.2",
-		},
+		ExtraHosts: []string{},
 	}
 	if img.imageID == nil {
 		return nil, fmt.Errorf("imageId is null")
