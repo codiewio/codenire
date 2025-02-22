@@ -28,6 +28,7 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 
+	"errors"
 	contract "sandbox/api/gen"
 	"sandbox/internal"
 )
@@ -58,8 +59,15 @@ type ContainerOrchestrator interface {
 	Boot() error
 	GetTemplates() []BuiltImage
 	GetContainer(ctx context.Context, id string) (*StartedContainer, error)
+	AddTemplate(cfg contract.ImageConfig) error
 	KillAll()
 	KillContainer(StartedContainer) error
+}
+
+type Storage interface {
+	SaveTemplates([]BuiltImage) error
+	LoadTemplates() ([]BuiltImage, error)
+	DeleteTemplate(id string) error
 }
 
 type CodenireOrchestrator struct {
@@ -75,9 +83,10 @@ type CodenireOrchestrator struct {
 	isolated     bool
 
 	dockerFilesPath string
+	storage         Storage
 }
 
-func NewCodenireOrchestrator() *CodenireOrchestrator {
+func NewCodenireOrchestrator(storage Storage) *CodenireOrchestrator {
 	c, err := client.NewClientWithOpts(client.WithVersion("1.41"))
 	if err != nil {
 		panic("fail on createDB docker client")
@@ -92,11 +101,17 @@ func NewCodenireOrchestrator() *CodenireOrchestrator {
 		idleContainersCount: *replicaContainerCnt,
 		dockerFilesPath:     *dockerFilesPath,
 		isolated:            *isolated,
+		storage:             storage,
 	}
 }
 
 func (m *CodenireOrchestrator) Prepare() error {
-	templates := parseConfigFiles(m.dockerFilesPath)
+	loadedTemplates, err := m.storage.LoadTemplates() //loads the template from storage
+	if err == nil && len(loadedTemplates) > 0 {
+		m.imgs = loadedTemplates
+		return nil
+	}
+	templates := parseConfigFiles(m.dockerFilesPath) //if no templates are loaded from storage, parse the config files
 
 	for _, t := range templates {
 		err := m.prebuildImage(t, m.dockerFilesPath)
@@ -105,7 +120,7 @@ func (m *CodenireOrchestrator) Prepare() error {
 			continue
 		}
 	}
-
+	m.storage.SaveTemplates(m.imgs)
 	return nil
 }
 
@@ -142,7 +157,29 @@ func (m *CodenireOrchestrator) findPgImage() (*BuiltImage, int) {
 }
 
 func (m *CodenireOrchestrator) GetTemplates() []BuiltImage {
-	return m.imgs
+	templates, err := m.storage.LoadTemplates()
+	if err != nil {
+		log.Println("Failed to load templates:", err)
+		return nil
+	}
+	return templates //returns empty list on error. hence returns maximum one value ie []BuildImages
+}
+
+func (m *CodenireOrchestrator) GetTemplateByID(id string) (*BuiltImage, error) {
+	templates, err := m.storage.LoadTemplates()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, t := range templates {
+		if t.imageID != nil && *t.imageID == id { // Convert pointer to string for comparison
+			return &t, nil
+		}
+	}
+	return nil, errors.New("template not found")
+}
+func (m *CodenireOrchestrator) DeleteTemplate(id string) error {
+	return m.storage.DeleteTemplate(id)
 }
 
 func (m *CodenireOrchestrator) GetContainer(ctx context.Context, id string) (*StartedContainer, error) {
@@ -152,6 +189,54 @@ func (m *CodenireOrchestrator) GetContainer(ctx context.Context, id string) (*St
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
+}
+
+func (m *CodenireOrchestrator) AddTemplate(cfg contract.ImageConfig) error {
+	templates, err := m.storage.LoadTemplates()
+	if err != nil {
+		log.Println("Failed to load templates:", err)
+		return err
+	}
+	for _, t := range templates {
+		if t.Template == cfg.Template {
+			return errors.New("template already exists")
+		}
+	}
+	newImage := BuiltImage{
+		ImageConfig: cfg,
+	}
+	templates = append(templates, newImage)
+	return m.storage.SaveTemplates(templates)
+
+}
+
+func (m *CodenireOrchestrator) runTemplate(id string) (*StartedContainer, error) {
+	template, err := m.GetTemplateByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return m.runSndContainer(*template)
+}
+
+func (m *CodenireOrchestrator) updateTemplate(id string, newConfig contract.ImageConfig) error {
+	template, err := m.storage.LoadTemplates()
+	if err != nil {
+		log.Println("Failed to load templates:", err)
+		return err
+	}
+
+	found := false
+	for i, t := range template {
+		if t.Template == id {
+			template[i].ImageConfig = newConfig
+			found = true
+			break
+		}
+	}
+	if !found {
+		return errors.New("template not found")
+	}
+	return m.storage.SaveTemplates(template)
 }
 
 func (m *CodenireOrchestrator) KillAll() {
