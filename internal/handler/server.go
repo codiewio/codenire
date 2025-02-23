@@ -5,11 +5,13 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"time"
 
+	"github.com/codiewio/codenire/internal/client"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -76,6 +78,36 @@ func NewServer(config *Config) (*http.Server, error) {
 		r.Group(func(r chi.Router) {
 			r.Get("/actions", handler.ActionListHandler)
 		})
+	})
+
+	router.Get("/metrics", func(w http.ResponseWriter, r *http.Request) {
+		req, err := http.NewRequestWithContext(
+			context.Background(),
+			http.MethodGet,
+			handler.Config.BackendURL+"/metrics",
+			nil,
+		)
+
+		if err != nil {
+			http.Error(w, "sandbox client metrics request error", http.StatusInternalServerError)
+			return
+		}
+
+		resp, err := client.SandboxBackendClient().Do(req)
+		if err != nil {
+			http.Error(w, "Failed to fetch metrics from other service", http.StatusInternalServerError)
+			return
+		}
+		defer func() {
+			_ = resp.Body.Close()
+		}()
+
+		w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
+		_, err = io.Copy(w, resp.Body)
+		if err != nil {
+			http.Error(w, "Failed to write metrics to response", http.StatusInternalServerError)
+			return
+		}
 	})
 
 	return &http.Server{

@@ -9,9 +9,17 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v4"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
-func createDB(dsn string, dbName, userName, userPassword string) error {
+var dbCountMetric = prometheus.NewGauge(prometheus.GaugeOpts{
+	Name: "sand_pg_database_count",
+	Help: "Number of databases in PostgreSQL",
+})
+
+func createDB(dbName, userName, userPassword string) error {
+	dsn := *isolatedPostgresDSN
+
 	conn, err := pgx.Connect(context.Background(), dsn)
 	if err != nil {
 		return fmt.Errorf("error connecting to the database: %w", err)
@@ -66,7 +74,9 @@ func createDB(dsn string, dbName, userName, userPassword string) error {
 	return nil
 }
 
-func dropDB(dsn, dbName string) error {
+func dropDB(dbName string) error {
+	dsn := *isolatedPostgresDSN
+
 	conn, err := pgx.Connect(context.Background(), dsn)
 	if err != nil {
 		return fmt.Errorf("error connecting to the database: %w", err)
@@ -98,4 +108,27 @@ func dropDB(dsn, dbName string) error {
 	}
 
 	return nil
+}
+
+func updateDatabaseCountMetric() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	dsn := *isolatedPostgresDSN
+
+	conn, err := pgx.Connect(ctx, dsn)
+	if err != nil {
+		log.Printf("Failed to connect to the database: %v", err)
+		return
+	}
+	defer conn.Close(ctx)
+
+	var count int
+	err = conn.QueryRow(ctx, "SELECT COUNT(*) FROM pg_database").Scan(&count)
+	if err != nil {
+		log.Printf("Error executing the query: %v", err)
+		return
+	}
+
+	dbCountMetric.Set(float64(count))
 }

@@ -4,14 +4,14 @@
 # environment so the sandbox server can connect to the host's
 # docker daemon, which has the gvisor "runsc" runtime available.
 
-FROM golang:1.22 AS modules
+FROM golang:1.24 AS modules
 
 ADD go.mod go.sum /m/
 RUN cd /m && go mod download
 
 
 # Intermediate stage: Build the binary
-FROM golang:1.22 as builder
+FROM golang:1.24 as builder
 
 COPY --from=modules /go/pkg /go/pkg
 
@@ -57,3 +57,13 @@ COPY --from=builder /app/bin/sandbox /usr/local/bin/sandbox
 ADD dockerfiles /dockerfiles
 
 ENTRYPOINT ["/usr/local/bin/sandbox"]
+
+
+LABEL org.opencontainers.image.description="The open-source sandbox based on Docker containers and Google gVisor."
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+LABEL org.opencontainers.image.revision="${LABEL_COMMIT}"
+LABEL org.opencontainers.image.source="https://github.com/codiewio/codenire"
+LABEL org.opencontainers.image.title="Codenire Sandbox"
+LABEL org.opencontainers.image.url="https://codenire.io"
+LABEL org.opencontainers.image.vendor="I/E Maksim Fedorov"
+LABEL org.opencontainers.image.version="${LABEL_VERSION}"

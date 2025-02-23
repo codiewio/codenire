@@ -7,7 +7,7 @@
   "ContainerOptions": {
     "CompileTTL": 30,
     "RunTTL": 5,
-    "MemoryLimit": 524288000
+    "MemoryLimit": 314572800
   },
   "IsSupportPackage": true,
 

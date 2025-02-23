@@ -1,11 +1,11 @@
 # Initial stage: download modules
-FROM golang:1.23 as modules
+FROM golang:1.24 as modules
 
 ADD go.mod go.sum /m/
 RUN cd /m && go mod download
 
 # Intermediate stage: Build the binary
-FROM golang:1.23 as builder
+FROM golang:1.24 as builder
 
 COPY --from=modules /go/pkg /go/pkg
 
@@ -45,7 +45,7 @@ LABEL org.opencontainers.image.description="The open-source sandbox based on Doc
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 LABEL org.opencontainers.image.revision="${LABEL_COMMIT}"
 LABEL org.opencontainers.image.source="https://github.com/codiewio/codenire"
-LABEL org.opencontainers.image.title="Codenire"
-LABEL org.opencontainers.image.url="https://codenire.com"
-#LABEL org.opencontainers.image.vendor="Codiew INC"
+LABEL org.opencontainers.image.title="Codenire Playground"
+LABEL org.opencontainers.image.url="https://codenire.io"
+LABEL org.opencontainers.image.vendor="I/E Maksim Fedorov"
 LABEL org.opencontainers.image.version="${LABEL_VERSION}"

@@ -45,14 +45,17 @@ import (
 )
 
 var (
-	backendURL        = flag.String("backend-url", "http://sandbox_dev", "URL for sandbox backend that runs Go binaries.")
-	Port              = flag.String("port", "8081", "URL for sandbox backend that runs Go binaries.")
-	PluginHookPath    = flag.String("hooks-plugins", "", "URL for sandbox backend that runs Go binaries.")
-	FileHooksDir      = flag.String("hooks-dir", "", "Directory to search for available hooks scripts")
+	backendURL     = flag.String("backend-url", "http://sandbox_dev", "URL for sandbox backend that runs Go binaries.")
+	Port           = flag.String("port", "8081", "URL for sandbox backend that runs Go binaries.")
+	PluginHookPath = flag.String("hooks-plugins", "", "URL for sandbox backend that runs Go binaries.")
+	FileHooksDir   = flag.String("hooks-dir", "", "Directory to search for available hooks scripts")
+
+	// deprecated
 	ExternalTemplates = flag.String("external-templates", "", "Comma separated list of templates which will handled externally (plugin for example)")
-	ThrottleLimit     = flag.Int("throttle-limit", 15, "currently processed requests at a time across all users")
-	JWTSecretKey      = flag.String("jwt-secret-key", "", "secret key to enable authentication")
-	dev               = flag.Bool("dev", false, "run in dev mode")
+
+	ThrottleLimit = flag.Int("throttle-limit", 15, "currently processed requests at a time across all users")
+	JWTSecretKey  = flag.String("jwt-secret-key", "", "secret key to enable authentication")
+	dev           = flag.Bool("dev", false, "run in dev mode")
 
 	CorsAllowOrigin      = flag.String("cors-allow-origin", "*", "Regular expression used to determine if the Origin header is allowed. If not, no CORS headers will be sent. By default, all origins are allowed.")
 	CorsAllowCredentials = flag.Bool("cors-allow-credentials", false, "Allow credentials by setting Access-Control-Allow-Credentials: true")
