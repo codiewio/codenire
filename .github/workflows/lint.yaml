@@ -31,7 +31,7 @@ jobs:
       - name: Lint Playground
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.63.4
+          version: v1.64.5
 
 
       # Sandbox
@@ -42,5 +42,5 @@ jobs:
       - name: Lint sandbox
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.63.4
+          version: v1.64.5
           working-directory: sandbox
