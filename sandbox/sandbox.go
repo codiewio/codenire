@@ -147,6 +147,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 			res.RunEnvironment.CompileCmd = compileCmd
 			res.RunEnvironment.CompileTime = float32(time.Since(start).Seconds())
+			codenireManager.observeExecDuration(start, "compile", req.SandId)
 
 			if runErr != nil {
 				if errors.Is(compileCtx.Err(), context.DeadlineExceeded) {
@@ -180,6 +181,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 		res.RunEnvironment.RunCmd = runCmd
 		res.RunEnvironment.RunTime = float32(time.Since(start).Seconds())
+		codenireManager.observeExecDuration(start, "run", req.SandId)
 
 		if runErr != nil {
 			if errors.Is(runTimeoutCtx.Err(), context.DeadlineExceeded) {

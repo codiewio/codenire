@@ -27,6 +27,7 @@ import (
 	docker "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
+	"github.com/prometheus/client_golang/prometheus"
 
 	contract "sandbox/api/gen"
 	"sandbox/internal"
@@ -53,7 +54,14 @@ type BuiltImage struct {
 	buf bytes.Buffer
 }
 
+type MetricsAware interface {
+	RegisterMetrics(registry prometheus.Registerer)
+	observeExecDuration(start time.Time, label, language string)
+}
+
 type ContainerOrchestrator interface {
+	MetricsAware
+
 	Prepare() error
 	Boot() error
 	GetTemplates() []BuiltImage
@@ -75,9 +83,28 @@ type CodenireOrchestrator struct {
 	isolated     bool
 
 	dockerFilesPath string
+
+	execDurationMetric  *prometheus.SummaryVec
+	runContainersMetric prometheus.Gauge
 }
 
 func NewCodenireOrchestrator() *CodenireOrchestrator {
+	execDurationMetric := prometheus.NewSummaryVec(prometheus.SummaryOpts{
+		Name: "sand_exec_duration_ms",
+		Help: "Duration of compilation in milliseconds per operation",
+		Objectives: map[float64]float64{
+			0.5:  0.05,  // 50% (median) → average execution time
+			0.75: 0.02,  // 75% → good execution time (around 3-4 sec)
+			0.9:  0.01,  // 90% → slow requests (around 7 sec)
+			0.99: 0.005, // 99% → very slow requests (close to 10 sec)
+		},
+	}, []string{"operation", "language"})
+
+	runContainersMetric := prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "sand_run_containers",
+		Help: "Current number of run containers.",
+	})
+
 	c, err := client.NewClientWithOpts(client.WithVersion("1.41"))
 	if err != nil {
 		panic("fail on createDB docker client")
@@ -92,7 +119,22 @@ func NewCodenireOrchestrator() *CodenireOrchestrator {
 		idleContainersCount: *replicaContainerCnt,
 		dockerFilesPath:     *dockerFilesPath,
 		isolated:            *isolated,
+		execDurationMetric:  execDurationMetric,
+		runContainersMetric: runContainersMetric,
 	}
+}
+
+func (m *CodenireOrchestrator) observeExecDuration(start time.Time, label, lang string) {
+	elapsed := time.Since(start)
+	ms := float64(elapsed.Nanoseconds() / int64(time.Millisecond))
+
+	m.execDurationMetric.WithLabelValues(label, lang).Observe(ms)
+}
+
+func (m *CodenireOrchestrator) RegisterMetrics(registry prometheus.Registerer) {
+	registry.MustRegister(m.execDurationMetric)
+	registry.MustRegister(m.runContainersMetric)
+	registry.MustRegister(dbCountMetric)
 }
 
 func (m *CodenireOrchestrator) Prepare() error {
@@ -214,6 +256,8 @@ func (m *CodenireOrchestrator) KillContainer(c StartedContainer) (err error) {
 		return err
 	}
 
+	m.runContainersMetric.Dec()
+
 	return nil
 }
 
@@ -300,7 +344,7 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 		user := fmt.Sprintf("pguser_%s", internal.RandHex(8))
 		password := fmt.Sprintf("pgpassword_%s", internal.RandHex(8))
 
-		pgErr := createDB(*isolatedPostgresDSN, name, user, password)
+		pgErr := createDB(name, user, password)
 		defer func() {
 			if err != nil {
 				m.removeSandboxDB(name)
@@ -326,6 +370,11 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 		}
 	}
 
+	extraHosts := []string{}
+	if *extraNetworkHosts != "" {
+		extraHosts = splitAndTrim(*extraNetworkHosts)
+	}
+
 	hostConfig := &docker.HostConfig{
 		Runtime:     m.runtime(),
 		AutoRemove:  true,
@@ -334,7 +383,7 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 			Memory:     int64(*img.ContainerOptions.MemoryLimit),
 			MemorySwap: 0,
 		},
-		ExtraHosts: []string{},
+		ExtraHosts: extraHosts,
 	}
 	if img.imageID == nil {
 		return nil, fmt.Errorf("imageId is null")
@@ -423,6 +472,8 @@ func (m *CodenireOrchestrator) startContainers() {
 						continue
 					}
 
+					m.runContainersMetric.Inc()
+
 					m.getContainer(img.Template) <- *c
 				}
 			}()
@@ -451,8 +502,8 @@ func (m *CodenireOrchestrator) runtime() string {
 
 func (m *CodenireOrchestrator) removeSandboxDB(dbname string) {
 	if *isolatedPostgresDSN != "" && dbname != "" {
-		// TODO:: handle it and cover by prometheus
-		_ = dropDB(*isolatedPostgresDSN, dbname)
+		// TODO:: handle it
+		_ = dropDB(dbname)
 	}
 }
 
@@ -615,3 +666,13 @@ func duplicates(items []contract.ImageConfig) []string {
 //	fmt.Println("Docker  Login successful:", authResponse.Status)
 //	return nil
 //}
+
+func splitAndTrim(input string) []string {
+	parts := strings.Split(input, ",")
+
+	for i, part := range parts {
+		parts[i] = strings.TrimSpace(part)
+	}
+
+	return parts
+}

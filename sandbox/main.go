@@ -33,6 +33,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
 	"os"
@@ -66,6 +68,7 @@ var (
 	gvisorRuntime           = "runsc"
 	isolatedPostgresDSN     = flag.String("isolatedPostgresDSN", "", "isolated postgres DB instance")
 	isolatedPostgresNetwork = flag.String("isolatedPostgresNetwork", "", "isolated postgres network")
+	extraNetworkHosts       = flag.String("extraNetworkHosts", "", "is a comma-separated list of additional")
 
 	s3DockerfilesEndpoint = flag.String("s3DockerfilesEndpoint", "", "s3 endpoint with templates")
 	s3DockerfilesBucket   = flag.String("s3DockerfilesBucket", "", "s3 bucket with templates")
@@ -96,6 +99,7 @@ func main() {
 	log.Printf("Go playground sandbox starting...")
 
 	codenireManager = NewCodenireOrchestrator()
+	codenireManager.RegisterMetrics(prometheus.DefaultRegisterer)
 	codenireManager.KillAll()
 
 	runSem = make(chan struct{}, *numWorkers)
@@ -115,20 +119,15 @@ func main() {
 	h.Post("/run", runHandler)
 	h.Get("/templates", listTemplatesHandler)
 
+	h.Get("/metrics", func(w http.ResponseWriter, r *http.Request) {
+		updateDatabaseCountMetric()
+		promhttp.Handler().ServeHTTP(w, r)
+	})
+
 	httpServer := &http.Server{
 		Addr:              ":" + *listenAddr,
 		ReadHeaderTimeout: 5 * time.Second,
 		Handler:           &ochttp.Handler{Handler: h},
-
-		// TODO:: check connections
-		// ConnState: func(_ net.Conn, cs http.ConnState) {
-		//	switch cs {
-		//	case http.StateNew:
-		//		MetricsOpenConnections.Inc()
-		//	case http.StateClosed, http.StateHijacked:
-		//		MetricsOpenConnections.Dec()
-		//	}
-		// },
 	}
 
 	err = codenireManager.Prepare()

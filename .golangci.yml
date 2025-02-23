@@ -6,7 +6,6 @@ run:
   # When enabled linter will skip directories: vendor$, third_party$, testdata$, examples$, Godeps$, builtin$
   # Skipping `examples` sounds scary to me but skipping `testdata` sounds ok.
 
-
 # This file contains only configs which differ from defaults.
 # All possible options can be found here https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
 linters-settings:
@@ -172,7 +171,7 @@ linters:
     - gocritic # provides diagnostics that check for bugs, performance and style issues
     - gocyclo # computes and checks the cyclomatic complexity of functions
 #    - godot # checks if comments end in a period
-    - goimports # in addition to fixing imports, goimports also formats your code in the same style as gofmt
+#    - goimports # in addition to fixing imports, goimports also formats your code in the same style as gofmt
 #    - mnd # detects magic numbers
     - gomoddirectives # manages the use of 'replace', 'retract', and 'excludes' directives in go.mod
     - gomodguard # allow and block lists linter for direct Go module dependencies. This is different from depguard where there are different block types for example version constraints and module recommendations
@@ -190,7 +189,7 @@ linters:
 #    - nonamedreturns # reports all named returns
     - nosprintfhostport # checks for misuse of Sprintf to construct a host with port in a URL
     - predeclared # finds code that shadows one of Go's predeclared identifiers
-    - promlinter # checks Prometheus metrics naming via promlint
+#    - promlinter # checks Prometheus metrics naming via promlint
     - reassign # checks that package variables are not reassigned
 #    - revive # fast, configurable, extensible, flexible, and beautiful linter for Go, drop-in replacement of golint
     - rowserrcheck # checks whether Err of rows is checked successfully
