@@ -1,0 +1,37 @@
+{
+  "Template": "java_21",
+  "Labels": ["java"],
+  "Enabled": true,
+  "Connections": [],
+  "ContainerOptions": {
+    "CompileTTL": 30,
+    "RunTTL": 5,
+    "MemoryLimit": 524288000
+  },
+  "Workdir": "/app",
+  "IsSupportPackage": true,
+
+  "Actions": {
+    "default": {
+      "Id": "default",
+      "IsDefault": true,
+      "Name": "Java 21",
+      "CompileCmd": "javac -d out *.java",
+      "RunCmd": "java -cp out Main {ARGS} < {STDIN}",
+      "ScriptOptions": {
+        "SourceFile": "Main.java"
+      }
+    },
+
+    "java_21_gradle": {
+      "Id": "java_21_gradle",
+      "IsDefault": true,
+      "Name": "Java 21 (Gradle)",
+      "CompileCmd": "gradle build --quiet",
+      "RunCmd": "gradle run --quiet",
+      "ScriptOptions": {
+        "SourceFile": "Main.java"
+      }
+    }
+  }
+}
