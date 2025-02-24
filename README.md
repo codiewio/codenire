@@ -181,15 +181,15 @@ networks:
 ~~- [x] Add Hooks to catch/override some request (for auth, for handle code in external system)~~
 - [x] Add Multi actions in once container (different runs in one docker img, for example multi version of c++ in cpp container)
 - [ ] Add WebUI Head with Monaco
-- [ ] Add Metrics
+- [x] Add Metrics
 - [ ] Add Tests
 - Add GoLinter
   - [x] Playground
   - [x] Sandbox
-- [ ] Add debug info in API req/resp
+- [x] Add debug info in API req/resp
 - [x] Change container replica strategy
 - [ ] Add StateFull sandbox
 - [x] Compile with open network
 - [ ] Add WS messaging
 - [ ] Add action create route
-- [ ] Add out provider of templates (S3...) 
+~~- [ ] Add out provider of templates (S3...)~~ 

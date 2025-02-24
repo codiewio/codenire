@@ -11,6 +11,6 @@ Content-Type: application/json
   },
   "stdin": "123",
   "externalOptions": {
-    "CompileCmd": "curl -I https://4.ident.me"
+    "CompileCmd": "echo $HTTP_PROXY"
   }
 }
