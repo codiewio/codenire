@@ -48,14 +48,19 @@ But created for more extensible
   <p>C++17</p>
   <p>C++14</p>
   <p>C++11</p>
+  <p>C 23</p>
+  <p>C 17</p>
+  <p>C 11</p>
   <p>Ruby 2.7</p>
   <p>Ruby 3.3</p>
   <p>Kotlin 2.1.10</p>
+  <p>KotlinScript</p>
   <p>Golang 1.23.6</p>
   <p>Golang 1.24.0</p>
   <p>Rust 1.84</p>
   <p>Rust 1.84 (with Cargo)</p>
   <p>Typescript 5.7 (with built-in tsconfig.json if you not provide)</p>
+  <p>Javascript</p>
 </div>
 </details>
 
