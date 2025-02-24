@@ -15,8 +15,9 @@ But created for more extensible
 
 
 <a href="https://codiew.io/ide" target="_blank">
-  <img width="1242" alt="Screenshot 2025-02-04 at 01 04 36" src="[https://github.com/user-attachments/assets/dc79a2c8-b095-4987-909e-239f0d0afc74](https://github.com/user-attachments/assets/7b3b5666-ea83-4809-a951-5d828288bc43)" />
+  <img width="1312" alt="Screenshot 2025-02-24 at 06 12 19" src="https://github.com/user-attachments/assets/5f37e2d3-21b7-4071-b38b-05859fb0130a" />
 </a>
+
 
 
 *Playground demonstration in the [codiew.io/ide](https://codiew.io/ide)
