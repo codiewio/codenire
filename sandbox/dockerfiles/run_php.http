@@ -11,6 +11,5 @@ Content-Type: application/json
   },
   "stdin": "123",
   "externalOptions": {
-    "CompileCmd": "echo $HTTP_PROXY"
   }
 }
