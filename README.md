@@ -12,10 +12,8 @@ Inspired by:
 
 But created for more extensible  
 
-
-
 <a href="https://codiew.io/ide" target="_blank">
-  <img width="1312" alt="Screenshot 2025-02-24 at 06 12 19" src="https://github.com/user-attachments/assets/5f37e2d3-21b7-4071-b38b-05859fb0130a" />
+  <img width="1312" alt="Screenshot 2025-02-24 at 06 12 19" src="https://github.com/user-attachments/assets/a826837a-91a4-4f08-9081-2e8ae13a8037" />
 </a>
 
 
