@@ -12,12 +12,7 @@ Inspired by:
 
 But created for more extensible  
 
-
-
-<a href="https://codiew.io/ide" target="_blank">
-  <img width="1312" alt="Screenshot 2025-02-24 at 06 12 19" src="https://github.com/user-attachments/assets/5f37e2d3-21b7-4071-b38b-05859fb0130a" />
-</a>
-
+<img width="1312" alt="Screenshot 2025-02-24 at 06 12 19" src="https://github.com/user-attachments/assets/c637b921-569f-4060-90c0-dd812b3f5aca" />
 
 
 *Playground demonstration in the [codiew.io/ide](https://codiew.io/ide)
