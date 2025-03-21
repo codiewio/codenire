@@ -1,0 +1,24 @@
+{
+  "Template": "perl_5_42",
+  "Groups": [],
+  "Enabled": true,
+  "Connections": [],
+  "ContainerOptions": {
+    "CompileTTL": 30,
+    "RunTTL": 5
+  },
+  "IsSupportPackage": true,
+
+  "Actions": {
+    "default": {
+      "Id": "default",
+      "IsDefault": true,
+      "Name": "Perl 5.42",
+      "CompileCmd": "",
+      "RunCmd": "perl app.pl {ARGS} < {STDIN}",
+      "ScriptOptions": {
+        "SourceFile": "app.pl"
+      }
+    }
+  }
+}

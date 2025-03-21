@@ -9,6 +9,8 @@
   },
   "IsSupportPackage": true,
 
+  "Workdir": "/app",
+
   "Actions": {
     "default": {
       "IsDefault": true,
@@ -25,3 +27,5 @@
     }
   }
 }
+
+

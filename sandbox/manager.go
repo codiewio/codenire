@@ -327,11 +327,12 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 	ctx := context.Background()
 
 	networkMode := network.NetworkNone
-	var networkEnvs []string
+	var envs []string
+
 	if img.IsSupportPackage {
 		networkMode = *isolatedNetwork
-		networkEnvs = append(
-			networkEnvs,
+		envs = append(
+			envs,
 			fmt.Sprintf("HTTP_PROXY=%s", *isolatedGateway),
 			fmt.Sprintf("HTTPS_PROXY=%s", *isolatedGateway),
 		)
@@ -357,8 +358,8 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 
 		log.Printf("Created PostgreSQL database %s", name)
 
-		networkEnvs = append(
-			networkEnvs,
+		envs = append(
+			envs,
 			fmt.Sprintf("PGHOST=%s", "postgres_host"),
 			fmt.Sprintf("PGDATABASE=%s", name),
 			fmt.Sprintf("PGUSER=%s", user),
@@ -391,7 +392,7 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 	containerConfig := &docker.Config{
 		Image: *img.imageID,
 		Cmd:   []string{"tail", "-f", "/dev/null"},
-		Env:   networkEnvs,
+		Env:   envs,
 	}
 
 	name := stripImageName(*img.imageID)

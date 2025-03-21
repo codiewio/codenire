@@ -12,3 +12,21 @@ Content-Type: application/json
   "externalOptions": {
   }
 }
+
+###"Main.kt": "abstract class Person(val name: String) {\n    abstract fun greet()\n}\n\ninterface FoodConsumer {\n    fun eat()\n    fun pay(amount: Int) = println(\"Delicious! Here's $amount bucks!\")\n}\n\nclass RestaurantCustomer(name: String, val dish: String) : Person(name), FoodConsumer {\n    fun order() = println(\"$dish, please!\")\n    override fun eat() = println(\"*Eats $dish*\")\n    override fun greet() = println(\"It's me, $name.\")\n}\n\nfun main() {\n    val sam = RestaurantCustomer(\"Sam\", \"Mixed salad\")\n    sam.greet() // An implementation of an abstract function\n    sam.order() // A member function\n    sam.eat()   // An implementation of an interface function\n    sam.pay(10) // A default implementation in an interface\n}\n"
+
+### Kotlin 2.0.21
+POST {{url}}/run
+Content-Type: application/json
+
+{
+  "templateId": "kotlin_2",
+  "files": {
+  },
+  "args": "--name Mark",
+  "stdin": "100.00",
+  "externalOptions": {
+    "CompileCmd": "cp /provision/build.gradle.kts ./build.gradle.kts && cp /provision/gradle.properties ./gradle.properties",
+    "RunCmd": "gradle -Dgradle.user.home=/gradle-deps/.gradle run --offline --quiet"
+  }
+}
