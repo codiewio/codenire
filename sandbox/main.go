@@ -102,6 +102,8 @@ func main() {
 	codenireManager.RegisterMetrics(prometheus.DefaultRegisterer)
 	codenireManager.KillAll()
 
+	spaceManager = *NewSpaceManager()
+
 	runSem = make(chan struct{}, *numWorkers)
 	log.Printf("Workers count: %d", *numWorkers)
 
@@ -118,6 +120,7 @@ func main() {
 
 	h.Post("/run", runHandler)
 	h.Get("/templates", listTemplatesHandler)
+	h.Post("/session/connect", spaceManager.sessionConnectHandler)
 
 	h.Get("/metrics", func(w http.ResponseWriter, r *http.Request) {
 		updateDatabaseCountMetric()

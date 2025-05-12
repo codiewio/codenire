@@ -16,8 +16,7 @@ import (
 )
 
 var (
-	MaxFilesSnippetSize  int64 = 60 * 1024
-	MaxScriptSnippetSize int64 = 1 * 1024 * 1024
+	MaxFilesSnippetSize int64 = 60 * 1024
 )
 
 func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
@@ -27,7 +26,9 @@ func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	reader := http.MaxBytesReader(nil, r.Body, MaxFilesSnippetSize)
-	defer reader.Close()
+	defer func() {
+		_ = reader.Close()
+	}()
 
 	var req api.SubmissionRequest
 	if err := json.NewDecoder(reader).Decode(&req); err != nil {
@@ -53,62 +54,6 @@ func (h *Handler) RunFilesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req.Files = addDefaultFiles(req.Files, action.DefaultFiles)
-
-	apiRes, err := runCode(r.Context(), req, h.Config.BackendURL+"/run")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	writeJSONResponse(w, apiRes, http.StatusOK)
-}
-
-func (h *Handler) RunScriptHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	reader := http.MaxBytesReader(nil, r.Body, MaxScriptSnippetSize)
-	defer reader.Close()
-
-	var preReq api.SubmissionScriptRequest
-	if err := json.NewDecoder(reader).Decode(&preReq); err != nil {
-		maxBytesErr := new(http.MaxBytesError)
-		if errors.As(err, &maxBytesErr) {
-			err = fmt.Errorf("code snippet too large (max %d bytes): %w", MaxScriptSnippetSize, err)
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		http.Error(w, "invalid request: "+err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	cfg := images.GetImageConfig(preReq.TemplateId)
-	if cfg == nil {
-		http.Error(w, fmt.Sprintf("template `%s` not found", preReq.TemplateId), http.StatusBadRequest)
-		return
-	}
-
-	action, err := getAction(preReq.ActionId, cfg)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	req := api.SubmissionRequest{
-		TemplateId:      preReq.TemplateId,
-		Args:            preReq.Args,
-		Files:           make(map[string]string),
-		ActionId:        preReq.ActionId,
-		ExternalOptions: preReq.ExternalOptions,
-	}
-
-	sourceFile := action.ScriptOptions.SourceFile
-	// TODO:: check if ""
-	req.Files[sourceFile] = preReq.Code
 	req.Files = addDefaultFiles(req.Files, action.DefaultFiles)
 
 	apiRes, err := runCode(r.Context(), req, h.Config.BackendURL+"/run")

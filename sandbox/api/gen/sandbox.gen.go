@@ -36,6 +36,7 @@ type ActionItemResponse struct {
 	IsDefault              bool                                     `json:"IsDefault"`
 	IsSupportPackage       bool                                     `json:"IsSupportPackage"`
 	Name                   string                                   `json:"Name"`
+	PackageFiles           []string                                 `json:"PackageFiles"`
 	Provider               string                                   `json:"Provider"`
 	RunCmd                 string                                   `json:"RunCmd"`
 	ScriptOptions          ImageConfigScriptOptions                 `json:"ScriptOptions"`
@@ -97,6 +98,7 @@ type ImageConfig struct {
 	Enabled          bool             `json:"Enabled"`
 	Groups           []string         `json:"Groups"`
 	IsSupportPackage bool             `json:"IsSupportPackage"`
+	PackageFiles     []string         `json:"PackageFiles"`
 	Provider         string           `json:"Provider"`
 	Template         string           `json:"Template"`
 	Version          string           `json:"Version"`
@@ -116,6 +118,7 @@ type ImageTemplateConfig struct {
 	Enabled          bool             `json:"Enabled"`
 	Groups           []string         `json:"Groups"`
 	IsSupportPackage bool             `json:"IsSupportPackage"`
+	PackageFiles     []string         `json:"PackageFiles"`
 	Provider         string           `json:"Provider"`
 	Template         string           `json:"Template"`
 	Version          string           `json:"Version"`
@@ -152,6 +155,19 @@ type SandboxResponse struct {
 	ExitCode       int            `json:"exitCode"`
 	Stderr         []byte         `json:"stderr"`
 	Stdout         []byte         `json:"stdout"`
+}
+
+// StartSessionRequest defines model for StartSessionRequest.
+type StartSessionRequest struct {
+	Cluster *int   `json:"Cluster,omitempty"`
+	Id      string `json:"Id"`
+	Version *int   `json:"Version,omitempty"`
+}
+
+// StartSessionResponse defines model for StartSessionResponse.
+type StartSessionResponse struct {
+	Cluster *int `json:"Cluster,omitempty"`
+	Version *int `json:"Version,omitempty"`
 }
 
 // SubmissionRequest defines model for SubmissionRequest.
@@ -203,5 +219,5 @@ type TemplateItemResponse struct {
 // RunFilesSubmissionJSONRequestBody defines body for RunFilesSubmission for application/json ContentType.
 type RunFilesSubmissionJSONRequestBody = SubmissionRequest
 
-// RunScriptSubmissionJSONRequestBody defines body for RunScriptSubmission for application/json ContentType.
-type RunScriptSubmissionJSONRequestBody = SubmissionScriptRequest
+// StartSessionJSONRequestBody defines body for StartSession for application/json ContentType.
+type StartSessionJSONRequestBody = StartSessionRequest

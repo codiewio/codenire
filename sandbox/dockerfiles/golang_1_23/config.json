@@ -11,6 +11,11 @@
   },
   "IsSupportPackage": true,
 
+  "PackageFiles": [
+    "go.mod",
+    "go.sum"
+  ],
+
   "Actions": {
     "default": {
       "Id": "golang1.23",

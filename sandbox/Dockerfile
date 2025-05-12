@@ -56,6 +56,9 @@ COPY --from=builder /app/bin/sandbox /usr/local/bin/sandbox
 
 ADD dockerfiles /dockerfiles
 
+RUN mkdir -p /space
+
+
 ENTRYPOINT ["/usr/local/bin/sandbox"]
 
 

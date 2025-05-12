@@ -43,34 +43,27 @@
         }
       }
     },
-    "/run-script": {
+    "/session/start": {
       "post": {
-        "summary": "Run Script Submission",
-        "operationId": "runScriptSubmission",
+        "summary": "Start Code Playground Long Living Session",
+        "operationId": "startSession",
         "tags": [
           "Submission"
         ],
         "requestBody": {
-          "description": "Run Script Submission",
+          "description": "Start Code Playground Long Living Session",
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SubmissionScriptRequest"
+                "$ref": "#/components/schemas/StartSessionRequest"
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Submission ran successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SubmissionResponse"
-                }
-              }
-            }
+          "201": {
+            "description": "Session created successfully"
           }
         }
       }
@@ -154,6 +147,34 @@
           "Args",
           "Stdin"
         ]
+      },
+      "StartSessionRequest": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string"
+          },
+          "Version": {
+            "type": "integer"
+          },
+          "Cluster": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "Id"
+        ]
+      },
+      "StartSessionResponse": {
+        "type": "object",
+        "properties": {
+          "Version": {
+            "type": "integer"
+          },
+          "Cluster": {
+            "type": "integer"
+          }
+        }
       },
       "SubmissionRequest": {
         "type": "object",
@@ -382,6 +403,12 @@
           "ContainerOptions": {
             "$ref": "#/components/schemas/ContainerOptions"
           },
+          "PackageFiles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "Workdir": {
             "type": "string"
           },
@@ -402,7 +429,8 @@
           "Workdir",
           "Provider",
           "IsSupportPackage",
-          "Connections"
+          "Connections",
+          "PackageFiles"
         ]
       },
       "ImageActionConfig": {

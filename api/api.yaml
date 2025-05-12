@@ -29,28 +29,23 @@ paths:
               schema:
                 $ref: '#/components/schemas/SubmissionResponse'
 
-  /run-script:
+
+  /session/start:
     post:
-      summary: Run Script Submission
-      operationId: runScriptSubmission
+      summary: Start Code Playground Long Living Session
+      operationId: startSession
       tags:
         - Submission
       requestBody:
-        description: Run Script Submission
+        description:  Start Code Playground Long Living Session
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SubmissionScriptRequest'
+              $ref: '#/components/schemas/StartSessionRequest'
       responses:
-        "200":
-          description: Submission ran successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SubmissionResponse'
-
-
+        "201":
+          description: Session created successfully
 
 #  /templates:
 #    get:
@@ -98,29 +93,6 @@ paths:
                 items:
                   $ref: '#/components/schemas/ActionListResponse'
 
-
-#  /action:
-#    post:
-#      summary: Add new action
-#      operationId: addAction
-#      requestBody:
-#        description: Add new action
-#        required: true
-#        content:
-#          application/json:
-#            schema:
-#              $ref: '#/components/schemas/SubmissionScriptRequest'
-#      responses:
-#        "200":
-#          description: Added new action
-#          content:
-#            application/json:
-#              schema:
-#                type: array
-#                items:
-#                  $ref: '#/components/schemas/ActionListResponse'
-
-
 components:
   schemas:
     CommonSubmissionRequest:
@@ -145,6 +117,26 @@ components:
         - TemplateId
         - Args
         - Stdin
+
+    StartSessionRequest:
+      type: object
+      properties:
+        Id:
+          type: string
+        Version:
+          type: integer
+        Cluster:
+          type: integer
+      required:
+        - Id
+
+    StartSessionResponse:
+      type: object
+      properties:
+        Version:
+          type: integer
+        Cluster:
+          type: integer
 
     SubmissionRequest:
       type: object
@@ -308,6 +300,10 @@ components:
           type: string
         ContainerOptions:
           $ref: '#/components/schemas/ContainerOptions'
+        PackageFiles:
+          type: array
+          items:
+            type: string
         Workdir:
           type: string
         # Configuration provider (built-in, api, external)
@@ -326,6 +322,7 @@ components:
         - Provider
         - IsSupportPackage
         - Connections
+        - PackageFiles
 
     ImageActionConfig:
       type: object

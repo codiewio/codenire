@@ -13,23 +13,6 @@ contracts-generate:
 install-oapi-codegen:
 	$(call fn_install_goutil,github.com/deepmap/oapi-codegen/v2/cmd/oapi-codegen,$(OAPI_CODEGEN_VERSION),$(OAPI_CODEGEN_BIN),"-tags=''")
 
-define fn_install_goutil
-	@[ ! -f $(3)@$(2) ] \
-		|| exit 0 \
-		&& echo "Install $(1) ..." \
-		&& tmp=$$(mktemp -d) \
-		&& cd $$tmp \
-		&& echo "Module: $(1)" \
-		&& echo "Version: $(2)" \
-		&& echo "Binary: $(3)" \
-		&& echo "Temp: $$tmp" \
-		&& go mod init temp && go get -d $(1)@$(2) && go build $(4) -o $(3)@$(2) $(1) \
-		&& ln -sf $(3)@$(2) $(3) \
-		&& rm -rf $$tmp \
-		&& echo "$(3) installed!" \
-		&& echo "********************************"
-endef
-
 .PHONY: lint-play
 lint-play:
 	docker run -t --rm -v $(PWD):/app -w /app golangci/golangci-lint:v1.63.4 golangci-lint run -v
@@ -62,3 +45,21 @@ tag-minor:
 	git pull origin main
 	git tag $(NEW_TAG_MINOR)
 	git push origin $(NEW_TAG_MINOR)
+
+
+define fn_install_goutil
+	@[ ! -f $(3)@$(2) ] \
+		|| exit 0 \
+		&& echo "Install $(1) ..." \
+		&& tmp=$$(mktemp -d) \
+		&& cd $$tmp \
+		&& echo "Module: $(1)" \
+		&& echo "Version: $(2)" \
+		&& echo "Binary: $(3)" \
+		&& echo "Temp: $$tmp" \
+		&& go mod init temp && go get -d $(1)@$(2) && go build $(4) -o $(3)@$(2) $(1) \
+		&& ln -sf $(3)@$(2) $(3) \
+		&& rm -rf $$tmp \
+		&& echo "$(3) installed!" \
+		&& echo "********************************"
+endef

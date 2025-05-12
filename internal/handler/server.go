@@ -7,15 +7,16 @@ package handler
 import (
 	"context"
 	"fmt"
+	"github.com/go-chi/httprate"
 	"io"
 	"net/http"
 	"time"
 
 	"github.com/codiewio/codenire/internal/client"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/go-chi/httprate"
 	"github.com/go-chi/jwtauth/v5"
 	"go.opencensus.io/plugin/ochttp"
 )
@@ -25,9 +26,7 @@ var log = newStdLogger()
 var JWTAuth *jwtauth.JWTAuth
 
 func NewServer(config *Config) (*http.Server, error) {
-	handler := Handler{
-		Config: config,
-	}
+	handler := NewHandler(config)
 
 	JWTAuth = jwtauth.New("HS256", []byte(config.JWTSecretKey), nil)
 
@@ -46,13 +45,6 @@ func NewServer(config *Config) (*http.Server, error) {
 	router.Get("/", rootHandler)
 
 	router.Group(func(r chi.Router) {
-		r.Use(httprate.LimitByRealIP(1, 3*time.Second))
-		r.Use(middleware.ThrottleBacklog(
-			config.ThrottleLimit,
-			config.ThrottleLimit+config.ThrottleLimit,
-			time.Second*60,
-		))
-
 		r.Group(func(in chi.Router) {
 			if config.JWTSecretKey != "" {
 				// For debugging/example purposes, we generate and print in `--dev` mode
@@ -68,11 +60,21 @@ func NewServer(config *Config) (*http.Server, error) {
 				log.Printf("Enabled JWT handling")
 			}
 
-			in.Get("/run", handler.RunFilesHandler) // To avoid file-server handling
-			in.Post("/run", handler.RunFilesHandler)
+			in.Group(func(tr chi.Router) {
+				r.Use(httprate.LimitByRealIP(1, 3*time.Second))
+				tr.Use(middleware.ThrottleBacklog(
+					config.ThrottleLimit,
+					config.ThrottleLimit+config.ThrottleLimit,
+					time.Second*60,
+				))
 
-			in.Get("/run-script", handler.RunScriptHandler) // To avoid file-server handling
-			in.Post("/run-script", handler.RunScriptHandler)
+				tr.Get("/run", handler.RunFilesHandler) // To avoid file-server handling
+				tr.Post("/run", handler.RunFilesHandler)
+			})
+
+			//in.Get("/session/start", handler.SessionConnectHandler)
+			in.Post("/session/connect", handler.SessionConnectHandler)
+
 		})
 
 		r.Group(func(r chi.Router) {

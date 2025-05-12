@@ -25,7 +25,7 @@
 
     "java_21_gradle": {
       "Id": "java_21_gradle",
-      "IsDefault": true,
+      "IsDefault": false,
       "Name": "Java 21 (Gradle)",
       "CompileCmd": "gradle build --quiet",
       "RunCmd": "gradle run --quiet",

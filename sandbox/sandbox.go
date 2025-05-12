@@ -299,6 +299,7 @@ func sendRunResponse(w http.ResponseWriter, r *contract.SandboxResponse) {
 	w.Header().Set("Content-Length", fmt.Sprint(len(body)))
 	_, _ = w.Write(body)
 }
+
 func replacePlaceholders(input string, args string, stdinFileName *string) string {
 	placeholders := map[string]string{
 		"ARGS": args,

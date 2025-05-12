@@ -25,15 +25,15 @@ func (h *Handler) ActionListHandler(w http.ResponseWriter, _ *http.Request) {
 			isDefault := name == defaultAction || config.IsDefault
 
 			action := api.ActionItemResponse{
-				Id:               config.Id,
-				Name:             config.Name,
-				ContainerOptions: template.ContainerOptions,
-				Template:         template.Template,
-				Version:          template.Version,
-				Workdir:          template.Workdir,
-				Groups:           template.Groups,
-				Provider:         template.Provider,
-
+				Id:                     config.Id,
+				Name:                   config.Name,
+				ContainerOptions:       template.ContainerOptions,
+				Template:               template.Template,
+				Version:                template.Version,
+				Workdir:                template.Workdir,
+				Groups:                 template.Groups,
+				Provider:               template.Provider,
+				PackageFiles:           template.PackageFiles,
 				CompileCmd:             config.CompileCmd,
 				DefaultFiles:           config.DefaultFiles,
 				IsDefault:              isDefault,

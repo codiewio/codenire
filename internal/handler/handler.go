@@ -9,10 +9,25 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/gorilla/websocket"
 )
 
 type Handler struct {
 	Config *Config
+	Conn   *websocket.Conn
+}
+
+func NewHandler(config *Config) *Handler {
+	return &Handler{
+		Config: config,
+	}
+}
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
 
 func copyFilesToTmpDir(tmpDir string, files map[string]string) error {

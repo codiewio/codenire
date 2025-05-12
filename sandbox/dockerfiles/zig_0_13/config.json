@@ -1,7 +1,7 @@
 {
   "Template": "zig_0_13",
   "Groups": ["zig"],
-  "Enabled": true,
+  "Enabled": false,
   "Connections": [],
   "ContainerOptions": {
     "CompileTTL": 30,
