@@ -1,0 +1,131 @@
+services:
+  traefik:
+    image: traefik:v2.11
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - sandnet
+      - isolated_net
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    command:
+      - --entryPoints.web.address=:80
+      - --entryPoints.websecure.address=:443
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --certificatesResolvers.myresolver.acme.email=maksfedorov@gmail.com
+      - --certificatesResolvers.myresolver.acme.storage=/letsencrypt/acme.json
+      - --certificatesResolvers.myresolver.acme.httpChallenge.entryPoint=web
+
+  deproxy:
+    container_name: isolated_gateway
+    image: codiew/codenire-deproxy:latest
+    restart: always
+    environment:
+      ALLOW_HOSTS: ".github.com"
+    ports:
+      - "3128:3128"
+    networks:
+      - isolated_net
+
+  playground:
+    container_name: play_dev
+    image: codiew/codenire-playground:latest
+    volumes:
+      - ./var/plugin/plugin:/plugin
+    restart: always
+    networks:
+      - sandnet
+      - isolated_net
+    entrypoint: [
+      "/playground",
+      "--backend-url", "http://sandbox_dev",
+      "--port", "80",
+      # "--hooks-plugins", "/plugin",
+      "--external-templates", "go,go-prev",
+      #      "--jwt-secret-key", "Nh+PcIaLefOfUabgC29KKFIZ12YrTT9e3zwSZIUhBF1ZkvO/9AS/l/dPVlKlrQtEplmK1u/YeL15tupmM5oDwZQ==",
+      "--dev",
+      "--cors-allow-origin", "https://codenire.io, http://127.0.0.1:4202",
+    ]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.playground.tls.certresolver=myresolver"
+      - "traefik.http.routers.playground.rule=Host(`play.codiew.io`)"
+      - "traefik.http.routers.playground.entrypoints=websecure"
+      - "traefik.http.services.playground.loadbalancer.server.port=80"
+
+  sandbox:
+    container_name: sandbox_dev
+    image: codiew/codenire-sandbox:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - sandnet
+      - isolated_net
+      - internal_pg_net
+    restart: always
+    environment:
+      HTTP_PROXY: "http://isolated_gateway:3128"
+      HTTPS_PROXY: "http://isolated_gateway:3128"
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: "nyc3"
+    entrypoint: [
+      "/usr/local/bin/sandbox",
+      "--replicaContainerCnt", "4",
+      "--port", "80",
+      "--dev",
+      "--dockerFilesPath", "/dockerfiles",
+      "--isolatedNetwork", "codenire_isolated_net", # network name has prefix (codenire_) in docker-compose
+      "--isolatedGateway", "http://isolated_gateway:3128",
+      "--isolatedPostgresDSN", "postgres://sandbox:sandbox@isolated_postgres:5432/postgres",
+      "--isolatedPostgresNetwork", "codenire_internal_pg_net", # network name has prefix (codenire_) in docker-compose
+      "--extraNetworkHosts", "postgres_host:172.25.0.2,isolated_gateway:172.24.0.2",
+      #      "--s3DockerfilesEndpoint", "https://nyc3.digitaloceanspaces.com",
+      #      "--s3DockerfilesBucket", "codiew",
+      #      "--s3DockerfilesPrefix", "codenire_templates"
+    ]
+
+  postgres:
+    #    image: postgres:16
+    build:
+      context: sandbox_db/pg
+      dockerfile: Dockerfile
+    container_name: isolated_postgres
+    restart: unless-stopped
+    ports:
+      - "54333:5432"
+    environment:
+      POSTGRES_USER: sandbox
+      POSTGRES_PASSWORD: sandbox
+      POSTGRES_DB: sandbox
+    networks:
+      - sandnet
+      - internal_pg_net
+    security_opt:
+      - no-new-privileges:true
+    #    read_only: true
+    tmpfs:
+      - /var/lib/postgresql/data:size=512M,mode=700
+    ulimits:
+      nofile:
+        soft: 1024
+        hard: 4096
+    mem_limit: 1024m
+
+networks:
+  internal_pg_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+  sandnet:
+  isolated_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.24.0.0/16

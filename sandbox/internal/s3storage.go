@@ -25,7 +25,6 @@ func DownloadTemplates(tmpDir, s3Endpoint, s3Bucket, s3Prefix, region string) (*
 	})
 
 	if err != nil {
-		log.Println("Err", err)
 		return nil, err
 	}
 
