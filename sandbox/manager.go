@@ -336,6 +336,10 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 			fmt.Sprintf("HTTP_PROXY=%s", *isolatedGateway),
 			fmt.Sprintf("HTTPS_PROXY=%s", *isolatedGateway),
 		)
+
+		log.Printf("Allowed isolated network %s for %s", *isolatedGateway, img.Template)
+	} else {
+		log.Printf("Disabled isolated network %s for %s", *isolatedGateway, img.Template)
 	}
 
 	dbName := ""

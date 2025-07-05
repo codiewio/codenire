@@ -9,3 +9,5 @@ node_modules/
 Makefile
 /example.local.http
 .env
+/.env.prod
+/letsencrypt/acme.json

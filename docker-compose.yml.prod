@@ -45,9 +45,8 @@ services:
       "/playground",
       "--backend-url", "http://sandbox_dev",
       "--port", "80",
-      # "--hooks-plugins", "/plugin",
       "--external-templates", "go,go-prev",
-      #      "--jwt-secret-key", "Nh+PcIaLefOfUabgC29KKFIZ12YrTT9e3zwSZIUhBF1ZkvO/9AS/l/dPVlKlrQtEplmK1u/YeL15tupmM5oDwZQ==",
+      "--jwt-secret-key", "${JWT_SECRET_KEY}",
       "--dev",
       "--cors-allow-origin", "https://codenire.io, http://127.0.0.1:4202",
     ]

@@ -7,7 +7,7 @@
     "CompileTTL": 30,
     "RunTTL": 5
   },
-  "IsSupportPackage": true,
+  "IsSupportPackage": false,
 
   "Workdir": "/project",
 

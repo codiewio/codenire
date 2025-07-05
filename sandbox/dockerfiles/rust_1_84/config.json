@@ -8,7 +8,7 @@
     "CompileTTL": 30,
     "RunTTL": 5
   },
-  "IsSupportPackage": true,
+  "IsSupportPackage": false,
 
   "Actions": {
     "cargo": {

@@ -9,7 +9,7 @@
     "MemoryLimit": 524288000
   },
   "Workdir": "/app",
-  "IsSupportPackage": true,
+  "IsSupportPackage": false,
 
   "Actions": {
     "default": {

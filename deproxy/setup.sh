@@ -27,6 +27,9 @@ if [[ -z ${1} ]]; then
     squid -N -f /etc/squid/squid.conf -z
   fi
   echo "Starting squid..."
+  echo "Squid use config: "
+  cat $CONFIG_FILE
+
   squid -f /etc/squid/squid.conf -NYCd 1
 else
   exec "$@"

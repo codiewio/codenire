@@ -9,7 +9,7 @@
     "RunTTL": 5,
     "MemoryLimit": 314572800
   },
-  "IsSupportPackage": true,
+  "IsSupportPackage": false,
 
   "Actions": {
     "default": {
