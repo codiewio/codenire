@@ -40,7 +40,6 @@ services:
     restart: always
     networks:
       - sandnet
-      - isolated_net
     entrypoint: [
       "/playground",
       "--backend-url", "http://sandbox_dev",
@@ -52,7 +51,7 @@ services:
     ]
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=sandnet"
+      - "traefik.docker.network=codenire_sandnet"
       - "traefik.http.routers.playground.tls.certresolver=myresolver"
       - "traefik.http.routers.playground.rule=Host(`play.codiew.io`)"
       - "traefik.http.routers.playground.entrypoints=websecure"
