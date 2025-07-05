@@ -8,6 +8,7 @@ services:
       - "443:443"
     networks:
       - sandnet
+      - isolated_net
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./letsencrypt:/letsencrypt
