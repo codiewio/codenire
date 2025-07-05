@@ -23,7 +23,7 @@ services:
 
   deproxy:
     container_name: isolated_gateway
-    image: codiew/codenire-deproxy:latest
+    image: codiew/codenire-deproxy:${TAG}
     restart: always
     environment:
       ALLOW_HOSTS: ".github.com"
@@ -34,7 +34,7 @@ services:
 
   playground:
     container_name: play_dev
-    image: codiew/codenire-playground:latest
+    image: codiew/codenire-playground:${TAG}
     volumes:
       - ./var/plugin/plugin:/plugin
     restart: always
@@ -47,8 +47,8 @@ services:
       "--port", "80",
       "--external-templates", "go,go-prev",
       "--jwt-secret-key", "${JWT_SECRET_KEY}",
-      "--dev",
-      "--cors-allow-origin", "https://codenire.io, http://127.0.0.1:4202",
+      "${DEV_FLAG}",
+      "--cors-allow-origin", "https://codenire.io, http://127.0.0.1:4202, https://codiew.io",
     ]
     labels:
       - "traefik.enable=true"
@@ -60,7 +60,7 @@ services:
 
   sandbox:
     container_name: sandbox_dev
-    image: codiew/codenire-sandbox:latest
+    image: codiew/codenire-sandbox:${TAG}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
