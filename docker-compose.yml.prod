@@ -34,7 +34,10 @@ services:
 
   playground:
     container_name: play_dev
-    image: codiew/codenire-playground:${TAG}
+#    image: codiew/codenire-playground:${TAG}
+    build:
+      context: .
+      dockerfile: Dockerfile
     volumes:
       - ./var/plugin/plugin:/plugin
     restart: always
@@ -59,7 +62,10 @@ services:
 
   sandbox:
     container_name: sandbox_dev
-    image: codiew/codenire-sandbox:${TAG}
+#    image: codiew/codenire-sandbox:${TAG}
+    build:
+      context: ./sandbox
+      dockerfile: Dockerfile
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -92,7 +98,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: sandbox
-      POSTGRES_PASSWORD: sandbox
+      POSTGRES_PASSWORD: ${PRIVATE_PG_PASSWORD}
       POSTGRES_DB: sandbox
     networks:
       - sandnet
