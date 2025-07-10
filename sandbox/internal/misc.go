@@ -3,6 +3,8 @@ package internal
 import (
 	"crypto/rand"
 	"fmt"
+	"log"
+	"net/url"
 )
 
 func RandHex(n int) string {
@@ -12,4 +14,13 @@ func RandHex(n int) string {
 		panic(err)
 	}
 	return fmt.Sprintf("%x", b)
+}
+
+func ParseDsnHost(dsn string) string {
+	parsedUrl, err := url.Parse(dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return parsedUrl.Hostname()
 }

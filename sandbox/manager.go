@@ -364,7 +364,7 @@ func (m *CodenireOrchestrator) runSndContainer(img BuiltImage) (cont *StartedCon
 
 		envs = append(
 			envs,
-			fmt.Sprintf("PGHOST=%s", "postgres_host"),
+			fmt.Sprintf("PGHOST=%s", internal.ParseDsnHost(*isolatedPostgresDSN)),
 			fmt.Sprintf("PGDATABASE=%s", name),
 			fmt.Sprintf("PGUSER=%s", user),
 			fmt.Sprintf("PGPASSWORD=%s", password),

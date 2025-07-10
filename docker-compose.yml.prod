@@ -78,7 +78,7 @@ services:
       "--dockerFilesPath", "/dockerfiles",
       "--isolatedNetwork", "codenire_isolated_net", # network name has prefix (codenire_) in docker-compose
       "--isolatedGateway", "http://isolated_gateway:3128",
-      "--isolatedPostgresDSN", "postgres://sandbox:sandbox@isolated_postgres:5432/postgres",
+      "--isolatedPostgresDSN", "postgres://sandbox:${PRIVATE_PG_PASSWORD}@${PRIVATE_PG_HOST}:5432/postgres",
       "--isolatedPostgresNetwork", "codenire_internal_pg_net", # network name has prefix (codenire_) in docker-compose
       "--extraNetworkHosts", "postgres_host:172.25.0.2,isolated_gateway:172.24.0.2",
     ]
@@ -90,8 +90,6 @@ services:
       dockerfile: Dockerfile
     container_name: isolated_postgres
     restart: unless-stopped
-    ports:
-      - "54333:5432"
     environment:
       POSTGRES_USER: sandbox
       POSTGRES_PASSWORD: sandbox
