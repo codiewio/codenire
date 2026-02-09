@@ -16,16 +16,27 @@ type Handler struct {
 }
 
 func copyFilesToTmpDir(tmpDir string, files map[string]string) error {
-	for f, src := range files {
-		in := filepath.Join(tmpDir, f)
-		if strings.Contains(f, "/") {
-			if err := os.MkdirAll(filepath.Dir(in), 0755); err != nil {
+	cleanTmpDir, err := filepath.Abs(tmpDir)
+	if err != nil {
+		return err
+	}
+
+	for relPath, content := range files {
+		targetPath := filepath.Join(cleanTmpDir, relPath)
+
+		rel, err := filepath.Rel(cleanTmpDir, targetPath)
+		if err != nil || strings.HasPrefix(rel, "..") {
+			return fmt.Errorf("invalid file path %q: path traversal detected", relPath)
+		}
+
+		if strings.Contains(relPath, "/") {
+			if err = os.MkdirAll(filepath.Dir(targetPath), 0755); err != nil {
 				return err
 			}
 		}
-		//nolint
-		if err := os.WriteFile(in, []byte(src), 0644); err != nil {
-			return fmt.Errorf("error creating temp file %q: %w", in, err)
+
+		if err = os.WriteFile(targetPath, []byte(content), 0644); err != nil {
+			return fmt.Errorf("error creating temp file %q: %w", targetPath, err)
 		}
 	}
 
