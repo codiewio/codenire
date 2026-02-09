@@ -29,10 +29,8 @@ func copyFilesToTmpDir(tmpDir string, files map[string]string) error {
 			return fmt.Errorf("invalid file path %q: path traversal detected", relPath)
 		}
 
-		if strings.Contains(relPath, "/") {
-			if err = os.MkdirAll(filepath.Dir(targetPath), 0755); err != nil {
-				return err
-			}
+		if err = os.MkdirAll(filepath.Dir(targetPath), 0755); err != nil {
+			return err
 		}
 
 		if err = os.WriteFile(targetPath, []byte(content), 0644); err != nil {
