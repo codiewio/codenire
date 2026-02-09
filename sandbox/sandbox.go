@@ -107,6 +107,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	action, exists := cont.Image.Actions[req.Action]
 	if !exists {
 		sendRunError(w, fmt.Sprintf("action %s not found with template %s", req.Action, req.SandId), nil)
+		return
 	}
 
 	//nolint
